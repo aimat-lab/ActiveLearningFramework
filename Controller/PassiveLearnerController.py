@@ -8,9 +8,9 @@ class PassiveLearnerController:
         self.labelled_set = training_set
         self.unlabelled_set = candidate_set
 
-    def init_pl(self):
-        # check for instances in labelled set => need to provide some initial instances as a starting point
-        self.pl.initial_training(None, None)
+    def init_pl(self, batch_size, epochs):
+        (x_train, y_train) = self.labelled_set.pop_all_labelled_instances()
+        self.pl.initial_training(x_train, y_train, batch_size=batch_size, epochs=epochs)
 
     def training_job(self):
         self.labelled_set

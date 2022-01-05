@@ -1,16 +1,16 @@
-# This is a sample Python script.
+from HousePricingExample import SimpleRegression_Housing
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+from Controller import PassiveLearnerController
+from keras.datasets import boston_housing
 
+from HousePricingExample import TrainingSetHouses, QuerySetHouses, CandidateSetHouses
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
-
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
+    (x_train, y_train), (x_test, y_test) = boston_housing.load_data(test_split=0.9)
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    training_set = TrainingSetHouses(x_train, y_train)
+    candidate_set = CandidateSetHouses()
+    query_set = QuerySetHouses()
+
+    pl = PassiveLearnerController(pl=SimpleRegression_Housing(), training_set=training_set, candidate_set=candidate_set)
+    pl.init_pl(8, 10)
