@@ -62,9 +62,6 @@ class TrainingSetHouses(TrainingSet):
         )
         cursor = db.cursor()
 
-        sql = "DROP TABLE IF EXISTS labelled_set"
-        cursor.execute(sql)
-
         sql = """INSERT INTO labelled_set (
                             ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE, PRICE
                          ) VALUES (
@@ -101,10 +98,11 @@ class TrainingSetHouses(TrainingSet):
             else:
                 x = np.append(x, [np.array(item[1:-1])], axis=0)
             y = np.append(y, item[-1])
-        return (x, y)
+        return x, y
 
 
 class CandidateSetHouses(CandidateSet):
+
     def __init__(self):
         db = mysql.connector.connect(
             host="localhost",
@@ -134,13 +132,45 @@ class CandidateSetHouses(CandidateSet):
                             TWELVE double,
                             predicted_PRICE double,
                             accuracy double
-                        )"""
+                        )"""  # how should accuracy look?????
         cursor.execute(sql)
 
         db.close()
 
+    def add_instance(self, x, y_prediction, accuracy):
+        db = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="toor",
+            database="housepricing_example"
+        )
+        cursor = db.cursor()
+
+        sql = """INSERT INTO predicted_set (
+                                    ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE, predicted_PRICE, accuracy 
+                                 ) VALUES (
+                                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                                 )"""
+        val = (str(x[0]), str(x[1]), str(x[2]), str(x[3]), str(x[4]), str(x[5]), str(x[6]), str(x[7]), str(x[8]), str(x[9]), str(x[10]), str(x[11]),
+               str(x[12]), str(y_prediction), str(accuracy))
+
+        cursor.execute(sql, val)
+        db.commit()
+
+        db.close()
+
+    def retrieve_all_instances(self):
+        pass
+
+    def remove_instance(self, x):
+        pass
+
+    def update_instance(self, x, new_y_prediction, new_certainty):
+        pass
+
 
 class QuerySetHouses(QuerySet):
+
     def __init__(self):
         db = mysql.connector.connect(
             host="localhost",
@@ -172,3 +202,31 @@ class QuerySetHouses(QuerySet):
         cursor.execute(sql)
 
         db.close()
+
+        self.last_read_idx = -1
+        self.last_write_idx = -1
+
+    def add_instance(self, x):
+        db = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="toor",
+            database="housepricing_example"
+        )
+        cursor = db.cursor()
+
+        sql = """INSERT INTO unlabelled_set (
+                                            ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE 
+                                         ) VALUES (
+                                            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                                         )"""
+        val = (str(x[0]), str(x[1]), str(x[2]), str(x[3]), str(x[4]), str(x[5]), str(x[6]), str(x[7]), str(x[8]), str(x[9]), str(x[10]), str(x[11]),
+               str(x[12]))
+
+        cursor.execute(sql, val)
+        db.commit()
+
+        db.close()
+
+    def pop_instance(self):
+        pass

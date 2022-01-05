@@ -1,6 +1,6 @@
 class CandidateSet:
 
-    def add_instance(self, x, y_prediction, certainty):
+    def add_instance(self, x, y_prediction, accuracy):
         raise NotImplementedError
 
     def retrieve_all_instances(self):
@@ -11,4 +11,3 @@ class CandidateSet:
 
     def update_instance(self, x, new_y_prediction, new_certainty):
         raise NotImplementedError
-

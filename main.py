@@ -1,8 +1,7 @@
-from HousePricingExample import SimpleRegression_Housing
-
-from Controller import PassiveLearnerController
 from keras.datasets import boston_housing
 
+from Controller import PassiveLearnerController
+from HousePricingExample import SimpleRegression_Housing
 from HousePricingExample import TrainingSetHouses, QuerySetHouses, CandidateSetHouses
 
 if __name__ == '__main__':
