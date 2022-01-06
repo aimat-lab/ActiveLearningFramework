@@ -92,6 +92,9 @@ class TrainingSetHouses(TrainingSet):
         db.commit()
         db.close()
 
+        if len(result) == 0:
+            raise NoNewElementException
+
         x, y = np.array([]), np.array([])
         for item in result:
             if len(x) == 0:
@@ -260,7 +263,7 @@ class QuerySetHouses(QuerySet):
             cursor.execute("SELECT * from unlabelled_set")
             res = cursor.fetchall()[0]
 
-            cursor.execute("DELETE FROM unlabelled_set WHERE id = %s", (str(res[0]), ))
+            cursor.execute("DELETE FROM unlabelled_set WHERE id = %s", (str(res[0]),))
             db.commit()
             db.close()
 
