@@ -1,0 +1,2 @@
+class NoNewElementException(Exception):
+    pass

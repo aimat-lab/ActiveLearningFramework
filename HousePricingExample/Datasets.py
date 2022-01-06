@@ -1,6 +1,7 @@
 import mysql.connector
 import numpy as np
 
+from Exceptions import NoNewElementException
 from Interfaces import TrainingSet, CandidateSet, QuerySet
 
 
@@ -215,18 +216,58 @@ class QuerySetHouses(QuerySet):
         )
         cursor = db.cursor()
 
-        sql = """INSERT INTO unlabelled_set (
-                                            ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE 
-                                         ) VALUES (
-                                            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
-                                         )"""
+        sql = """SELECT id from unlabelled_set WHERE 
+                            ZERO = %s AND ONE = %s AND TWO = %s AND THREE = %s AND FOUR = %s AND FIVE = %s AND SIX = %s 
+                            AND SEVEN = %s AND EIGHT = %s AND NINE = %s AND TEN = %s AND ELEVEN = %s AND TWELVE = %s"""
         val = (str(x[0]), str(x[1]), str(x[2]), str(x[3]), str(x[4]), str(x[5]), str(x[6]), str(x[7]), str(x[8]), str(x[9]), str(x[10]), str(x[11]),
                str(x[12]))
 
         cursor.execute(sql, val)
-        db.commit()
+        res = cursor.fetchall()
+        if len(res) == 0:  # if already exists: how to set last write?
+            sql = """INSERT INTO unlabelled_set (
+                                            ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE 
+                                         ) VALUES (
+                                            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                                         )"""
+
+            cursor.execute(sql, val)
+            db.commit()
+
+            sql = """SELECT id from unlabelled_set WHERE 
+                    ZERO = %s AND ONE = %s AND TWO = %s AND THREE = %s AND FOUR = %s AND FIVE = %s AND SIX = %s 
+                    AND SEVEN = %s AND EIGHT = %s AND NINE = %s AND TEN = %s AND ELEVEN = %s AND TWELVE = %s"""
+
+            cursor.execute(sql, val)
+            res = cursor.fetchall()
+            (id,) = res[0]
+            self.last_write_idx = id
 
         db.close()
 
     def pop_instance(self):
-        pass
+        if self.last_write_idx == self.last_read_idx:
+            raise NoNewElementException
+        else:
+            db = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                password="toor",
+                database="housepricing_example"
+            )
+            cursor = db.cursor()
+
+            cursor.execute("SELECT * from unlabelled_set")
+            res = cursor.fetchall()[0]
+
+            cursor.execute("DELETE FROM unlabelled_set WHERE id = %s", (str(res[0]), ))
+            db.commit()
+            db.close()
+
+            x = np.array([np.array(res[1:-1])])
+            print(x)
+
+            self.last_read_idx = res[0]
+
+            print(self.last_read_idx)
+            return x
