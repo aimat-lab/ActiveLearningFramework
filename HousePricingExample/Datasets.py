@@ -76,6 +76,33 @@ class TrainingSetHouses(TrainingSet):
 
         db.close()
 
+    def pop_labelled_instance(self):
+        db = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="toor",
+            database="housepricing_example"
+        )
+        cursor = db.cursor()
+
+        cursor.execute("SELECT MIN(id), ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE, PRICE FROM labelled_set")
+        result = cursor.fetchall()
+
+        if len(result) == 0:
+            db.close()
+            raise NoNewElementException
+
+        else:
+            id = result[0][0]
+            cursor.execute("DELETE FROM labelled_set WHERE id = %s", (str(id), ))
+            db.commit()
+            db.close()
+
+        x = np.array(result[0][1:-1])
+        y = result[0][-1]
+
+        return x, y
+
     def pop_all_labelled_instances(self):
         db = mysql.connector.connect(
             host="localhost",
@@ -95,14 +122,14 @@ class TrainingSetHouses(TrainingSet):
         if len(result) == 0:
             raise NoNewElementException
 
-        x, y = np.array([]), np.array([])
+        xs, ys = np.array([]), np.array([])
         for item in result:
-            if len(x) == 0:
-                x = np.array([np.array(item[1:-1])])
+            if len(xs) == 0:
+                xs = np.array([np.array(item[1:-1])])
             else:
-                x = np.append(x, [np.array(item[1:-1])], axis=0)
-            y = np.append(y, item[-1])
-        return x, y
+                xs = np.append(xs, [np.array(item[1:-1])], axis=0)
+            ys = np.append(ys, item[-1])
+        return xs, ys
 
 
 class CandidateSetHouses(CandidateSet):
@@ -260,17 +287,13 @@ class QuerySetHouses(QuerySet):
             )
             cursor = db.cursor()
 
-            cursor.execute("SELECT * from unlabelled_set")
+            cursor.execute("SELECT MIN(id), ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE from unlabelled_set")
             res = cursor.fetchall()[0]
 
             cursor.execute("DELETE FROM unlabelled_set WHERE id = %s", (str(res[0]),))
             db.commit()
             db.close()
 
-            x = np.array([np.array(res[1:-1])])
-            print(x)
-
+            x = np.array(res[1:])
             self.last_read_idx = res[0]
-
-            print(self.last_read_idx)
             return x

@@ -9,4 +9,6 @@ class OracleController:
         self.unlabelled_set = query_set
 
     def training_job(self):
-        self.unlabelled_set
+        query_instance = self.unlabelled_set.pop_instance()
+        label = self.o.query(query_instance)
+        self.labelled_set.append_labelled_instance(query_instance, label)

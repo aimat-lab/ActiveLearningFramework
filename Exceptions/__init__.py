@@ -1,1 +1,1 @@
-from .DBExceptions import NoNewElementException
+from .DBExceptions import NoNewElementException, NoSuchInput

@@ -8,7 +8,7 @@ from tensorflow.keras.optimizers import RMSprop
 from Interfaces import PassiveLearner
 
 
-class SimpleRegression_Housing(PassiveLearner):
+class SimpleRegressionHousing(PassiveLearner):
 
     def __init__(self):
         model = Sequential()
@@ -19,6 +19,8 @@ class SimpleRegression_Housing(PassiveLearner):
 
         self.model = model
 
+        self.x_train, self.y_train = np.array([]), np.array([])
+
     def initial_training(self, x_train, y_train, batch_size, epochs):
         x_train_scaled = preprocessing.scale(x_train)
         self.scaler = preprocessing.StandardScaler().fit(x_train)
@@ -28,6 +30,17 @@ class SimpleRegression_Housing(PassiveLearner):
     def predict(self, x):
         x_array = np.array([x, ])
         return self.model.predict(self.scaler.transform(x_array)).flatten()[0]
+
+    def train(self, x, y):
+        if len(self.x_train) == 0:
+            self.x_train = np.array([x])
+        else:
+            self.x_train = np.append(self.x_train, [x], axis=0)
+        self.y_train = np.append(self.y_train, y)
+
+        if len(self.x_train) == 16:
+            self.train_batch(self.x_train, self.y_train, 4, 5)
+            self.x_train, self.y_train = np.array([]), np.array([])
 
     def train_batch(self, x_train, y_train, batch_size, epochs):
         self.model.fit(self.scaler.transform(x_train), y_train, batch_size=batch_size, epochs=epochs, verbose=1,
