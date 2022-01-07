@@ -1,2 +1,2 @@
-from .ALComponentInterfaces import PassiveLearner, Oracle
+from .AdditionalComponentInterfaces import PassiveLearner, Oracle
 from .DatabaseInterfaces import CandidateSet, TrainingSet, QuerySet
