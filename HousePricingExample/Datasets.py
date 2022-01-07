@@ -168,7 +168,7 @@ class CandidateSetHouses(CandidateSet):
 
         db.close()
 
-    def add_instance(self, x, y_prediction, accuracy):
+    def add_instance(self, x, y_prediction, certainty):
         db = mysql.connector.connect(
             host="localhost",
             user="root",
@@ -183,7 +183,7 @@ class CandidateSetHouses(CandidateSet):
                                     %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
                                  )"""
         val = (str(x[0]), str(x[1]), str(x[2]), str(x[3]), str(x[4]), str(x[5]), str(x[6]), str(x[7]), str(x[8]), str(x[9]), str(x[10]), str(x[11]),
-               str(x[12]), str(y_prediction), str(accuracy))
+               str(x[12]), str(y_prediction), str(certainty))
 
         cursor.execute(sql, val)
         db.commit()
