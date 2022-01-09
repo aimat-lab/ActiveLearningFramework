@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
-from scenario_dependend_interfaces import Oracle, TrainingSet, QuerySet
+from additional_component_interfaces import Oracle
+from workflow_management import TrainingSet, QuerySet
 
 
 @dataclass()

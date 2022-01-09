@@ -20,6 +20,7 @@ class SimpleRegressionHousing(PassiveLearner):
         self.model = model
 
         self.x_train, self.y_train = np.array([]), np.array([])
+        self.scaler = None
 
     def initial_training(self, x_train, y_train, batch_size, epochs):
         x_train_scaled = preprocessing.scale(x_train)

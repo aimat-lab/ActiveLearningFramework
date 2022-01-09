@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
-from scenario_dependend_interfaces import PassiveLearner, TrainingSet, CandidateSet
+from additional_component_interfaces import PassiveLearner
+from workflow_management import TrainingSet, CandidateSet
 
 
 @dataclass()
