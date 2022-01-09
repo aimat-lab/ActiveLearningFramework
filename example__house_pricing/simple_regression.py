@@ -2,10 +2,9 @@ import numpy as np
 from keras.callbacks import EarlyStopping
 from keras.layers import Dense
 from keras.models import Sequential
+from scenario_dependend_interfaces import PassiveLearner
 from sklearn import preprocessing
 from tensorflow.keras.optimizers import RMSprop
-
-from scenario_dependend_interfaces import PassiveLearner
 
 
 class SimpleRegressionHousing(PassiveLearner):

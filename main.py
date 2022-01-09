@@ -1,8 +1,8 @@
 from keras.datasets import boston_housing
 
-from workflow_controller import PassiveLearnerController, OracleController
 from example__house_pricing import SimpleRegressionHousing, OracleHouses
 from example__house_pricing import TrainingSetHouses, QuerySetHouses, CandidateSetHouses
+from workflow_management import PassiveLearnerController, OracleController
 
 if __name__ == '__main__':
     (x_train, y_train), (x_test, y_test) = boston_housing.load_data(test_split=0.9)

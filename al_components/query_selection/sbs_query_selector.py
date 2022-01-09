@@ -1,7 +1,8 @@
-from ALComponents.query_selection import QuerySelector, InformativenessAnalyser
+from dataclasses import dataclass
+
 from scenario_dependend_interfaces import CandidateSet, QuerySet
 
-from dataclasses import dataclass
+from al_components.query_selection import QuerySelector, InformativenessAnalyser
 
 
 def decide_discard(info):
@@ -22,4 +23,3 @@ class SbS_QuerySelector(QuerySelector):
             self.select_query_instance()
         else:
             self.query_set.add_instance(x)
-

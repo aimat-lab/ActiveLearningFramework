@@ -1,8 +1,8 @@
 import mysql.connector
 import numpy as np
-
-from exceptions import NoNewElementException
 from scenario_dependend_interfaces import TrainingSet, CandidateSet, QuerySet
+
+from helpers.exceptions import NoNewElementException
 
 
 class TrainingSetHouses(TrainingSet):
@@ -19,10 +19,10 @@ class TrainingSetHouses(TrainingSet):
         sql = "DROP TABLE IF EXISTS labelled_set"
         cursor.execute(sql)
 
+        # TODO: ensure uniquely identification by input
         sql = """CREATE TABLE labelled_set (
                     id int AUTO_INCREMENT PRIMARY KEY,
-                    ZERO double, ONE double, TWO double, THREE double, FOUR double, FIVE double, SIX double,
-                    SEVEN double, EIGHT double, NINE double, TEN double, ELEVEN double, TWELVE double,
+                    ZERO double, ONE double, TWO double, THREE double, FOUR double, FIVE double, SIX double, SEVEN double, EIGHT double, NINE double, TEN double, ELEVEN double, TWELVE double,
                     PRICE double
                 )"""
         cursor.execute(sql)
@@ -135,24 +135,13 @@ class CandidateSetHouses(CandidateSet):
         sql = "DROP TABLE IF EXISTS predicted_set"
         cursor.execute(sql)
 
+        # TODO: ensure uniquely identification by input
         sql = """CREATE TABLE predicted_set (
-                            id int AUTO_INCREMENT PRIMARY KEY,
-                            ZERO double,
-                            ONE double,
-                            TWO double,
-                            THREE double,
-                            FOUR double,
-                            FIVE double,
-                            SIX double,
-                            SEVEN double,
-                            EIGHT double,
-                            NINE double,
-                            TEN double,
-                            ELEVEN double,
-                            TWELVE double,
-                            predicted_PRICE double,
-                            cerainty double
-                        )"""  # how should accuracy look?????
+                    id int AUTO_INCREMENT PRIMARY KEY,
+                    ZERO double, ONE double, TWO double, THREE double, FOUR double, FIVE double, SIX double, SEVEN double, EIGHT double, NINE double, TEN double, ELEVEN double, TWELVE double,
+                    predicted_PRICE double,
+                    certainty double
+                 )"""  # TODO: how should certainty look like?????
         cursor.execute(sql)
 
         db.close()
@@ -229,22 +218,11 @@ class QuerySetHouses(QuerySet):
         sql = "DROP TABLE IF EXISTS unlabelled_set"
         cursor.execute(sql)
 
+        # TODO: ensure uniquely identification by input
         sql = """CREATE TABLE unlabelled_set (
-                            id int AUTO_INCREMENT PRIMARY KEY,
-                            ZERO double,
-                            ONE double,
-                            TWO double,
-                            THREE double,
-                            FOUR double,
-                            FIVE double,
-                            SIX double,
-                            SEVEN double,
-                            EIGHT double,
-                            NINE double,
-                            TEN double,
-                            ELEVEN double,
-                            TWELVE double
-                        )"""
+                    id int AUTO_INCREMENT PRIMARY KEY,
+                    ZERO double, ONE double, TWO double, THREE double, FOUR double, FIVE double, SIX double, SEVEN double, EIGHT double, NINE double, TEN double, ELEVEN double, TWELVE double,
+                 )"""
         cursor.execute(sql)
 
         db.close()
@@ -261,27 +239,22 @@ class QuerySetHouses(QuerySet):
         )
         cursor = db.cursor()
 
-        sql = """SELECT id from unlabelled_set WHERE 
-                            ZERO = %s AND ONE = %s AND TWO = %s AND THREE = %s AND FOUR = %s AND FIVE = %s AND SIX = %s 
-                            AND SEVEN = %s AND EIGHT = %s AND NINE = %s AND TEN = %s AND ELEVEN = %s AND TWELVE = %s"""
-        val = (str(x[0]), str(x[1]), str(x[2]), str(x[3]), str(x[4]), str(x[5]), str(x[6]), str(x[7]), str(x[8]), str(x[9]), str(x[10]), str(x[11]),
-               str(x[12]))
+        sql = "SELECT id from unlabelled_set WHERE ZERO = %s AND ONE = %s AND TWO = %s AND THREE = %s AND FOUR = %s AND FIVE = %s AND SIX = %s AND SEVEN = %s AND EIGHT = %s AND NINE = %s AND TEN = %s AND ELEVEN = %s AND TWELVE = %s"
+        val = (str(x[0]), str(x[1]), str(x[2]), str(x[3]), str(x[4]), str(x[5]), str(x[6]), str(x[7]), str(x[8]), str(x[9]), str(x[10]), str(x[11]), str(x[12]))
 
         cursor.execute(sql, val)
         res = cursor.fetchall()
         if len(res) == 0:  # if already exists: how to set last write?
             sql = """INSERT INTO unlabelled_set (
-                                            ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE 
-                                         ) VALUES (
-                                            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
-                                         )"""
+                            ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE 
+                     ) VALUES (
+                            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                     )"""
 
             cursor.execute(sql, val)
             db.commit()
 
-            sql = """SELECT id from unlabelled_set WHERE 
-                    ZERO = %s AND ONE = %s AND TWO = %s AND THREE = %s AND FOUR = %s AND FIVE = %s AND SIX = %s 
-                    AND SEVEN = %s AND EIGHT = %s AND NINE = %s AND TEN = %s AND ELEVEN = %s AND TWELVE = %s"""
+            sql = "SELECT id from unlabelled_set WHERE ZERO = %s AND ONE = %s AND TWO = %s AND THREE = %s AND FOUR = %s AND FIVE = %s AND SIX = %s AND SEVEN = %s AND EIGHT = %s AND NINE = %s AND TEN = %s AND ELEVEN = %s AND TWELVE = %s"
 
             cursor.execute(sql, val)
             res = cursor.fetchall()
@@ -304,11 +277,24 @@ class QuerySetHouses(QuerySet):
 
             cursor.execute("SELECT MIN(id), ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE from unlabelled_set")
             res = cursor.fetchall()[0]
-
-            cursor.execute("DELETE FROM unlabelled_set WHERE id = %s", (str(res[0]),))
-            db.commit()
             db.close()
 
             x = np.array(res[1:])
             self.last_read_idx = res[0]
             return x
+
+    def remove_instance(self, x):
+        db = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="toor",
+            database="housepricing_example"
+        )
+        cursor = db.cursor()
+        sql = "DELETE from unlabelled_set WHERE ZERO = %s AND ONE = %s AND TWO = %s AND THREE = %s AND FOUR = %s AND FIVE = %s AND SIX = %s AND SEVEN = %s AND EIGHT = %s AND NINE = %s AND TEN = %s AND ELEVEN = %s AND TWELVE = %s"
+        val = (str(x[0]), str(x[1]), str(x[2]), str(x[3]), str(x[4]), str(x[5]), str(x[6]), str(x[7]), str(x[8]), str(x[9]), str(x[10]), str(x[11]), str(x[12]))
+
+        cursor.execute(sql, val)
+        db.commit()
+
+        db.close()
