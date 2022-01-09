@@ -1,11 +1,12 @@
 class CandidateSet:
     """
-    database interface for candidates
-        => will be evaluated by AL for their informativeness (and possibly queried)
-        => database columns: input (x, usually a list of properties, items are uniquely identifiable by input), prediction, certainty
-    """
+    database interface for candidates # TODO candidate set needs to be database?
 
-    # TODO candidate set needs to be database?
+    - will be evaluated by AL for their informativeness (and possibly queried)
+    - database columns: input (x, usually a list of properties, items are uniquely identifiable by input), prediction, certainty
+
+    **Communication** between PL (provides information for informativeness analyser) and AL (selects query instance from candidates)
+    """
 
     def add_instance(self, x, y_prediction, certainty):
         """
@@ -21,13 +22,14 @@ class CandidateSet:
         """
         retrieves all candidates from database (database is left unchanged)
 
-        :return tuple of numpy arrays: [x], [prediction], [certainty]
+        :return tuple of numpy arrays [x], [prediction], [certainty]
+        :raises NoNewElementException: if no instance is in database
         """
         raise NotImplementedError
 
     def remove_instance(self, x):
         """
-        remove an candidate based on the input values
+        remove a candidate based on the input values (if instance doesn't exist, counts as removed as well)
 
         :param x: input values
         """
@@ -35,11 +37,12 @@ class CandidateSet:
 
     def update_instance(self, x, new_y_prediction, new_certainty):
         """
-        alter the prediction certainty for a candidate (identified by provided input)
+        alter the prediction and certainty for a candidate (identified by provided input)
 
         :param x: input values
         :param new_y_prediction: the new prediction
-        :param new_certainty: the new certainty about predicition
+        :param new_certainty: the new certainty about prediction
+        :raises NoSuchElement: if instance identified through x does not exist
         """
         raise NotImplementedError
 
@@ -48,5 +51,6 @@ class CandidateSet:
         retrieve first instance from candidates
 
         :return first instance
+        :raises NoNewElementException: if no instance is in database
         """
         raise NotImplementedError

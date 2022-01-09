@@ -1,7 +1,7 @@
 import mysql.connector
-from scenario_dependend_interfaces import Oracle
 
-from helpers.exceptions import NoSuchInput
+from additional_component_interfaces import Oracle
+from helpers.exceptions import NoSuchElement
 
 
 class OracleHouses(Oracle):
@@ -72,6 +72,6 @@ class OracleHouses(Oracle):
         db.close()
 
         if len(res) == 0:
-            raise NoSuchInput
+            raise NoSuchElement
         else:
             return res[0][0]
