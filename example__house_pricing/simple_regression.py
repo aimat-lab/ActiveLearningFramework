@@ -5,7 +5,7 @@ from keras.models import Sequential
 from sklearn import preprocessing
 from tensorflow.keras.optimizers import RMSprop
 
-from Interfaces import PassiveLearner
+from scenario_dependend_interfaces import PassiveLearner
 
 
 class SimpleRegressionHousing(PassiveLearner):

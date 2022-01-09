@@ -1,8 +1,8 @@
 import mysql.connector
 import numpy as np
 
-from Exceptions import NoNewElementException
-from Interfaces import TrainingSet, CandidateSet, QuerySet
+from exceptions import NoNewElementException
+from scenario_dependend_interfaces import TrainingSet, CandidateSet, QuerySet
 
 
 class TrainingSetHouses(TrainingSet):
@@ -21,19 +21,8 @@ class TrainingSetHouses(TrainingSet):
 
         sql = """CREATE TABLE labelled_set (
                     id int AUTO_INCREMENT PRIMARY KEY,
-                    ZERO double,
-                    ONE double,
-                    TWO double,
-                    THREE double,
-                    FOUR double,
-                    FIVE double,
-                    SIX double,
-                    SEVEN double,
-                    EIGHT double,
-                    NINE double,
-                    TEN double,
-                    ELEVEN double,
-                    TWELVE double,
+                    ZERO double, ONE double, TWO double, THREE double, FOUR double, FIVE double, SIX double,
+                    SEVEN double, EIGHT double, NINE double, TEN double, ELEVEN double, TWELVE double,
                     PRICE double
                 )"""
         cursor.execute(sql)
@@ -94,7 +83,7 @@ class TrainingSetHouses(TrainingSet):
 
         else:
             id = result[0][0]
-            cursor.execute("DELETE FROM labelled_set WHERE id = %s", (str(id), ))
+            cursor.execute("DELETE FROM labelled_set WHERE id = %s", (str(id),))
             db.commit()
             db.close()
 
@@ -162,7 +151,7 @@ class CandidateSetHouses(CandidateSet):
                             ELEVEN double,
                             TWELVE double,
                             predicted_PRICE double,
-                            accuracy double
+                            cerainty double
                         )"""  # how should accuracy look?????
         cursor.execute(sql)
 
@@ -178,7 +167,7 @@ class CandidateSetHouses(CandidateSet):
         cursor = db.cursor()
 
         sql = """INSERT INTO predicted_set (
-                                    ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE, predicted_PRICE, accuracy 
+                                    ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE, predicted_PRICE, certainty 
                                  ) VALUES (
                                     %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
                                  )"""
@@ -198,6 +187,32 @@ class CandidateSetHouses(CandidateSet):
 
     def update_instance(self, x, new_y_prediction, new_certainty):
         pass
+
+    def get_instance(self):
+        db = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="toor",
+            database="housepricing_example"
+        )
+        cursor = db.cursor()
+
+        cursor.execute("""SELECT 
+                            MIN(id),
+                            ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE,
+                            predicted_PRICE, certainty from candidate_set""")
+        res = cursor.fetchall()
+
+        if len(res) == 0:
+            db.close()
+            raise NoNewElementException
+
+        db.close()
+
+        x = np.array(res[0][1:-2])
+        predicted = res[0][-2]
+        certainty = res[0][-1]
+        return x, predicted, certainty
 
 
 class QuerySetHouses(QuerySet):
@@ -275,7 +290,7 @@ class QuerySetHouses(QuerySet):
 
         db.close()
 
-    def pop_instance(self):
+    def get_instance(self):
         if self.last_write_idx == self.last_read_idx:
             raise NoNewElementException
         else:

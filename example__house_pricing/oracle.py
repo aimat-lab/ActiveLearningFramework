@@ -1,7 +1,7 @@
 import mysql.connector
 
-from Exceptions import NoSuchInput
-from Interfaces import Oracle
+from exceptions import NoSuchInput
+from scenario_dependend_interfaces import Oracle
 
 
 class OracleHouses(Oracle):

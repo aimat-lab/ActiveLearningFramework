@@ -35,3 +35,10 @@ class CandidateSet:
         :param new_certainty: the new certainty about predicition
         """
         raise NotImplementedError
+
+    def get_instance(self):
+        """
+        retrieve first instance from candidates
+        :return first instance
+        """
+        raise NotImplementedError

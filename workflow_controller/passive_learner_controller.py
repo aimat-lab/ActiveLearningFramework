@@ -1,12 +1,13 @@
-from Interfaces import PassiveLearner, TrainingSet, CandidateSet
+from scenario_dependend_interfaces import PassiveLearner, TrainingSet, CandidateSet
+
+from dataclasses import dataclass
 
 
+@dataclass()
 class PassiveLearnerController:
-
-    def __init__(self, pl: PassiveLearner, training_set: TrainingSet, candidate_set: CandidateSet):
-        self.pl = pl
-        self.labelled_set = training_set
-        self.predicted_set = candidate_set
+    pl: PassiveLearner
+    training_set: TrainingSet
+    candidate_set: CandidateSet
 
     def init_pl(self, batch_size, epochs):
         (x_train, y_train) = self.labelled_set.pop_all_labelled_instances()

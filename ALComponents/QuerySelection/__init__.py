@@ -1,2 +1,0 @@
-from .QuerySelectorInterface import QuerySelector
-from InformativenessAnalyser import InformativenessAnalyser

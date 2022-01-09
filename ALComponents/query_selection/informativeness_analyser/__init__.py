@@ -1,0 +1,1 @@
+from .info_analyser_interface import InformativenessAnalyser
