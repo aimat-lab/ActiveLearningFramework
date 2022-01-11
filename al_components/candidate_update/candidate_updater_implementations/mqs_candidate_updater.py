@@ -1,0 +1,1 @@
+class MQS_CandidateUpdater(CandidateUpdater)

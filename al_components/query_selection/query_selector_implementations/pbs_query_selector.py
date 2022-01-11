@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from scenario_dependend_interfaces import CandidateSet, QuerySet
+from workflow_management import CandidateSet, QuerySet
 
 from al_components.query_selection import QuerySelector, InformativenessAnalyser
 
