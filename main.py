@@ -1,15 +1,9 @@
-from keras.datasets import boston_housing
-
-from al_components import init_candidate_updater
-from example__house_pricing import SimpleRegressionHousing, OracleHouses
-from example__house_pricing import TrainingSetHouses, QuerySetHouses, CandidateSetHouses
+from al_components.candidate_update import init_candidate_updater
 from helpers import Scenarios
-from workflow_management import PassiveLearnerController, OracleController, TrainingSet, CandidateSet, QuerySet
 
 if __name__ == '__main__':
-
     print("TEEST")
-    init_candidate_updater(Scenarios.PbS)
+    init_candidate_updater(scenario=Scenarios.PbS)
     # WORKFLOW: Initialization
 
     # init databases (usually empty)

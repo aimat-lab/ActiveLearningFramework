@@ -1,3 +1,3 @@
 from .db_exceptions import NoNewElementException, NoSuchElement
-from .workflow_exceptions import EndTrainingException
 from .definition_exceptions import IncorrectParameters
+from .workflow_exceptions import EndTrainingException

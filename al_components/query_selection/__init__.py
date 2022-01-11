@@ -1,3 +1,2 @@
-from informativeness_analyser import InformativenessAnalyser
-from .query_selector_interface import QuerySelector, init_query_selector
-from .query_selector_implementations import MQS_QuerySelector, PbS_QuerySelector, SbS_QuerySelector
+from .query_selector_initialization import init_query_selector
+from .query_selector_interface import QuerySelector

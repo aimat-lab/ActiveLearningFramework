@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 
 from additional_component_interfaces import PassiveLearner
-from workflow_management import TrainingSet, CandidateSet
+from al_components.candidate_update import CandidateUpdater
+from workflow_management.database_interfaces import TrainingSet, CandidateSet
 
 
 @dataclass()

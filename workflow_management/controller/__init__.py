@@ -1,3 +1,3 @@
+from .active_learner_controller import ActiveLearnerController
 from .oracle_controller import OracleController
 from .passive_learner_controller import PassiveLearnerController
-from .active_learner_controller import ActiveLearnerController
