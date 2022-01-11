@@ -1,11 +1,10 @@
 import logging
 
-from al_components.candidate_update import CandidateUpdater
-from al_components.candidate_update.candidate_updater_implementations import MQS_CandidateUpdater, PbS_CandidateUpdater
+from al_components.candidate_update.candidate_updater_implementations import MQS_CandidateUpdater, PbS_CandidateUpdater, SbS_CandidateUpdater
 from helpers import Scenarios
 
 
-def init_candidate_updater(scenario: Scenarios, **kwargs) -> CandidateUpdater:
+def init_candidate_updater(scenario: Scenarios, **kwargs):
     """
     Initialize the candidate updater, dependent on scenario
 
@@ -30,5 +29,8 @@ def init_candidate_updater(scenario: Scenarios, **kwargs) -> CandidateUpdater:
         pl = kwargs.get("pl")
         return PbS_CandidateUpdater(candidate_set, pl)
     else:  # scenario == Scenarios.SbS:
-        logging.info("Initialize SbS query selector")
-        # return SbS_QuerySelector(info_analyser, candidate_set, query_set)
+        logging.info("Initialize SbS candidate updater")
+        candidate_set = kwargs.get("candidate_set")
+        pl = kwargs.get("pl")
+        source_stream = kwargs.get("source_stream")
+        return SbS_CandidateUpdater(candidate_set, source_stream, pl)

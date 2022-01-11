@@ -2,7 +2,7 @@ import mysql.connector
 import numpy as np
 
 from helpers.exceptions import NoNewElementException
-from workflow_management import TrainingSet, CandidateSet, QuerySet
+from workflow_management.database_interfaces import TrainingSet, CandidateSet, QuerySet
 
 
 class TrainingSetHouses(TrainingSet):
