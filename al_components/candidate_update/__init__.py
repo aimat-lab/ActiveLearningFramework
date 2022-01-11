@@ -1,2 +1,2 @@
 from .candidate_updater_interface import CandidateUpdater, init_candidate_updater
-from .candidate_updater_implementations import *
+from .candidate_updater_implementations import MQS_CandidateUpdater, PbS_CandidateUpdater, SbS_CandidateUpdater
