@@ -7,6 +7,7 @@ from workflow_management import TrainingSet, CandidateSet
 @dataclass()
 class PassiveLearnerController:
     pl: PassiveLearner
+    candidate_updater: CandidateUpdater
     training_set: TrainingSet
     candidate_set: CandidateSet
 

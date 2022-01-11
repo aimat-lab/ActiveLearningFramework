@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 
-from workflow_management import CandidateSet, QuerySet
-
 from al_components.query_selection import QuerySelector, InformativenessAnalyser
+from workflow_management import CandidateSet, QuerySet
 
 
 def decide_discard(info):

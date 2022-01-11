@@ -7,7 +7,7 @@ from workflow_management import TrainingSet, CandidateSet, QuerySet
 
 class TrainingSetHouses(TrainingSet):
 
-    def __init__(self, x_initial, y_initial):
+    def __init__(self):
         db = mysql.connector.connect(
             host="localhost",
             user="root",
@@ -26,20 +26,6 @@ class TrainingSetHouses(TrainingSet):
                         PRICE double
                     )"""
         cursor.execute(sql)
-
-        sql = """INSERT INTO labelled_set (
-                        ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE, PRICE
-                     ) VALUES (
-                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
-                     )"""
-        val = []
-        for i in range(len(x_initial)):
-            val.append((str(x_initial[i][0]), str(x_initial[i][1]), str(x_initial[i][2]), str(x_initial[i][3]), str(x_initial[i][4]),
-                        str(x_initial[i][5]), str(x_initial[i][6]), str(x_initial[i][7]), str(x_initial[i][8]), str(x_initial[i][9]),
-                        str(x_initial[i][10]), str(x_initial[i][11]), str(x_initial[i][12]), str(y_initial[i])))
-
-        cursor.executemany(sql, val)
-        db.commit()
 
         db.close()
 
@@ -78,7 +64,7 @@ class TrainingSetHouses(TrainingSet):
 
         if len(result) == 0:
             db.close()
-            raise NoNewElementException
+            raise NoNewElementException("labelled_set")
 
         x = np.array(result[0][1:-1])
         y = result[0][-1]
