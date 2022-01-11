@@ -1,16 +1,16 @@
-from dataclasses import dataclass
+from al_components.query_selection import QuerySelector, init_query_selector
+from al_components.query_selection.informativeness_analyser import InformativenessAnalyser
+from helpers import Scenarios
+from workflow_management.database_interfaces import QuerySet, CandidateSet
 
-from additional_component_interfaces import Oracle
-from workflow_management.database_interfaces import TrainingSet, QuerySet
 
-
-@dataclass()
 class ActiveLearnerController:
-    o: Oracle
-    training_set: TrainingSet
-    query_set: QuerySet
+
+    def __init__(self, candidate_set: CandidateSet, query_set: QuerySet, scenario: Scenarios, info_analyser: InformativenessAnalyser):
+        self.candidate_set: CandidateSet = candidate_set
+        self.query_set: QuerySet = query_set
+        self.query_selector: QuerySelector = init_query_selector(scenario, info_analyser, candidate_set, query_set)
 
     def training_job(self):
-        query_instance = self.unlabelled_set.get_instance()
-        label = self.o.query(query_instance)
-        self.labelled_set.append_labelled_instance(query_instance, label)
+        # TODO loop
+        self.query_selector.select_query_instance()

@@ -17,6 +17,7 @@ class QuerySet:
         """
         raise NotImplementedError
 
+    # TODO: pop instead of get/remove?
     def get_instance(self):
         """
         get the first instance in the database

@@ -87,7 +87,7 @@ class TrainingSetHouses(TrainingSet):
         db.close()
 
         if len(result) == 0:
-            raise NoNewElementException
+            raise NoNewElementException("housepricing_example.labelled_set")
 
         xs, ys = np.array([]), np.array([])
         for item in result:
@@ -229,7 +229,7 @@ class QuerySetHouses(QuerySet):
         # TODO: ensure unique identification by input
         sql = """CREATE TABLE unlabelled_set (
                     id int AUTO_INCREMENT PRIMARY KEY,
-                    ZERO double, ONE double, TWO double, THREE double, FOUR double, FIVE double, SIX double, SEVEN double, EIGHT double, NINE double, TEN double, ELEVEN double, TWELVE double,
+                    ZERO double, ONE double, TWO double, THREE double, FOUR double, FIVE double, SIX double, SEVEN double, EIGHT double, NINE double, TEN double, ELEVEN double, TWELVE double
                  )"""
         cursor.execute(sql)
 

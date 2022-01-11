@@ -1,2 +1,2 @@
-from .candidate_updater_initialization import init_candidate_updater
 from .candidate_updater_interface import CandidateUpdater
+from .candidate_updater_initialization import init_candidate_updater
