@@ -12,6 +12,7 @@ class OracleController:
 
     def training_job(self):
         # TODO loop
-        query_instance = self.unlabelled_set.get_instance()
+        query_instance = self.query_set.get_instance()
         label = self.o.query(query_instance)
-        self.labelled_set.append_labelled_instance(query_instance, label)
+        self.query_set.remove_instance(query_instance)
+        self.training_set.append_labelled_instance(query_instance, label)

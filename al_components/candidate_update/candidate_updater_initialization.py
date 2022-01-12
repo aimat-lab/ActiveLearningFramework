@@ -12,7 +12,7 @@ def init_candidate_updater(scenario: Scenarios, **kwargs):
     **Arguments**:
 
     - *SbS*: source_stream: Stream (source for new candidates), candidate_set: CandidateSet (where new candidates get entered to), pl: PassiveLearner
-    - *PbS*: candidate_set: CandidateSet (will function as source for candidates and as candidate target), pl: PassiveLearner
+    - *PbS*: candidate_set: Pool (and also CandidateSet, will function as source for candidates and as candidate target), pl: PassiveLearner
     - *MQS*: not implemented  # TODO: if MQS candidate updater is implemented, add description
 
     :param scenario: the selected scenario

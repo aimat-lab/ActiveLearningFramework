@@ -1,8 +1,9 @@
 import mysql.connector
 import numpy as np
 
+from al_components.candidate_update.candidate_updater_implementations import Pool
 from helpers.exceptions import NoNewElementException
-from workflow_management.database_interfaces import TrainingSet, CandidateSet, QuerySet
+from workflow_management.database_interfaces import TrainingSet, QuerySet
 
 
 class TrainingSetHouses(TrainingSet):
@@ -129,7 +130,7 @@ class TrainingSetHouses(TrainingSet):
         db.close()
 
 
-class CandidateSetHouses(CandidateSet):
+class CandidateSetHouses(Pool):
 
     def __init__(self):
         db = mysql.connector.connect(
@@ -151,6 +152,31 @@ class CandidateSetHouses(CandidateSet):
                     certainty double
                  )"""  # TODO: how should certainty look like?????
         cursor.execute(sql)
+
+        db.close()
+
+    def initiate_pool(self, x_initial):
+        db = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="toor",
+            database="housepricing_example"
+        )
+        cursor = db.cursor()
+
+        sql = """INSERT INTO predicted_set (
+                                    ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE
+                                 ) VALUES (
+                                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                                 )"""
+        val = []
+        for i in range(len(x_initial)):
+            val.append((str(x_initial[i][0]), str(x_initial[i][1]), str(x_initial[i][2]), str(x_initial[i][3]), str(x_initial[i][4]), str(x_initial[i][5]),
+                        str(x_initial[i][6]), str(x_initial[i][7]), str(x_initial[i][8]), str(x_initial[i][9]), str(x_initial[i][10]), str(x_initial[i][11]),
+                        str(x_initial[i][12])))
+
+        cursor.executemany(sql, val)
+        db.commit()
 
         db.close()
 
@@ -177,7 +203,36 @@ class CandidateSetHouses(CandidateSet):
         db.close()
 
     def retrieve_all_instances(self):
-        pass
+        db = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="toor",
+            database="housepricing_example"
+        )
+        cursor = db.cursor()
+
+        cursor.execute("""SELECT 
+                            ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE,
+                            predicted_PRICE, certainty 
+                            FROM predicted_set""")
+        res = cursor.fetchall()
+
+        if len(res) == 0:
+            db.close()
+            raise NoNewElementException
+
+        db.close()
+
+        xs, ys, certainties = np.array([]), np.array([]), np.array([])
+        for item in res:
+            if len(xs) == 0:
+                xs = np.array([np.array(item[0:-2])])
+            else:
+                xs = np.append(xs, [np.array(item[0:-2])], axis=0)
+            ys = np.append(ys, item[-2])
+            certainties = np.append(certainties, item[-1])
+
+        return xs, ys, certainties
 
     def remove_instance(self, x):
         pass
@@ -197,7 +252,7 @@ class CandidateSetHouses(CandidateSet):
         cursor.execute("""SELECT 
                             MIN(id),
                             ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE,
-                            predicted_PRICE, certainty from candidate_set""")
+                            predicted_PRICE, certainty from predicted_set""")
         res = cursor.fetchall()
 
         if len(res) == 0:

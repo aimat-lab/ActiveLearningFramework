@@ -1,14 +1,15 @@
 from dataclasses import dataclass
 
+from al_components.candidate_update.candidate_updater_implementations import Pool
 from al_components.query_selection import QuerySelector
 from al_components.query_selection.informativeness_analyser import InformativenessAnalyser
-from workflow_management.database_interfaces import CandidateSet, QuerySet
+from workflow_management.database_interfaces import QuerySet
 
 
 @dataclass()
 class PbS_QuerySelector(QuerySelector):
     info_analyser: InformativenessAnalyser
-    candidate_set: CandidateSet
+    candidate_set: Pool
     query_set: QuerySet
 
     def select_query_instance(self):

@@ -14,8 +14,7 @@ class PassiveLearnerController:
         source_stream = kwargs.get("source_stream")  # only needed if scenario = SbS
         self.candidate_updater: CandidateUpdater = init_candidate_updater(scenario, pl=pl, candidate_set=candidate_set, source_stream=source_stream)
 
-    def init_pl(self, batch_size, epochs):
-        (x_train, y_train) = self.labelled_set.retrieve_all_labelled_instances()
+    def init_pl(self, batch_size, epochs, x_train, y_train):
         self.pl.initial_training(x_train, y_train, batch_size=batch_size, epochs=epochs)
         self.labelled_set.clear()
 
