@@ -11,17 +11,29 @@ Project for the **active learning framework** (including example for boston hous
 ## Project structure
 
 ```
+main.py                 # controlls main workflow
 al_components/
-|-- candidate_update/   # scenario dependend
-|-- query_selection/    # scenario dependend
-|-- 
+|-- candidate_update/   # scenario dependent
+|-- query_selection/    # scenario dependent
+    |-- informativeness_analyser/  # needs to be implemented
+additional_component_interfaces/
+|-- oracle.py           # needs to be implemented
+|-- passive_learner.py  # needs to be implemented
+workflow_management/
+|-- controller          # controlling flow between components, parallelization
+|-- database_interfaces # need to be implemented => communication between components
+helpers/
+|-- scenario_enum.py
+|-- exceptions/
 ```
 
 ## Abbreviations:
 
-| Abbreviation | Meaning                        |
-|--------------|--------------------------------|
-| AL           | Active Learner/Active Learning |
-| PL           | Passive Learner                |
-| ML           | Machine Learning               |
-| db           | database                       |
+| Abbreviation | Meaning                           |
+|--------------|-----------------------------------|
+| AL           | Active Learner/Active Learning    |
+| PL           | Passive Learner                   |
+| ML           | Machine Learning                  |
+| db           | database                          |
+| x, y         | input, output of passive learner  |
+
