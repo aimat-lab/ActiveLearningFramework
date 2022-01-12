@@ -1,6 +1,6 @@
 from additional_component_interfaces import PassiveLearner
 from al_components.candidate_update import CandidateUpdater
-from helpers.exceptions import IncorrectParameters
+from helpers.exceptions import IncorrectParameters, EndTrainingException
 from workflow_management.database_interfaces import CandidateSet
 
 
@@ -13,13 +13,14 @@ class Pool(CandidateSet):
         """
         raise NotImplementedError
 
-    def update_instance(self, x, new_y_prediction, new_certainty):
+    def update_instances(self, xs, new_y_predictions, new_certainties):
         """
-        alter the prediction and certainty for a candidate (identified by provided input)
+        alter the prediction and certainty for the provided candidates (identified by provided input)
 
-        :param new_y_prediction: the new prediction
-        :param x: input values
-        :param new_certainty: the new certainty about prediction
+        :param xs: array of input values
+        :param new_y_predictions: array of new predictions
+        :param new_certainties: array of new certainties about prediction
+        
         :raises NoSuchElement: if instance identified through x does not exist
         """
         raise NotImplementedError
@@ -45,4 +46,14 @@ class PbS_CandidateUpdater(CandidateUpdater):
 
     def update_candidate_set(self):
         # TODO: implement (retrieve all instances, add predictions to them, update them)
-        raise NotImplementedError
+        (xs, _, _) = self.candidate_set.retrieve_all_instances()
+        if len(xs) == 0:
+            raise EndTrainingException("Pool is empty => no more candidates")
+        predictions, certainties = [], []
+
+        for x in xs:
+            prediction = self.pl.predict(x)
+            predictions.append(prediction)
+            certainties.append(0)  # TODO cerainty
+
+        self.candidate_set.update_instances(xs, predictions, certainties)

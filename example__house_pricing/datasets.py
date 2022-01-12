@@ -237,8 +237,28 @@ class CandidateSetHouses(Pool):
     def remove_instance(self, x):
         pass
 
-    def update_instance(self, x, new_y_prediction, new_certainty):
-        pass
+    def update_instances(self, xs, new_y_predictions, new_certainties):
+        db = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="toor",
+            database="housepricing_example"
+        )
+        cursor = db.cursor()
+
+        sql = """UPDATE predicted_set 
+                    SET predicted_PRICE = %s, certainty = %s
+                    WHERE ZERO = %s AND ONE = %s AND TWO = %s AND THREE = %s AND FOUR = %s AND FIVE = %s AND SIX = %s AND SEVEN = %s AND EIGHT = %s AND NINE = %s AND TEN = %s AND ELEVEN = %s AND TWELVE = %s"""
+        val = []
+        for i in range(len(xs)):
+            val.append((str(new_y_predictions[i]), str(new_certainties[i]),
+                        str(xs[i][0]), str(xs[i][1]), str(xs[i][2]), str(xs[i][3]), str(xs[i][4]), str(xs[i][5]), str(xs[i][6]),
+                        str(xs[i][7]), str(xs[i][8]), str(xs[i][9]), str(xs[i][10]), str(xs[i][11]), str(xs[i][12])))
+
+        cursor.executemany(sql, val)
+        db.commit()
+
+        db.close()
 
     def get_instance(self):
         db = mysql.connector.connect(

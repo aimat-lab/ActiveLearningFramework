@@ -20,7 +20,7 @@ class PassiveLearnerController:
 
     def training_job(self):
         # TODO loop
+        self.candidate_updater.update_candidate_set()
         (x_train, y_train) = self.labelled_set.retrieve_labelled_instance()
         self.pl.train(x_train, y_train)
-        self.candidate_updater.update_candidate_set()
         self.labelled_set.remove_labelled_instance(x_train)
