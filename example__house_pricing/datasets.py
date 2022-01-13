@@ -149,8 +149,8 @@ class CandidateSetHouses(Pool):
                     id int AUTO_INCREMENT PRIMARY KEY,
                     ZERO double, ONE double, TWO double, THREE double, FOUR double, FIVE double, SIX double, SEVEN double, EIGHT double, NINE double, TEN double, ELEVEN double, TWELVE double,
                     predicted_PRICE double,
-                    certainty double
-                 )"""  # TODO: how should certainty look like?????
+                    uncertainty double
+                 )"""  # TODO: how should uncertainty look?????
         cursor.execute(sql)
 
         db.close()
@@ -180,7 +180,7 @@ class CandidateSetHouses(Pool):
 
         db.close()
 
-    def add_instance(self, x, y_prediction, certainty):
+    def add_instance(self, x, y_prediction, uncertainty):
         db = mysql.connector.connect(
             host="localhost",
             user="root",
@@ -190,12 +190,12 @@ class CandidateSetHouses(Pool):
         cursor = db.cursor()
 
         sql = """INSERT INTO predicted_set (
-                                    ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE, predicted_PRICE, certainty 
+                                    ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE, predicted_PRICE, uncertainty 
                                  ) VALUES (
                                     %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
                                  )"""
         val = (str(x[0]), str(x[1]), str(x[2]), str(x[3]), str(x[4]), str(x[5]), str(x[6]), str(x[7]), str(x[8]), str(x[9]), str(x[10]), str(x[11]),
-               str(x[12]), str(y_prediction), str(certainty))
+               str(x[12]), str(y_prediction), str(uncertainty))
 
         cursor.execute(sql, val)
         db.commit()
@@ -213,7 +213,7 @@ class CandidateSetHouses(Pool):
 
         cursor.execute("""SELECT 
                             ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE,
-                            predicted_PRICE, certainty 
+                            predicted_PRICE, uncertainty 
                             FROM predicted_set""")
         res = cursor.fetchall()
 
@@ -247,7 +247,7 @@ class CandidateSetHouses(Pool):
         cursor = db.cursor()
 
         sql = """UPDATE predicted_set 
-                    SET predicted_PRICE = %s, certainty = %s
+                    SET predicted_PRICE = %s, uncertainty = %s
                     WHERE ZERO = %s AND ONE = %s AND TWO = %s AND THREE = %s AND FOUR = %s AND FIVE = %s AND SIX = %s AND SEVEN = %s AND EIGHT = %s AND NINE = %s AND TEN = %s AND ELEVEN = %s AND TWELVE = %s"""
         val = []
         for i in range(len(xs)):
@@ -272,7 +272,7 @@ class CandidateSetHouses(Pool):
         cursor.execute("""SELECT 
                             MIN(id),
                             ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE,
-                            predicted_PRICE, certainty from predicted_set""")
+                            predicted_PRICE, uncertainty from predicted_set""")
         res = cursor.fetchall()
 
         if len(res) == 0:
@@ -283,8 +283,8 @@ class CandidateSetHouses(Pool):
 
         x = np.array(res[0][1:-2])
         predicted = res[0][-2]
-        certainty = res[0][-1]
-        return x, predicted, certainty
+        uncertainty = res[0][-1]
+        return x, predicted, uncertainty
 
 
 class QuerySetHouses(QuerySet):

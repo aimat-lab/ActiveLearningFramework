@@ -15,7 +15,7 @@ class Pool(CandidateSet):
 
     def update_instances(self, xs, new_y_predictions, new_certainties):
         """
-        alter the prediction and certainty for the provided candidates (identified by provided input)
+        alter the prediction and uncertainty for the provided candidates (identified by provided input)
 
         :param xs: array of input values
         :param new_y_predictions: array of new predictions
@@ -29,7 +29,7 @@ class Pool(CandidateSet):
         """
         retrieves all candidates from database (database is left unchanged)
 
-        :return tuple of numpy arrays [x], [prediction], [certainty]
+        :return tuple of numpy arrays [x], [prediction], [uncertainty]
         :raises NoNewElementException: if no instance is in database
         """
         raise NotImplementedError
@@ -49,11 +49,11 @@ class PbS_CandidateUpdater(CandidateUpdater):
         (xs, _, _) = self.candidate_set.retrieve_all_instances()
         if len(xs) == 0:
             raise EndTrainingException("Pool is empty => no more candidates")
-        predictions, certainties = [], []
 
+        predictions, uncertainties = [], []
         for x in xs:
-            prediction = self.pl.predict(x)
+            prediction, uncertainty = self.pl.predict(x)
             predictions.append(prediction)
-            certainties.append(0)  # TODO cerainty
+            uncertainties.append(uncertainty)  # TODO uncertainty
 
-        self.candidate_set.update_instances(xs, predictions, certainties)
+        self.candidate_set.update_instances(xs, predictions, uncertainties)

@@ -9,15 +9,35 @@ from additional_component_interfaces import PassiveLearner
 
 
 class SimpleRegressionHousing(PassiveLearner):
+    """
+    Boston housing regression with 3 models (to get a committee)
+    """
 
     def __init__(self):
-        model = Sequential()
-        model.add(Dense(64, kernel_initializer='normal', activation='relu', input_shape=(13,)))
-        model.add(Dense(64, activation='relu'))
-        model.add(Dense(1))
-        model.compile(loss='mse', optimizer=RMSprop(), metrics=['mean_absolute_error'])
+        # TODO: different models? e.g. different optimizer?
+        model_a = Sequential()
+        model_a.add(Dense(64, kernel_initializer='normal', activation='relu', input_shape=(13,)))
+        model_a.add(Dense(64, activation='relu'))
+        model_a.add(Dense(1))
+        model_a.compile(loss='mse', optimizer=RMSprop(), metrics=['mean_absolute_error'])
 
-        self.model = model
+        self.model_a = model_a
+
+        model_b = Sequential()
+        model_b.add(Dense(64, kernel_initializer='normal', activation='relu', input_shape=(13,)))
+        model_b.add(Dense(64, activation='relu'))
+        model_b.add(Dense(1))
+        model_b.compile(loss='mse', optimizer=RMSprop(), metrics=['mean_absolute_error'])
+
+        self.model_b = model_b
+
+        model_c = Sequential()
+        model_c.add(Dense(64, kernel_initializer='normal', activation='relu', input_shape=(13,)))
+        model_c.add(Dense(64, activation='relu'))
+        model_c.add(Dense(1))
+        model_c.compile(loss='mse', optimizer=RMSprop(), metrics=['mean_absolute_error'])
+
+        self.model_c = model_c
 
         self.x_train, self.y_train = np.array([]), np.array([])
         self.scaler = None
@@ -27,12 +47,22 @@ class SimpleRegressionHousing(PassiveLearner):
         self.scaler = preprocessing.StandardScaler().fit(x_train)
         batch_size = kwargs.get("batch_size", 5)
         epochs = kwargs.get("epochs", 10)
-        self.model.fit(x_train_scaled, y_train, batch_size=batch_size, epochs=epochs, verbose=1, validation_split=0.1,
-                       callbacks=[EarlyStopping(monitor='val_loss', patience=20)])
+
+        # TODO: different models? (small alternations)
+        self.model_a.fit(x_train_scaled, y_train, batch_size=batch_size, epochs=epochs, verbose=1, validation_split=0.1, callbacks=[EarlyStopping(monitor='val_loss', patience=20)])
+        self.model_b.fit(x_train_scaled, y_train, batch_size=batch_size, epochs=epochs, verbose=1, validation_split=0.1, callbacks=[EarlyStopping(monitor='val_loss', patience=20)])
+        self.model_c.fit(x_train_scaled, y_train, batch_size=batch_size, epochs=epochs, verbose=1, validation_split=0.1, callbacks=[EarlyStopping(monitor='val_loss', patience=20)])
 
     def predict(self, x):
         x_array = np.array([x, ])
-        return self.model.predict(self.scaler.transform(x_array)).flatten()[0]
+
+        prediction_a = self.model_a.predict(self.scaler.transform(x_array)).flatten()[0]
+        prediction_b = self.model_b.predict(self.scaler.transform(x_array)).flatten()[0]
+        prediction_c = self.model_c.predict(self.scaler.transform(x_array)).flatten()[0]
+
+        # TODO maybe calculation of variance in informativeness analyser? => otherwise step is moved into candidate updater
+        # TODO uncertainty is currently variance => not normalized,
+        return np.mean(np.array([prediction_a, prediction_b, prediction_c]), axis=0), np.var(np.array([prediction_a, prediction_b, prediction_c]), axis=0)
 
     def train(self, x, y):
         if len(self.x_train) == 0:
@@ -46,5 +76,6 @@ class SimpleRegressionHousing(PassiveLearner):
             self.x_train, self.y_train = np.array([]), np.array([])
 
     def train_batch(self, x_train, y_train, batch_size, epochs):
-        self.model.fit(self.scaler.transform(x_train), y_train, batch_size=batch_size, epochs=epochs, verbose=1,
-                       validation_split=0.2, callbacks=[EarlyStopping(monitor='val_loss', patience=20)])
+        self.model_a.fit(self.scaler.transform(x_train), y_train, batch_size=batch_size, epochs=epochs, verbose=1, validation_split=0.2, callbacks=[EarlyStopping(monitor='val_loss', patience=20)])
+        self.model_b.fit(self.scaler.transform(x_train), y_train, batch_size=batch_size, epochs=epochs, verbose=1, validation_split=0.2, callbacks=[EarlyStopping(monitor='val_loss', patience=20)])
+        self.model_c.fit(self.scaler.transform(x_train), y_train, batch_size=batch_size, epochs=epochs, verbose=1, validation_split=0.2, callbacks=[EarlyStopping(monitor='val_loss', patience=20)])

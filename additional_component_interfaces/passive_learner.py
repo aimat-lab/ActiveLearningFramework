@@ -19,7 +19,7 @@ class PassiveLearner:
         Get the predicted output based on the current state of the ML model (current training status)
 
         :param x: input values
-        :return: prediction y (usually one numerical value, but can alter), certainty c (how sure is the model about the maid prediction)
+        :return: prediction y (usually one numerical value, but can alter), uncertainty c (how sure is the model about the maid prediction)
         """
         raise NotImplementedError
 
