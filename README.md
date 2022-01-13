@@ -9,10 +9,12 @@ Project for the **active learning framework** (including example for boston hous
 - communication between components: through databases
 
 ## Project structure
+
 Short overview over the main structure, including some descriptions.
 
-- Scenario dependent: implies an interface implemented per scenario 
+- Scenario dependent: implies an interface implemented per scenario
 - Needs to be implemented: file/folder which containing interfaces need to be implemented per case (for every new ML problem)
+
 ```
 main.py                             # controlls main workflow
 al_components/
@@ -34,8 +36,8 @@ helpers/
 ```
 
 ### ML problem implementations
-Implement the concrete ML problem in a separate branch.
-=> tbd for boston house pricing
+
+Implement the concrete ML problem in a separate branch. => tbd for boston house pricing
 
 ## Abbreviations:
 

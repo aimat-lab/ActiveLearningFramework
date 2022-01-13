@@ -18,12 +18,22 @@ class CandidateSet:
         """
         raise NotImplementedError
 
-    def get_instance(self):
+    def get_first_instance(self):
         """
         retrieve first instance from candidates
 
-        :return first instance
+        :return first instance (input values x, prediction y, uncertainty)
         :raises NoNewElementException: if no instance is in database
+        """
+        raise NotImplementedError
+
+    def get_instance(self, x):
+        """
+        retrieve instance identified by x
+
+        :param x: input values identifying the instance
+        :return the input x, the prediction y, the uncertainty about the prediction
+        :raises NoSuchElementException: if instance identified by x doesn't exist
         """
         raise NotImplementedError
 

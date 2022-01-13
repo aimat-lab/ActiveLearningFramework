@@ -2,7 +2,7 @@ import mysql.connector
 import numpy as np
 
 from al_components.candidate_update.candidate_updater_implementations import Pool
-from helpers.exceptions import NoNewElementException
+from helpers.exceptions import NoNewElementException, NoSuchElementException
 from workflow_management.database_interfaces import TrainingSet, QuerySet
 
 
@@ -63,7 +63,7 @@ class TrainingSetHouses(TrainingSet):
         cursor.execute("SELECT MIN(id), ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE, PRICE FROM labelled_set")
         result = cursor.fetchall()
 
-        if len(result) == 0:
+        if (len(result) == 0) or (result[0][0] is None):
             db.close()
             raise NoNewElementException("labelled_set")
 
@@ -260,7 +260,7 @@ class CandidateSetHouses(Pool):
 
         db.close()
 
-    def get_instance(self):
+    def get_first_instance(self):
         db = mysql.connector.connect(
             host="localhost",
             user="root",
@@ -278,6 +278,36 @@ class CandidateSetHouses(Pool):
         if len(res) == 0:
             db.close()
             raise NoNewElementException
+
+        db.close()
+
+        x = np.array(res[0][1:-2])
+        predicted = res[0][-2]
+        uncertainty = res[0][-1]
+        return x, predicted, uncertainty
+
+    def get_instance(self, x):
+        db = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="toor",
+            database="housepricing_example"
+        )
+        cursor = db.cursor()
+
+        sql = """SELECT 
+                    ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE,
+                    predicted_PRICE, uncertainty 
+                 FROM predicted_set 
+                 WHERE ZERO = %s AND ONE = %s AND TWO = %s AND THREE = %s AND FOUR = %s AND FIVE = %s AND SIX = %s AND SEVEN = %s AND EIGHT = %s AND NINE = %s AND TEN = %s AND ELEVEN = %s AND TWELVE = %s"""
+        val = (str(x[0]), str(x[1]), str(x[2]), str(x[3]), str(x[4]), str(x[5]), str(x[6]), str(x[7]), str(x[8]), str(x[9]), str(x[10]), str(x[11]), str(x[12]))
+
+        cursor.execute(sql, val)
+        res = cursor.fetchall()
+
+        if len(res) == 0:
+            db.close()
+            raise NoSuchElementException
 
         db.close()
 

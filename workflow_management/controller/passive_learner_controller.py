@@ -20,6 +20,9 @@ class PassiveLearnerController:
         self.pl.initial_training(x_train, y_train, batch_size=batch_size, epochs=epochs)
         self.labelled_set.clear()
 
+    def init_candidates(self):
+        self.candidate_updater.update_candidate_set()
+
     def training_job(self):
         # TODO loop
         self.candidate_updater.update_candidate_set()

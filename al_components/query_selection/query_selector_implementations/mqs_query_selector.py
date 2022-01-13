@@ -16,7 +16,7 @@ class MQS_QuerySelector(QuerySelector):  # TODO: currently, this selector is the
     query_set: QuerySet
 
     def select_query_instance(self):
-        (x, _, _) = self.candidate_set.get_instance()
+        (x, _, _) = self.candidate_set.get_first_instance()
         info = self.info_analyser.get_informativeness(x)
         self.candidate_set.remove_instance(x)
         if decide_discard(info):

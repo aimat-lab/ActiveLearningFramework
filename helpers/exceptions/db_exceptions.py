@@ -12,7 +12,7 @@ class NoNewElementException(Exception):
         pass
 
 
-class NoSuchElement(Exception):
+class NoSuchElementException(Exception):
     """
     Thrown, if a specified element can't be identified in the queried database
     """
