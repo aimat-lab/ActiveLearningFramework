@@ -22,9 +22,11 @@ class SimpleRegressionHousing(PassiveLearner):
         self.x_train, self.y_train = np.array([]), np.array([])
         self.scaler = None
 
-    def initial_training(self, x_train, y_train, batch_size, epochs):
+    def initial_training(self, x_train, y_train, **kwargs):
         x_train_scaled = preprocessing.scale(x_train)
         self.scaler = preprocessing.StandardScaler().fit(x_train)
+        batch_size = kwargs.get("batch_size", 5)
+        epochs = kwargs.get("epochs", 10)
         self.model.fit(x_train_scaled, y_train, batch_size=batch_size, epochs=epochs, verbose=1, validation_split=0.1,
                        callbacks=[EarlyStopping(monitor='val_loss', patience=20)])
 

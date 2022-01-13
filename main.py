@@ -24,7 +24,6 @@ if __name__ == '__main__':
 
     (x_train, y_train), (x_test, y_test) = boston_housing.load_data(test_split=0.9)  # in this case: load data from existing set
 
-
     class DefaultInfoAnalyser(InformativenessAnalyser):
 
         def get_informativeness(self, x):
@@ -36,9 +35,11 @@ if __name__ == '__main__':
     o = OracleController(o=OracleHouses(x_test, y_test), training_set=training_set, query_set=query_set)
     al = ActiveLearnerController(candidate_set=candidate_set, query_set=query_set, info_analyser=DefaultInfoAnalyser(), scenario=scenario)
 
-    pl.init_pl(8, 10, x_train, y_train)  # training with initial training data
+    # initial training, data source
+    pl.init_pl(x_train, y_train, batch_size=8, epochs=10)  # training with initial training data
     candidate_source.initiate_pool(x_test)
 
+    # WORKFLOW: Training
     al.training_job()
     o.training_job()
     pl.training_job()
