@@ -51,6 +51,7 @@ if __name__ == '__main__':
 
     logging.info("------Active Training------")
     # WORKFLOW: Training
+    # TODO: multiple processes
     al.training_job()
     o.training_job()
     pl.training_job()

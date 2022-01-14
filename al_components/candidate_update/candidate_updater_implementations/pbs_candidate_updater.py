@@ -2,7 +2,7 @@ import logging
 
 from additional_component_interfaces import PassiveLearner
 from al_components.candidate_update import CandidateUpdater
-from helpers.exceptions import IncorrectParameters, EndTrainingException
+from helpers.exceptions import IncorrectParameters, NoMoreCandidatesException
 from workflow_management.database_interfaces import CandidateSet
 
 
@@ -62,7 +62,7 @@ class PbS_CandidateUpdater(CandidateUpdater):
     def update_candidate_set(self):
         (xs, _, _) = self.candidate_set.retrieve_all_instances()
         if len(xs) == 0:
-            raise EndTrainingException("Pool is empty => no more candidates")
+            raise NoMoreCandidatesException()
 
         predictions, uncertainties = [], []
         for x in xs:
