@@ -1,3 +1,5 @@
+import logging
+
 import mysql.connector
 import numpy as np
 
@@ -6,43 +8,56 @@ from helpers.exceptions import NoNewElementException, NoSuchElementException
 from workflow_management.database_interfaces import TrainingSet, QuerySet
 
 
+def connect_to_housepricing_example_db():
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="toor",
+        database="housepricing_example")
+
+
+input_definition = "ZERO double, ONE double, TWO double, THREE double, FOUR double, FIVE double, SIX double, SEVEN double, EIGHT double, NINE double, TEN double, ELEVEN double, TWELVE double"
+input_reference = "ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE"
+input_placeholders = "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s"
+input_equal_check = "ZERO = %s AND ONE = %s AND TWO = %s AND THREE = %s AND FOUR = %s AND FIVE = %s AND SIX = %s AND SEVEN = %s AND EIGHT = %s AND NINE = %s AND TEN = %s AND ELEVEN = %s AND TWELVE = %s"
+
+schema_name = "housepricing_example"
+candidate_set_name = "predicted_set"
+training_set_name = "labelled_set"
+query_set_name = "unlabelled_set"
+
+
 class TrainingSetHouses(TrainingSet):
 
     def __init__(self):
-        db = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="toor",
-            database="housepricing_example"
-        )
+        logging.info("start initializing the Training set")
+
+        db = connect_to_housepricing_example_db()
         cursor = db.cursor()
 
-        sql = "DROP TABLE IF EXISTS labelled_set"
+        sql = f"DROP TABLE IF EXISTS {training_set_name}"
         cursor.execute(sql)
 
         # TODO: ensure unique identification by input
-        sql = """CREATE TABLE labelled_set (
+        sql = f"""CREATE TABLE {training_set_name} (
                         id int AUTO_INCREMENT PRIMARY KEY,
-                        ZERO double, ONE double, TWO double, THREE double, FOUR double, FIVE double, SIX double, SEVEN double, EIGHT double, NINE double, TEN double, ELEVEN double, TWELVE double,
+                        {input_definition},
                         PRICE double
                     )"""
         cursor.execute(sql)
 
         db.close()
 
+        logging.info(f"finished initializing the Training set, database name: '{schema_name}.{training_set_name}'")
+
     def append_labelled_instance(self, x, y):
-        db = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="toor",
-            database="housepricing_example"
-        )
+        db = connect_to_housepricing_example_db()
         cursor = db.cursor()
 
-        sql = """INSERT INTO labelled_set (
-                                ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE, PRICE
+        sql = f"""INSERT INTO {training_set_name} (
+                                {input_reference}, PRICE
                              ) VALUES (
-                                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                                {input_placeholders}, %s
                              )"""
         val = (str(x[0]), str(x[1]), str(x[2]), str(x[3]), str(x[4]), str(x[5]), str(x[6]), str(x[7]), str(x[8]), str(x[9]), str(x[10]), str(x[11]), str(x[12]), str(y))
 
@@ -52,20 +67,15 @@ class TrainingSetHouses(TrainingSet):
         db.close()
 
     def retrieve_labelled_instance(self):
-        db = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="toor",
-            database="housepricing_example"
-        )
+        db = connect_to_housepricing_example_db()
         cursor = db.cursor()
 
-        cursor.execute("SELECT MIN(id), ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE, PRICE FROM labelled_set")
+        cursor.execute(f"SELECT MIN(id), {input_reference}, PRICE FROM {training_set_name}")
         result = cursor.fetchall()
 
         if (len(result) == 0) or (result[0][0] is None):
             db.close()
-            raise NoNewElementException("labelled_set")
+            raise NoNewElementException(f"{schema_name}.{training_set_name}")
 
         x = np.array(result[0][1:-1])
         y = result[0][-1]
@@ -73,22 +83,16 @@ class TrainingSetHouses(TrainingSet):
         return x, y
 
     def retrieve_all_labelled_instances(self):
-        db = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="toor",
-            database="housepricing_example"
-        )
-
+        db = connect_to_housepricing_example_db()
         cursor = db.cursor()
 
-        cursor.execute("SELECT * FROM labelled_set")
+        cursor.execute(f"SELECT * FROM {training_set_name}")
         result = cursor.fetchall()
 
         db.close()
 
         if len(result) == 0:
-            raise NoNewElementException("housepricing_example.labelled_set")
+            raise NoNewElementException(f"{schema_name}.{training_set_name}")
 
         xs, ys = np.array([]), np.array([])
         for item in result:
@@ -101,15 +105,10 @@ class TrainingSetHouses(TrainingSet):
         return xs, ys
 
     def remove_labelled_instance(self, x):
-        db = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="toor",
-            database="housepricing_example"
-        )
+        db = connect_to_housepricing_example_db()
         cursor = db.cursor()
 
-        sql = "DELETE FROM labelled_set WHERE ZERO = %s AND ONE = %s AND TWO = %s AND THREE = %s AND FOUR = %s AND FIVE = %s AND SIX = %s AND SEVEN = %s AND EIGHT = %s AND NINE = %s AND TEN = %s AND ELEVEN = %s AND TWELVE = %s"
+        sql = f"DELETE FROM {training_set_name} WHERE {input_equal_check}"
         val = (str(x[0]), str(x[1]), str(x[2]), str(x[3]), str(x[4]), str(x[5]), str(x[6]), str(x[7]), str(x[8]), str(x[9]), str(x[10]), str(x[11]), str(x[12]))
 
         cursor.execute(sql, val)
@@ -117,15 +116,10 @@ class TrainingSetHouses(TrainingSet):
         db.close()
 
     def clear(self):
-        db = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="toor",
-            database="housepricing_example"
-        )
+        db = connect_to_housepricing_example_db()
         cursor = db.cursor()
 
-        cursor.execute("DELETE FROM labelled_set")
+        cursor.execute(f"DELETE FROM {training_set_name}")
         db.commit()
         db.close()
 
@@ -133,41 +127,35 @@ class TrainingSetHouses(TrainingSet):
 class CandidateSetHouses(Pool):
 
     def __init__(self):
-        db = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="toor",
-            database="housepricing_example"
-        )
+        logging.info("start initializing the Candidate set")
+
+        db = connect_to_housepricing_example_db()
         cursor = db.cursor()
 
-        sql = "DROP TABLE IF EXISTS predicted_set"
+        sql = f"DROP TABLE IF EXISTS {candidate_set_name}"
         cursor.execute(sql)
 
         # TODO: ensure unique identification by input
-        sql = """CREATE TABLE predicted_set (
-                    id int AUTO_INCREMENT PRIMARY KEY,
-                    ZERO double, ONE double, TWO double, THREE double, FOUR double, FIVE double, SIX double, SEVEN double, EIGHT double, NINE double, TEN double, ELEVEN double, TWELVE double,
-                    predicted_PRICE double,
-                    uncertainty double
-                 )"""  # TODO: how should uncertainty look?????
+        # TODO: how should uncertainty look?????
+        sql = f"""CREATE TABLE {candidate_set_name} (
+                        id int AUTO_INCREMENT PRIMARY KEY,
+                        {input_definition},
+                        predicted_PRICE double, uncertainty double
+                  )"""
         cursor.execute(sql)
 
         db.close()
 
+        logging.info(f"finished initializing the Candidate set, database name: '{schema_name}.{candidate_set_name}'")
+
     def initiate_pool(self, x_initial):
-        db = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="toor",
-            database="housepricing_example"
-        )
+        db = connect_to_housepricing_example_db()
         cursor = db.cursor()
 
-        sql = """INSERT INTO predicted_set (
-                                    ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE
+        sql = f"""INSERT INTO {candidate_set_name} (
+                                    {input_reference}
                                  ) VALUES (
-                                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                                    {input_placeholders}
                                  )"""
         val = []
         for i in range(len(x_initial)):
@@ -181,18 +169,13 @@ class CandidateSetHouses(Pool):
         db.close()
 
     def add_instance(self, x, y_prediction, uncertainty):
-        db = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="toor",
-            database="housepricing_example"
-        )
+        db = connect_to_housepricing_example_db()
         cursor = db.cursor()
 
-        sql = """INSERT INTO predicted_set (
-                                    ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE, predicted_PRICE, uncertainty 
+        sql = f"""INSERT INTO {candidate_set_name} (
+                                    {input_reference}, predicted_PRICE, uncertainty 
                                  ) VALUES (
-                                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                                    {input_placeholders}, %s, %s
                                  )"""
         val = (str(x[0]), str(x[1]), str(x[2]), str(x[3]), str(x[4]), str(x[5]), str(x[6]), str(x[7]), str(x[8]), str(x[9]), str(x[10]), str(x[11]),
                str(x[12]), str(y_prediction), str(uncertainty))
@@ -203,23 +186,15 @@ class CandidateSetHouses(Pool):
         db.close()
 
     def retrieve_all_instances(self):
-        db = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="toor",
-            database="housepricing_example"
-        )
+        db = connect_to_housepricing_example_db()
         cursor = db.cursor()
 
-        cursor.execute("""SELECT 
-                            ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE,
-                            predicted_PRICE, uncertainty 
-                            FROM predicted_set""")
+        cursor.execute(f"SELECT {input_reference}, predicted_PRICE, uncertainty FROM {candidate_set_name}")
         res = cursor.fetchall()
 
         if len(res) == 0:
             db.close()
-            raise NoNewElementException
+            raise NoNewElementException(f"{schema_name}.{candidate_set_name}")
 
         db.close()
 
@@ -238,17 +213,10 @@ class CandidateSetHouses(Pool):
         pass
 
     def update_instances(self, xs, new_y_predictions, new_certainties):
-        db = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="toor",
-            database="housepricing_example"
-        )
+        db = connect_to_housepricing_example_db()
         cursor = db.cursor()
 
-        sql = """UPDATE predicted_set 
-                    SET predicted_PRICE = %s, uncertainty = %s
-                    WHERE ZERO = %s AND ONE = %s AND TWO = %s AND THREE = %s AND FOUR = %s AND FIVE = %s AND SIX = %s AND SEVEN = %s AND EIGHT = %s AND NINE = %s AND TEN = %s AND ELEVEN = %s AND TWELVE = %s"""
+        sql = f"UPDATE {candidate_set_name} SET predicted_PRICE = %s, uncertainty = %s WHERE {input_equal_check}"
         val = []
         for i in range(len(xs)):
             val.append((str(new_y_predictions[i]), str(new_certainties[i]),
@@ -261,23 +229,19 @@ class CandidateSetHouses(Pool):
         db.close()
 
     def get_first_instance(self):
-        db = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="toor",
-            database="housepricing_example"
-        )
+        db = connect_to_housepricing_example_db()
         cursor = db.cursor()
 
-        cursor.execute("""SELECT 
-                            MIN(id),
-                            ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE,
-                            predicted_PRICE, uncertainty from predicted_set""")
+        cursor.execute(f"""SELECT 
+                                MIN(id),
+                                {input_reference},
+                                predicted_PRICE, uncertainty 
+                            FROM {candidate_set_name}""")
         res = cursor.fetchall()
 
         if len(res) == 0:
             db.close()
-            raise NoNewElementException
+            raise NoNewElementException(f"{schema_name}.{candidate_set_name}")
 
         db.close()
 
@@ -287,19 +251,14 @@ class CandidateSetHouses(Pool):
         return x, predicted, uncertainty
 
     def get_instance(self, x):
-        db = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="toor",
-            database="housepricing_example"
-        )
+        db = connect_to_housepricing_example_db()
         cursor = db.cursor()
 
-        sql = """SELECT 
-                    ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE,
-                    predicted_PRICE, uncertainty 
-                 FROM predicted_set 
-                 WHERE ZERO = %s AND ONE = %s AND TWO = %s AND THREE = %s AND FOUR = %s AND FIVE = %s AND SIX = %s AND SEVEN = %s AND EIGHT = %s AND NINE = %s AND TEN = %s AND ELEVEN = %s AND TWELVE = %s"""
+        sql = f"""SELECT 
+                        {input_reference},
+                        predicted_PRICE, uncertainty 
+                  FROM {candidate_set_name} 
+                  WHERE {input_equal_check}"""
         val = (str(x[0]), str(x[1]), str(x[2]), str(x[3]), str(x[4]), str(x[5]), str(x[6]), str(x[7]), str(x[8]), str(x[9]), str(x[10]), str(x[11]), str(x[12]))
 
         cursor.execute(sql, val)
@@ -307,7 +266,7 @@ class CandidateSetHouses(Pool):
 
         if len(res) == 0:
             db.close()
-            raise NoSuchElementException
+            raise NoSuchElementException(f"{schema_name}.{candidate_set_name}")
 
         db.close()
 
@@ -320,22 +279,16 @@ class CandidateSetHouses(Pool):
 class QuerySetHouses(QuerySet):
 
     def __init__(self):
-        db = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="toor",
-            database="housepricing_example"
-        )
+        logging.info("start initializing the Query set")
+
+        db = connect_to_housepricing_example_db()
         cursor = db.cursor()
 
-        sql = "DROP TABLE IF EXISTS unlabelled_set"
+        sql = f"DROP TABLE IF EXISTS {query_set_name}"
         cursor.execute(sql)
 
         # TODO: ensure unique identification by input
-        sql = """CREATE TABLE unlabelled_set (
-                    id int AUTO_INCREMENT PRIMARY KEY,
-                    ZERO double, ONE double, TWO double, THREE double, FOUR double, FIVE double, SIX double, SEVEN double, EIGHT double, NINE double, TEN double, ELEVEN double, TWELVE double
-                 )"""
+        sql = f"CREATE TABLE {query_set_name} (id int AUTO_INCREMENT PRIMARY KEY, {input_definition})"
         cursor.execute(sql)
 
         db.close()
@@ -343,31 +296,24 @@ class QuerySetHouses(QuerySet):
         self.last_read_idx = -1
         self.last_write_idx = -1
 
+        logging.info(f"finished initializing the Query set, database name: '{schema_name}.{query_set_name}'")
+
     def add_instance(self, x):
-        db = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="toor",
-            database="housepricing_example"
-        )
+        db = connect_to_housepricing_example_db()
         cursor = db.cursor()
 
-        sql = "SELECT id from unlabelled_set WHERE ZERO = %s AND ONE = %s AND TWO = %s AND THREE = %s AND FOUR = %s AND FIVE = %s AND SIX = %s AND SEVEN = %s AND EIGHT = %s AND NINE = %s AND TEN = %s AND ELEVEN = %s AND TWELVE = %s"
+        sql = f"SELECT id from {query_set_name} WHERE {input_equal_check}"
         val = (str(x[0]), str(x[1]), str(x[2]), str(x[3]), str(x[4]), str(x[5]), str(x[6]), str(x[7]), str(x[8]), str(x[9]), str(x[10]), str(x[11]), str(x[12]))
 
         cursor.execute(sql, val)
         res = cursor.fetchall()
-        if len(res) == 0:  # if already exists: how to set last write?
-            sql = """INSERT INTO unlabelled_set (
-                            ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE 
-                     ) VALUES (
-                            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
-                     )"""
+        if len(res) == 0:  # TODO: if already exists: how to set last write?
+            sql = f"INSERT INTO {query_set_name} ({input_reference}) VALUES ({input_placeholders})"
 
             cursor.execute(sql, val)
             db.commit()
 
-            sql = "SELECT id from unlabelled_set WHERE ZERO = %s AND ONE = %s AND TWO = %s AND THREE = %s AND FOUR = %s AND FIVE = %s AND SIX = %s AND SEVEN = %s AND EIGHT = %s AND NINE = %s AND TEN = %s AND ELEVEN = %s AND TWELVE = %s"
+            sql = f"SELECT id from {query_set_name} WHERE {input_equal_check}"
 
             cursor.execute(sql, val)
             res = cursor.fetchall()
@@ -378,17 +324,12 @@ class QuerySetHouses(QuerySet):
 
     def get_instance(self):
         if self.last_write_idx == self.last_read_idx:
-            raise NoNewElementException
+            raise NoNewElementException(f"{schema_name}.{query_set_name}")
         else:
-            db = mysql.connector.connect(
-                host="localhost",
-                user="root",
-                password="toor",
-                database="housepricing_example"
-            )
+            db = connect_to_housepricing_example_db()
             cursor = db.cursor()
 
-            cursor.execute("SELECT MIN(id), ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, ELEVEN, TWELVE from unlabelled_set")
+            cursor.execute(f"SELECT MIN(id), {input_reference} from {query_set_name}")
             res = cursor.fetchall()[0]
             db.close()
 
@@ -397,14 +338,9 @@ class QuerySetHouses(QuerySet):
             return x
 
     def remove_instance(self, x):
-        db = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="toor",
-            database="housepricing_example"
-        )
+        db = connect_to_housepricing_example_db()
         cursor = db.cursor()
-        sql = "DELETE from unlabelled_set WHERE ZERO = %s AND ONE = %s AND TWO = %s AND THREE = %s AND FOUR = %s AND FIVE = %s AND SIX = %s AND SEVEN = %s AND EIGHT = %s AND NINE = %s AND TEN = %s AND ELEVEN = %s AND TWELVE = %s"
+        sql = f"DELETE from {query_set_name} WHERE {input_equal_check}"
         val = (str(x[0]), str(x[1]), str(x[2]), str(x[3]), str(x[4]), str(x[5]), str(x[6]), str(x[7]), str(x[8]), str(x[9]), str(x[10]), str(x[11]), str(x[12]))
 
         cursor.execute(sql, val)

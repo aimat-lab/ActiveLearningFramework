@@ -7,7 +7,7 @@ class Generator:
         raise NotImplementedError
 
 
-# TODO: implement the mqs candidate update
+# TODO: implement the mqs candidate update (including logging)
 class MQS_CandidateUpdater(CandidateUpdater):
 
     def update_candidate_set(self):

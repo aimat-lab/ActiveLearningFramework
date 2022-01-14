@@ -1,3 +1,5 @@
+import logging
+
 from additional_component_interfaces import PassiveLearner
 from al_components.candidate_update import CandidateUpdater
 from helpers.exceptions import IncorrectParameters, EndTrainingException
@@ -45,7 +47,6 @@ class PbS_CandidateUpdater(CandidateUpdater):
             self.pl = pl
 
     def update_candidate_set(self):
-        # TODO: implement (retrieve all instances, add predictions to them, update them)
         (xs, _, _) = self.candidate_set.retrieve_all_instances()
         if len(xs) == 0:
             raise EndTrainingException("Pool is empty => no more candidates")
@@ -57,3 +58,4 @@ class PbS_CandidateUpdater(CandidateUpdater):
             uncertainties.append(uncertainty)  # TODO uncertainty
 
         self.candidate_set.update_instances(xs, predictions, uncertainties)
+        logging.info("updated whole candidate pool with new predictions and uncertainties")

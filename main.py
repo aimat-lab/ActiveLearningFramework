@@ -1,5 +1,4 @@
 import logging
-from datetime import datetime
 
 from keras.datasets import boston_housing
 
@@ -17,9 +16,16 @@ if __name__ == '__main__':
     logging.info(f"Start of AL framework, chosen scenario: {scenario.name}")
 
     # WORKFLOW: Initialization
+    logging.info("------Initialize AL framework------")
 
+    # in this case: load data from existing set
+    (x_train, y_train), (x_test, y_test) = boston_housing.load_data(test_split=0.9)
+    x_test = x_test[:50]
+    y_test = y_test[:50]
+
+    logging.info("Initialize datasets")
     # type of candidate_source depends on the scenario:
-    #   - PbS: Pool => should be the candidate_set
+    #   - PbS: Pool => should be the candidate_set as well
     #   - MQS: Generator
     #   - SbS: Stream
     candidate_source: Pool = CandidateSetHouses()
@@ -29,23 +35,21 @@ if __name__ == '__main__':
     candidate_set: CandidateSet = candidate_source  # only in case of PbS same as candidate_source
     query_set: QuerySet = QuerySetHouses()
 
-    (x_train, y_train), (x_test, y_test) = boston_housing.load_data(test_split=0.9)  # in this case: load data from existing set
+    candidate_source.initiate_pool(x_test)
 
-    x_test = x_test[:50]
-    y_test = y_test[:50]
-
+    logging.info("Initialize components")
     # init components (workflow controller)
     pl = PassiveLearnerController(pl=SimpleRegressionHousing(), training_set=training_set, candidate_set=candidate_set, scenario=scenario)
     o = OracleController(o=OracleHouses(x_test, y_test), training_set=training_set, query_set=query_set)
     al = ActiveLearnerController(candidate_set=candidate_set, query_set=query_set, info_analyser=UncertaintyInfoAnalyser(candidate_set), scenario=scenario)
 
+    logging.info("Initial training and first candidate update")
     # initial training, data source
     pl.init_pl(x_train, y_train, batch_size=8, epochs=10)  # training with initial training data
-    candidate_source.initiate_pool(x_test)
     pl.init_candidates()
 
+    logging.info("------Active Training------")
     # WORKFLOW: Training
-    # for i in range(len(x_test)):
     al.training_job()
     o.training_job()
     pl.training_job()

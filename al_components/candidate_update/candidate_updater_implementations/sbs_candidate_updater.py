@@ -13,9 +13,7 @@ class Stream:
 class SbS_CandidateUpdater(CandidateUpdater):
 
     def __init__(self, candidate_set: CandidateSet, source_stream: Stream, pl: PassiveLearner):
-        if (candidate_set is None) or (not isinstance(candidate_set, CandidateSet)) or \
-                (pl is None) or (not isinstance(source_stream, Stream)) or \
-                (source_stream is None) or (not isinstance(pl, PassiveLearner)):
+        if (candidate_set is None) or (not isinstance(candidate_set, CandidateSet)) or (pl is None) or (not isinstance(source_stream, Stream)) or (source_stream is None) or (not isinstance(pl, PassiveLearner)):
             raise IncorrectParameters("PbS_CandidateUpdater needs to be initialized with a candidate_set (of type CandidateSet), a source_stream (of type Stream), and pl (of type PassiveLearner)")
         else:
             self.candidate_set = candidate_set
@@ -23,5 +21,5 @@ class SbS_CandidateUpdater(CandidateUpdater):
             self.pl = pl
 
     def update_candidate_set(self):
-        # TODO: implement (fetch element from source stream, add prediction, enter into candidate)
+        # TODO: implement (fetch element from source stream, add prediction, enter into candidate) (including logging)
         raise NotImplementedError

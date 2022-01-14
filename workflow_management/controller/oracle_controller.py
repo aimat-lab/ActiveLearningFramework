@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 
 from additional_component_interfaces import Oracle
@@ -16,3 +17,4 @@ class OracleController:
         label = self.o.query(query_instance)
         self.query_set.remove_instance(query_instance)
         self.training_set.append_labelled_instance(query_instance, label)
+        logging.info(f"Query for instance x resolved with label y, added to training set for PL; x = `{query_instance}`, y = `{label}`")

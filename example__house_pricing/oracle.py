@@ -1,3 +1,5 @@
+import logging
+
 import mysql.connector
 
 from additional_component_interfaces import Oracle
@@ -72,6 +74,7 @@ class OracleHouses(Oracle):
         db.close()
 
         if len(res) == 0:
+            logging.error("Could not find the queried instance => can't add it to labelled set (SHOULD NOT HAPPEN)")
             raise NoSuchElementException
         else:
             return res[0][0]
