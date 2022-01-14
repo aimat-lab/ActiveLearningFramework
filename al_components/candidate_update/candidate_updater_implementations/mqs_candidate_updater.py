@@ -8,6 +8,7 @@ class Generator:
 
 
 # TODO: implement the mqs candidate update (including logging)
+# noinspection PyPep8Naming
 class MQS_CandidateUpdater(CandidateUpdater):
 
     def update_candidate_set(self):

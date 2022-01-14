@@ -9,6 +9,7 @@ from workflow_management.controller import PassiveLearnerController, OracleContr
 from workflow_management.database_interfaces import TrainingSet, CandidateSet, QuerySet
 
 if __name__ == '__main__':
+    # noinspection SpellCheckingInspection
     logging.basicConfig(format='LOGGING:  %(levelname)s:%(message)s', level=logging.DEBUG)
 
     # set scenario

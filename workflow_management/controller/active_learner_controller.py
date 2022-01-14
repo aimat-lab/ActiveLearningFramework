@@ -12,7 +12,7 @@ class ActiveLearnerController:
     def __init__(self, candidate_set: CandidateSet, query_set: QuerySet, scenario: Scenarios, info_analyser: InformativenessAnalyser):
         self.candidate_set: CandidateSet = candidate_set
         self.query_set: QuerySet = query_set
-        self.query_selector: QuerySelector = init_query_selector(scenario, info_analyser, candidate_set, query_set)
+        self.query_selector: QuerySelector = init_query_selector(scenario, info_analyser, candidate_set)
 
     def training_job(self):
         try:

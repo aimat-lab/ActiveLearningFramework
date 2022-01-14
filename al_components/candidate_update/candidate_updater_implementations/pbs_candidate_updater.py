@@ -8,6 +8,18 @@ from workflow_management.database_interfaces import CandidateSet
 
 class Pool(CandidateSet):
 
+    def add_instance(self, x, y_prediction, uncertainty):
+        raise NotImplementedError
+
+    def get_first_instance(self):
+        raise NotImplementedError
+
+    def get_instance(self, x):
+        raise NotImplementedError
+
+    def remove_instance(self, x):
+        raise NotImplementedError
+
     def initiate_pool(self, x_initial):
         """
         Pool needs to be initialized with a list of input instances
@@ -37,6 +49,7 @@ class Pool(CandidateSet):
         raise NotImplementedError
 
 
+# noinspection PyPep8Naming
 class PbS_CandidateUpdater(CandidateUpdater):
 
     def __init__(self, candidate_set: Pool, pl: PassiveLearner):

@@ -5,6 +5,7 @@ from al_components.query_selection import QuerySelector
 from al_components.query_selection.informativeness_analyser import InformativenessAnalyser
 
 
+# noinspection PyPep8Naming
 @dataclass()
 class PbS_QuerySelector(QuerySelector):
     """"

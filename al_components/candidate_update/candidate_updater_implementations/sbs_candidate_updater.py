@@ -10,6 +10,7 @@ class Stream:
         raise NotImplementedError
 
 
+# noinspection PyPep8Naming
 class SbS_CandidateUpdater(CandidateUpdater):
 
     def __init__(self, candidate_set: CandidateSet, source_stream: Stream, pl: PassiveLearner):
