@@ -9,5 +9,4 @@ class CandidateUpdater:
 
         :raise NoMoreCandidatesException: if no new element can be fetched from candidate source
         """
-        # TODO: raising of EndTraining appropriate??
         raise NotImplementedError
