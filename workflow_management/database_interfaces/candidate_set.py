@@ -22,7 +22,7 @@ class CandidateSet:
         """
         retrieve first instance from candidates
 
-        :return first instance (input values x, prediction y, uncertainty)
+        :return: first instance (input values x, prediction y, uncertainty)
         :raises NoNewElementException: if no instance is in database
         """
         raise NotImplementedError
@@ -32,7 +32,7 @@ class CandidateSet:
         retrieve instance identified by x
 
         :param x: input values identifying the instance
-        :return the input x, the prediction y, the uncertainty about the prediction
+        :return: the input x, the prediction y, the uncertainty about the prediction
         :raises NoSuchElementException: if instance identified by x doesn't exist
         """
         raise NotImplementedError

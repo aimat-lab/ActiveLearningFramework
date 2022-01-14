@@ -32,5 +32,5 @@ def init_candidate_updater(scenario: Scenarios, **kwargs):
         logging.info("Initialize SbS candidate updater")
         candidate_set = kwargs.get("candidate_set")
         pl = kwargs.get("pl")
-        source_stream = kwargs.get("source_stream")
+        source_stream = kwargs.get("candidate_source")
         return SbS_CandidateUpdater(candidate_set, source_stream, pl)
