@@ -1,10 +1,11 @@
 import logging
 import time
+from multiprocessing.managers import ValueProxy
 
 from additional_component_interfaces import PassiveLearner
 from al_components.candidate_update import CandidateUpdater, init_candidate_updater
-from helpers import Scenarios
-from helpers.exceptions import NoNewElementException
+from helpers import Scenarios, SystemStates
+from helpers.exceptions import NoNewElementException, NoMoreCandidatesException
 from workflow_management.database_interfaces import TrainingSet, CandidateSet
 
 
@@ -60,7 +61,7 @@ class PassiveLearnerController:
         self.pl_and_candidates_align = True
         self.pl.save_model()
 
-    def training_job(self):
+    def training_job(self, system_state: ValueProxy):
         """
         The actual training job => should be in separate process
 
@@ -74,15 +75,23 @@ class PassiveLearnerController:
                 1. else:
                     1. sleep
                     2. restart job
+
+        :param system_state: The current system state (shared over all controllers)
         """
-        logging.basicConfig(format='LOGGING:  %(levelname)s:%(message)s :END LOGGING', level=logging.DEBUG)
+
+        if system_state.value > int(SystemStates.Training):
+            return
 
         # check if candidate update is necessary:
         # # for PbS: pl didn't change => no new information provided through candidate update
         # # for SbS/MQS: only if candidate set is not empty assumption form PbS can be made  # TODO: maybe remove check for SbS/MQS
         self.pl.load_model()
         if not self.pl_and_candidates_align or self.candidate_set.is_empty():
-            self.candidate_updater.update_candidate_set()
+            try:
+                self.candidate_updater.update_candidate_set()
+            except NoMoreCandidatesException:
+                system_state.set(int(SystemStates.FinishTraining))
+                return
             self.pl_and_candidates_align = True
 
         (x_train, y_train) = None, None
@@ -91,7 +100,8 @@ class PassiveLearnerController:
         except NoNewElementException:
             logging.info("Wait for new training data")
             time.sleep(5)
-            self.training_job()
+            self.training_job(system_state)
+            return
 
         logging.info(f"Train PL with (x, y): x = `{x_train}`, y = `{y_train}`")
         self.pl.train(x_train, y_train)
@@ -100,7 +110,8 @@ class PassiveLearnerController:
         self.training_set.remove_labelled_instance(x_train)
         logging.info(f"Removed (x, y) from the training set => PL already trained with it: x = `{x_train}`, y = `{y_train}`")
 
-        self.training_job()
+        self.training_job(system_state)
+        return
 
     def finish_training(self):
         self.pl.load_model()

@@ -1,8 +1,10 @@
 import logging
 import time
 from dataclasses import dataclass
+from multiprocessing.managers import ValueProxy
 
 from additional_component_interfaces import Oracle
+from helpers import SystemStates
 from helpers.exceptions import NoNewElementException
 from workflow_management.database_interfaces import TrainingSet, QuerySet
 
@@ -21,21 +23,26 @@ class OracleController:
     training_set: TrainingSet
     query_set: QuerySet
 
-    def training_job(self):
+    def training_job(self, system_state: ValueProxy):
+        if system_state.value > int(SystemStates.Training):
+            return
+
         query_instance = None
         try:
             query_instance = self.query_set.get_instance()
         except NoNewElementException:
             logging.info("Wait for new queries")
             time.sleep(5)
-            self.training_job()
+            self.training_job(system_state)
+            return
 
         label = self.o.query(query_instance)
         self.query_set.remove_instance(query_instance)
         self.training_set.append_labelled_instance(query_instance, label)
         logging.info(f"Query for instance x resolved with label y, added to training set for PL; x = `{query_instance}`, y = `{label}`")
 
-        self.training_job()
+        self.training_job(system_state)
+        return
 
     def finish_training(self):
         while True:

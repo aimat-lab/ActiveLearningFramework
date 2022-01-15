@@ -80,8 +80,6 @@ class SimpleRegressionHousing(PassiveLearner):
         return np.mean(np.array([prediction_a, prediction_b, prediction_c]), axis=0), np.var(np.array([prediction_a, prediction_b, prediction_c]), axis=0)
 
     def train(self, x, y):
-        logging.basicConfig(format='LOGGING:  %(levelname)s:%(message)s :END LOGGING', level=logging.DEBUG)
-
         if len(self.x_train) == 0:
             self.x_train = np.array([x])
         else:

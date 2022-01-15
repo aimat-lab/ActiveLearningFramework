@@ -39,7 +39,7 @@ class PassiveLearner:
 
     def predict(self, x):
         """
-        Get the predicted output based on the current state of the ML model (current training status)
+        Get the predicted output based on the current system_state of the ML model (current training status)
 
         :param x: input values
         :return: prediction y (usually one numerical value, but can alter), uncertainty c (how sure is the model about the maid prediction)
