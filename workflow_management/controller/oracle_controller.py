@@ -9,6 +9,14 @@ from workflow_management.database_interfaces import TrainingSet, QuerySet
 
 @dataclass()
 class OracleController:
+    """
+    Controls the oracle workflow (manages query process)
+
+    Arguments for initiation
+        - *o: Oracle* - the actual oracle
+        - *training_set: TrainingSet* - the set the resolved query is inserted to
+        - *query_set: QuerySet* - the set providing outstanding queries
+    """
     o: Oracle
     training_set: TrainingSet
     query_set: QuerySet
@@ -31,6 +39,7 @@ class OracleController:
 
     def finish_training(self):
         while True:
+            # noinspection PyUnusedLocal
             query_instance = None
             try:
                 query_instance = self.query_set.get_instance()

@@ -63,6 +63,7 @@ class PbS_CandidateUpdater(CandidateUpdater):
             self.pl = pl
 
     def update_candidate_set(self):
+        # noinspection PyUnusedLocal
         xs = None
         try:
             (xs, _, _) = self.candidate_set.retrieve_all_instances()

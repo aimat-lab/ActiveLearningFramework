@@ -106,7 +106,8 @@ class PassiveLearnerController:
         self.pl.load_model()
 
         while True:
-            (x_train, y_train) = None, None
+            # noinspection PyUnusedLocal
+            x_train, y_train = None, None
             try:
                 (x_train, y_train) = self.training_set.retrieve_labelled_instance()
             except NoNewElementException:

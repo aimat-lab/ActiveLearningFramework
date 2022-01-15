@@ -50,7 +50,7 @@ class OracleHouses(Oracle):
                          )"""
         val = []
         for i in range(len(xs)):
-            val.append(x_to_str_tuple(xs[i]) + (str(ys[i]), ))
+            val.append(x_to_str_tuple(xs[i]) + (str(ys[i]),))
 
         cursor.executemany(sql, val)
         db.commit()
