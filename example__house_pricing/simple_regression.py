@@ -1,7 +1,9 @@
+import logging
+
 import numpy as np
 from keras.callbacks import EarlyStopping
 from keras.layers import Dense
-from keras.models import Sequential
+from keras.models import Sequential, load_model
 from sklearn import preprocessing
 from tensorflow.keras.optimizers import RMSprop
 
@@ -12,6 +14,19 @@ class SimpleRegressionHousing(PassiveLearner):
     """
     Boston housing regression with 3 models (to get a committee)
     """
+
+    def save_model(self):
+        self.model_a.save('assets/saved_models/simple_regression_housing__model_a')
+        del self.model_a
+        self.model_b.save('assets/saved_models/simple_regression_housing__model_b')
+        del self.model_b
+        self.model_c.save('assets/saved_models/simple_regression_housing__model_c')
+        del self.model_c
+
+    def load_model(self):
+        self.model_a = load_model('assets/saved_models/simple_regression_housing__model_a')
+        self.model_b = load_model('assets/saved_models/simple_regression_housing__model_b')
+        self.model_c = load_model('assets/saved_models/simple_regression_housing__model_c')
 
     def __init__(self):
         # TODO: different models? e.g. different optimizer?
@@ -65,6 +80,8 @@ class SimpleRegressionHousing(PassiveLearner):
         return np.mean(np.array([prediction_a, prediction_b, prediction_c]), axis=0), np.var(np.array([prediction_a, prediction_b, prediction_c]), axis=0)
 
     def train(self, x, y):
+        logging.basicConfig(format='LOGGING:  %(levelname)s:%(message)s :END LOGGING', level=logging.DEBUG)
+
         if len(self.x_train) == 0:
             self.x_train = np.array([x])
         else:

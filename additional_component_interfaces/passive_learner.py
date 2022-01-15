@@ -3,6 +3,29 @@ class PassiveLearner:
     Interface for the PL (to be extended SL model)
     """
 
+    def save_model(self):
+        """
+        Save the model in separate file
+
+        => necessary for multiprocessing compatibility: will be called after every other function of this class, except load_model
+
+        e.g.:
+            - model.save('my_model')
+            - del model
+        """
+        raise NotImplementedError
+
+    def load_model(self):
+        """
+        Load the model form the separate file (see save_model)
+
+        => necessary for multiprocessing compatibility: will be called before every other function of this class, except save_model
+
+        e.g.:
+            - model = tensorflow.keras.models.load_model('my_model')
+        """
+        raise NotImplementedError
+
     def initial_training(self, x_train, y_train, **kwargs):
         # TODO: maybe move scaling of data into initiation??
         """

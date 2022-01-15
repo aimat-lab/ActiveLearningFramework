@@ -23,8 +23,8 @@ if __name__ == '__main__':
 
     # in this case: load data from existing set
     (x_train, y_train), (x_test, y_test) = boston_housing.load_data(test_split=0.9)
-    x_test = x_test[:50]
-    y_test = y_test[:50]
+    x_test = x_test[:32]
+    y_test = y_test[:32]
 
     logging.info("Initialize datasets")
     # type of candidate_source depends on the scenario:
@@ -57,21 +57,25 @@ if __name__ == '__main__':
     # create processes
     al_process = Process(target=al.training_job, name="Process-AL")
     o_process = Process(target=o.training_job, name="Process-Oracle")
-    # pl_process = Process(target=pl.training_job, name="Process-PL")
+    pl_process = Process(target=pl.training_job, name="Process-PL")
 
     try:
         # actually start the processes
         al_process.start()
         o_process.start()
-        # pl_process.start()
-        pl.training_job()
+        pl_process.start()
+        # pl.training_job()
+
+        # collect the processes
+        al_process.join()
+        o_process.join()
+        pl_process.join()
+
     except NoMoreCandidatesException:
         al_process.kill()
         o_process.kill()
+        pl_process.kill()
         o.finish_training()
+        pl.finish_training()
 
 
-    # collect the processes
-    al_process.join()
-    o_process.join()
-    # pl_process.join()
