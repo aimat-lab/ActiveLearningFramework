@@ -1,10 +1,12 @@
 import logging
+from multiprocessing import Process
 
 from keras.datasets import boston_housing
 
 from al_components.candidate_update.candidate_updater_implementations import Pool
 from example__house_pricing import SimpleRegressionHousing, CandidateSetHouses, OracleHouses, QuerySetHouses, TrainingSetHouses, UncertaintyInfoAnalyser
 from helpers import Scenarios
+from helpers.exceptions import NoMoreCandidatesException
 from workflow_management.controller import PassiveLearnerController, OracleController, ActiveLearnerController
 from workflow_management.database_interfaces import TrainingSet, CandidateSet, QuerySet
 
@@ -50,8 +52,26 @@ if __name__ == '__main__':
     pl.init_candidates()
 
     logging.info("------Active Training------")
-    # WORKFLOW: Training
-    # TODO: multiple processes
-    al.training_job()
-    o.training_job()
-    pl.training_job()
+    # WORKFLOW: Training in parallel processes
+
+    # create processes
+    al_process = Process(target=al.training_job, name="Process-AL")
+    o_process = Process(target=o.training_job, name="Process-Oracle")
+    # pl_process = Process(target=pl.training_job, name="Process-PL")
+
+    try:
+        # actually start the processes
+        al_process.start()
+        o_process.start()
+        # pl_process.start()
+        pl.training_job()
+    except NoMoreCandidatesException:
+        al_process.kill()
+        o_process.kill()
+        o.finish_training()
+
+
+    # collect the processes
+    al_process.join()
+    o_process.join()
+    # pl_process.join()

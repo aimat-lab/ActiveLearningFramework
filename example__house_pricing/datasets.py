@@ -92,15 +92,15 @@ class TrainingSetHouses(TrainingSet):
         cursor = db.cursor()
 
         cursor.execute(f"SELECT * FROM {training_set_name}")
-        result = cursor.fetchall()
+        res = cursor.fetchall()
 
         db.close()
 
-        if len(result) == 0:
+        if (len(res) == 0) or (res[0][0] is None):
             raise NoNewElementException(f"{schema_name}.{training_set_name}")
 
         xs, ys = np.array([]), np.array([])
-        for item in result:
+        for item in res:
             if len(xs) == 0:
                 xs = np.array([np.array(item[1:-1])])
             else:
@@ -171,6 +171,13 @@ class CandidateSetHouses(Pool):
 
         db.close()
 
+    def is_empty(self) -> bool:
+        try:
+            self.retrieve_all_instances()
+        except NoNewElementException:
+            return True
+        return False
+
     def add_instance(self, x, y_prediction, uncertainty):
         db = connect_to_house_pricing_example_db()
         cursor = db.cursor()
@@ -194,7 +201,7 @@ class CandidateSetHouses(Pool):
         cursor.execute(f"SELECT {input_reference}, predicted_PRICE, uncertainty FROM {candidate_set_name}")
         res = cursor.fetchall()
 
-        if len(res) == 0:
+        if (len(res) == 0) or (res[0][0] is None):
             db.close()
             raise NoNewElementException(f"{schema_name}.{candidate_set_name}")
 
@@ -248,7 +255,7 @@ class CandidateSetHouses(Pool):
                             FROM {candidate_set_name}""")
         res = cursor.fetchall()
 
-        if len(res) == 0:
+        if (len(res) == 0) or (res[0][0] is None):
             db.close()
             raise NoNewElementException(f"{schema_name}.{candidate_set_name}")
 
@@ -273,7 +280,7 @@ class CandidateSetHouses(Pool):
         cursor.execute(sql, val)
         res = cursor.fetchall()
 
-        if len(res) == 0:
+        if (len(res) == 0) or (res[0][0] is None):
             db.close()
             raise NoSuchElementException(f"{schema_name}.{candidate_set_name}", x)
 
@@ -301,10 +308,6 @@ class QuerySetHouses(QuerySet):
         cursor.execute(sql)
 
         db.close()
-
-        self.last_read_idx = -1
-        self.last_write_idx = -1
-
         logging.info(f"finished initializing the Query set, database name: '{schema_name}.{query_set_name}'")
 
     def add_instance(self, x):
@@ -322,29 +325,21 @@ class QuerySetHouses(QuerySet):
             cursor.execute(sql, val)
             db.commit()
 
-            sql = f"SELECT id from {query_set_name} WHERE {input_equal_check}"
-
-            cursor.execute(sql, val)
-            res = cursor.fetchall()
-            (id,) = res[0]
-            self.last_write_idx = id
-
         db.close()
 
     def get_instance(self):
-        if self.last_write_idx == self.last_read_idx:
+        db = connect_to_house_pricing_example_db()
+        cursor = db.cursor()
+
+        cursor.execute(f"SELECT MIN(id), {input_reference} from {query_set_name}")
+        res = cursor.fetchall()
+        db.close()
+
+        if (len(res) == 0) or (res[0][0] is None):
             raise NoNewElementException(f"{schema_name}.{query_set_name}")
-        else:
-            db = connect_to_house_pricing_example_db()
-            cursor = db.cursor()
 
-            cursor.execute(f"SELECT MIN(id), {input_reference} from {query_set_name}")
-            res = cursor.fetchall()[0]
-            db.close()
-
-            x = np.array(res[1:])
-            self.last_read_idx = res[0]
-            return x
+        x = np.array(res[0][1:])
+        return x
 
     def remove_instance(self, x):
         db = connect_to_house_pricing_example_db()

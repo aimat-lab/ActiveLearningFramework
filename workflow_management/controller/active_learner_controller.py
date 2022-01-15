@@ -1,4 +1,5 @@
 import logging
+import time
 
 from al_components.query_selection import QuerySelector, init_query_selector
 from al_components.query_selection.informativeness_analyser import InformativenessAnalyser
@@ -26,8 +27,9 @@ class ActiveLearnerController:
                 else:
                     self.candidate_set.remove_instance(query_instance)
                     logging.info(f"Discarded the candidate: x = `{query_instance}`")
+
         except NoNewElementException:
             logging.info("Wait for new candidates")
+            time.sleep(5)
 
-        # TODO loop => currently not active, fist: multiprocessing
-        # self.training_job()
+        self.training_job()

@@ -8,6 +8,9 @@ from workflow_management.database_interfaces import CandidateSet
 
 class Pool(CandidateSet):
 
+    def is_empty(self) -> bool:
+        raise NotImplementedError
+
     def add_instance(self, x, y_prediction, uncertainty):
         raise NotImplementedError
 

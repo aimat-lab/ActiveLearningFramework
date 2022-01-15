@@ -8,6 +8,14 @@ class CandidateSet:
     **Communication** between PL (provides information for informativeness analyser) and AL (selects query instance from candidates)
     """
 
+    def is_empty(self) -> bool:
+        """
+        checks if any elements are in the candidate set
+
+        :return: true if empty, false if not
+        """
+        raise NotImplementedError
+
     def add_instance(self, x, y_prediction, uncertainty):
         """
         adds new instance (new last entry) into the candidate database (can be selected for query)

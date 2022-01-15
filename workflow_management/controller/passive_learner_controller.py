@@ -1,4 +1,5 @@
 import logging
+import time
 
 from additional_component_interfaces import PassiveLearner
 from al_components.candidate_update import CandidateUpdater, init_candidate_updater
@@ -35,7 +36,7 @@ class PassiveLearnerController:
         # TODO: check if assumption "pl doesn't change => candidates don't need to be updated" works
         # # for PbS definitely
         # # for SbS/MQS: only if candidate set is not empty => bring into calculation?
-        if not self.pl_and_candidates_align:
+        if not self.pl_and_candidates_align or self.candidate_set.is_empty():
             self.candidate_updater.update_candidate_set()
             self.pl_and_candidates_align = True
 
@@ -44,6 +45,8 @@ class PassiveLearnerController:
             (x_train, y_train) = self.training_set.retrieve_labelled_instance()
         except NoNewElementException:
             logging.info("Wait for new training data")
+            time.sleep(5)
+            self.training_job()
 
         logging.info(f"Train PL with (x, y): x = `{x_train}`, y = `{y_train}`")
         self.pl.train(x_train, y_train)
@@ -51,6 +54,4 @@ class PassiveLearnerController:
         self.training_set.remove_labelled_instance(x_train)
         logging.info(f"Removed (x, y) from the training set => PL already trained with it: x = `{x_train}`, y = `{y_train}`")
 
-        # TODO loop => currently not active, fist: multiprocessing
-        # self.training_job()
-
+        self.training_job()
