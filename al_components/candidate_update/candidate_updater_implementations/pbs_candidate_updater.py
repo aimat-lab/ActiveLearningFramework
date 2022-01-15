@@ -75,7 +75,7 @@ class PbS_CandidateUpdater(CandidateUpdater):
         for x in xs:
             prediction, uncertainty = self.pl.predict(x)
             predictions.append(prediction)
-            uncertainties.append(uncertainty)  # TODO uncertainty
+            uncertainties.append(uncertainty)
 
         self.candidate_set.update_instances(xs, predictions, uncertainties)
         logging.info("updated whole candidate pool with new predictions and uncertainties")

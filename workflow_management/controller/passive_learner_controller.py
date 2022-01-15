@@ -49,7 +49,6 @@ class PassiveLearnerController:
         epochs = kwargs.get("epochs")
         self.pl.initial_training(x_train, y_train, batch_size=batch_size, epochs=epochs)
         self.pl.save_model()
-        self.training_set.clear()  # TODO: maybe unnecessary
         self.pl_and_candidates_align = False
 
     def init_candidates(self):

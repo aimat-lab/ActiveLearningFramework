@@ -319,7 +319,7 @@ class QuerySetHouses(QuerySet):
 
         cursor.execute(sql, val)
         res = cursor.fetchall()
-        if len(res) == 0:  # TODO: if already exists: how to set last write?
+        if len(res) == 0:
             sql = f"INSERT INTO {query_set_name} ({input_reference}) VALUES ({input_placeholders})"
 
             cursor.execute(sql, val)
