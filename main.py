@@ -10,7 +10,7 @@ from workflow_management.database_interfaces import TrainingSet, CandidateSet, Q
 
 if __name__ == '__main__':
     # noinspection SpellCheckingInspection
-    logging.basicConfig(format='LOGGING:  %(levelname)s:%(message)s', level=logging.DEBUG)
+    logging.basicConfig(format='LOGGING:  %(levelname)s:%(message)s :END LOGGING', level=logging.DEBUG)
 
     # set scenario
     scenario = Scenarios.PbS

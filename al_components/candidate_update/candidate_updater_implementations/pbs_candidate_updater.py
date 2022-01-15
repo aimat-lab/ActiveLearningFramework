@@ -2,7 +2,7 @@ import logging
 
 from additional_component_interfaces import PassiveLearner
 from al_components.candidate_update import CandidateUpdater
-from helpers.exceptions import IncorrectParameters, NoMoreCandidatesException
+from helpers.exceptions import IncorrectParameters, NoMoreCandidatesException, NoNewElementException
 from workflow_management.database_interfaces import CandidateSet
 
 
@@ -43,7 +43,7 @@ class Pool(CandidateSet):
         """
         retrieves all candidates from database (database is left unchanged)
 
-        :return tuple of numpy arrays [x], [prediction], [uncertainty]
+        :return: tuple of numpy arrays [x], [prediction], [uncertainty]
         :raises NoNewElementException: if no instance is in database
         """
         raise NotImplementedError
@@ -60,7 +60,11 @@ class PbS_CandidateUpdater(CandidateUpdater):
             self.pl = pl
 
     def update_candidate_set(self):
-        (xs, _, _) = self.candidate_set.retrieve_all_instances()
+        xs = None
+        try:
+            (xs, _, _) = self.candidate_set.retrieve_all_instances()
+        except NoNewElementException:
+            raise NoMoreCandidatesException()
         if len(xs) == 0:
             raise NoMoreCandidatesException()
 
