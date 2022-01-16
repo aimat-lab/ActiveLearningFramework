@@ -24,9 +24,26 @@ class OracleController:
     query_set: QuerySet
 
     def training_job(self, system_state: ValueProxy):
-        if system_state.value > int(SystemStates.Training):
+        """
+        Actual training job for the oracle component => should run in separate process
+
+        Job sequence:
+            1. retrieve a query request
+                1. if unresolved query request exists:
+                    1. resolve the query
+                    2. add the labelled instance to the training set
+                    3. restart job
+                2. else:
+                    1. sleep
+                    2. restart job
+
+        :param system_state: Shared variable over all parallel training processes; shows the state of the whole AL system (values align with enum SystemStates)
+        :return: if the process should end => indicated by system_state
+        """
+        if system_state.value > int(SystemStates.TRAINING):
             return
 
+        # noinspection PyUnusedLocal
         query_instance = None
         try:
             query_instance = self.query_set.get_instance()

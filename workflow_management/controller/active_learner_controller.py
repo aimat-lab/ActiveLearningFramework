@@ -1,6 +1,5 @@
 import logging
 import time
-from multiprocessing import Value
 from multiprocessing.managers import ValueProxy
 
 from al_components.query_selection import QuerySelector, init_query_selector
@@ -18,7 +17,8 @@ class ActiveLearnerController:
         self.query_selector: QuerySelector = init_query_selector(scenario, info_analyser, candidate_set)
 
     def training_job(self, system_state: ValueProxy):
-        if system_state.value > int(SystemStates.Training):
+        if system_state.value > int(SystemStates.TRAINING):
+            logging.info(f"Ended training job of active learner, system_state={SystemStates(system_state.value).name}")
             return
         try:
             while True:

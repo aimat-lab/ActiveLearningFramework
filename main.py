@@ -3,46 +3,58 @@ from multiprocessing import Process, Manager
 
 from keras.datasets import boston_housing
 
-from al_components.candidate_update.candidate_updater_implementations import Pool
+from al_components.candidate_update.candidate_updater_implementations import Pool, Stream, Generator
 from example__house_pricing import SimpleRegressionHousing, CandidateSetHouses, OracleHouses, QuerySetHouses, TrainingSetHouses, UncertaintyInfoAnalyser
 from helpers import Scenarios, SystemStates
+from helpers.exceptions import IncorrectScenarioImplementation
 from workflow_management.controller import PassiveLearnerController, OracleController, ActiveLearnerController
 from workflow_management.database_interfaces import TrainingSet, CandidateSet, QuerySet
 
-logging.basicConfig(format='LOGGING:  %(levelname)s:%(message)s :END LOGGING', level=logging.DEBUG)
+logging.basicConfig(format='LOGGING:  %(levelname)s:%(message)s :END LOGGING', level=logging.INFO)
 
 if __name__ == '__main__':
     # set scenario
     scenario = Scenarios.PbS
     logging.info(f"Start of AL framework, chosen scenario: {scenario.name}")
 
-    state_manager = Manager()
-
     # WORKFLOW: Initialization
-    logging.info("------Initialize AL framework------")
-    system_state = state_manager.Value('i', int(SystemStates.Init))
+    state_manager = Manager()
+    system_state = state_manager.Value('i', int(SystemStates.INIT))
+    logging.info(f"------ Initialize AL framework ------  => system_state={SystemStates(system_state.value).name}")
 
-    # in this case: load data from existing set
+    # in boston housing case: load data from existing set
     (x_train, y_train), (x_test_ori, y_test_ori) = boston_housing.load_data(test_split=0.9)
-    x_test = x_test_ori
-    y_test = y_test_ori
+    x_test = x_test_ori[:50]
+    y_test = y_test_ori[:50]
 
-    logging.info("Initialize datasets")
+    # initialize candidate source
     # type of candidate_source depends on the scenario:
     #   - PbS: Pool => should be the candidate_set as well
     #   - MQS: Generator
     #   - SbS: Stream
-    candidate_source: Pool = CandidateSetHouses()
+    candidate_source_type = None
+    if scenario == Scenarios.PbS:
+        candidate_source_type = Pool
+    elif scenario == Scenarios.SbS:
+        candidate_source_type = Stream
+    else:  # scenario == Scenarios.MQS
+        candidate_source_type = Generator
+    logging.info(f"Initialize datasource => type: {candidate_source_type}")
+
+    candidate_source: candidate_source_type = CandidateSetHouses()
+    if not isinstance(candidate_source, candidate_source_type):
+        raise IncorrectScenarioImplementation(f"candidate_source needs to be of type {candidate_source_type}, but is of type {candidate_source.__class__}")
+
+    candidate_source.initiate_pool(x_test)  # load data into candidate_source
 
     # init databases (usually empty)
+    logging.info("Initialize datasets")
     training_set: TrainingSet = TrainingSetHouses()
     candidate_set: CandidateSet = candidate_source  # only in case of PbS same as candidate_source
     query_set: QuerySet = QuerySetHouses()
 
-    candidate_source.initiate_pool(x_test)
-
-    logging.info("Initialize components")
     # init components (workflow controller)
+    logging.info("Initialize components")
     pl = PassiveLearnerController(pl=SimpleRegressionHousing(), training_set=training_set, candidate_set=candidate_set, scenario=scenario)
     o = OracleController(o=OracleHouses(x_test, y_test), training_set=training_set, query_set=query_set)
     al = ActiveLearnerController(candidate_set=candidate_set, query_set=query_set, info_analyser=UncertaintyInfoAnalyser(candidate_set), scenario=scenario)
@@ -52,8 +64,8 @@ if __name__ == '__main__':
     pl.init_pl(x_train, y_train, batch_size=8, epochs=10)  # training with initial training data
     pl.init_candidates()
 
-    logging.info("------Active Training------")
-    system_state = state_manager.Value('i', int(SystemStates.Training))
+    system_state = state_manager.Value('i', int(SystemStates.TRAINING))
+    logging.info(f"------ Active Training ------ => system_state={SystemStates(system_state.value).name}")
     # WORKFLOW: Training in parallel processes
 
     # create processes
@@ -65,19 +77,20 @@ if __name__ == '__main__':
     al_process.start()
     o_process.start()
     pl_process.start()
-    # pl.training_job()
 
     # collect the processes
     al_process.join()
     o_process.join()
     pl_process.join()
 
-    if system_state.value == int(SystemStates.FinishTraining):
+    # TODO: implement terminate training case => if convergence
+    if system_state.value == int(SystemStates.FINISH_TRAINING):
         o.finish_training()
         pl.finish_training()
 
-    system_state.set(int(SystemStates.Predict))
-    logging.info("Finished training => PREDICT")
+    logging.info("Finished training process")
+    system_state.set(int(SystemStates.PREDICT))
+    logging.info(f"----- Prediction ------- => system_state={SystemStates(system_state.value).name}")
 
     pl.pl.load_model()
     predict_40 = pl.pl.predict(x_test_ori[40])

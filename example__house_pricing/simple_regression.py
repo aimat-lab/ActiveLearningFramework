@@ -1,5 +1,3 @@
-import logging
-
 import numpy as np
 from keras.callbacks import EarlyStopping
 from keras.layers import Dense

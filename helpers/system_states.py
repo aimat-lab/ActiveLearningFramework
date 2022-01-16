@@ -2,17 +2,18 @@ from enum import IntEnum
 
 
 class SystemStates(IntEnum):
-    Init = 0
+
+    INIT = 0
     """
     Initiation system_state => initiation of databases, components, initial training, ...
     """
 
-    Training = 1
+    TRAINING = 1
     """
     Active training process, components work in parallel
     """
 
-    FinishTraining = 2
+    FINISH_TRAINING = 2
     """
     Soft end for training process => components can finish their tasks
     
@@ -23,17 +24,17 @@ class SystemStates(IntEnum):
         4. PL -> no more new training data will come up 
     """
 
-    TerminateTraining = 3
+    TERMINATE_TRAINING = 3
     """
     Hard end of training process => components should immediately stop their tasks
     """
 
-    Predict = 4
+    PREDICT = 4
     """
     Training is finished => SL model can be used for prediction
     """
 
-    Error = 5
+    ERROR = 5
     """
     Fatal error => model won't work
     
