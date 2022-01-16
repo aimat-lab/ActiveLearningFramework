@@ -2,7 +2,6 @@ from enum import IntEnum
 
 
 class SystemStates(IntEnum):
-
     INIT = 0
     """
     Initiation system_state => initiation of databases, components, initial training, ...

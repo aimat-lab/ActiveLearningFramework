@@ -67,6 +67,9 @@ if __name__ == '__main__':
     # WORKFLOW: Training in parallel processes
     if system_state == int(SystemStates.INIT):
         system_state = state_manager.Value('i', int(SystemStates.TRAINING))
+    else:
+        logging.error("An error occurred during initiation => system failed")
+        raise ALSystemError()
 
     logging.info(f"------ Active Training ------ => system_state={SystemStates(system_state.value).name}")
 
