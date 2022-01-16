@@ -6,7 +6,7 @@ from keras.datasets import boston_housing
 from al_components.candidate_update.candidate_updater_implementations import Pool, Stream, Generator
 from example__house_pricing import SimpleRegressionHousing, CandidateSetHouses, OracleHouses, QuerySetHouses, TrainingSetHouses, UncertaintyInfoAnalyser
 from helpers import Scenarios, SystemStates
-from helpers.exceptions import IncorrectScenarioImplementation
+from helpers.exceptions import IncorrectScenarioImplementation, ALSystemError
 from workflow_management.controller import PassiveLearnerController, OracleController, ActiveLearnerController
 from workflow_management.database_interfaces import TrainingSet, CandidateSet, QuerySet
 
@@ -64,15 +64,18 @@ if __name__ == '__main__':
     pl.init_pl(x_train, y_train, batch_size=8, epochs=10)  # training with initial training data
     pl.init_candidates()
 
-    system_state = state_manager.Value('i', int(SystemStates.TRAINING))
-    logging.info(f"------ Active Training ------ => system_state={SystemStates(system_state.value).name}")
     # WORKFLOW: Training in parallel processes
+    if system_state == int(SystemStates.INIT):
+        system_state = state_manager.Value('i', int(SystemStates.TRAINING))
+
+    logging.info(f"------ Active Training ------ => system_state={SystemStates(system_state.value).name}")
 
     # create processes
     al_process = Process(target=al.training_job, args=(system_state,), name="Process-AL")
     o_process = Process(target=o.training_job, args=(system_state,), name="Process-Oracle")
     pl_process = Process(target=pl.training_job, args=(system_state,), name="Process-PL")
 
+    logging.info(f"Start every controller process: al - {al_process.name}, oracle - {o_process.name}, pl - {pl_process.name}")
     # actually start the processes
     al_process.start()
     o_process.start()
@@ -82,11 +85,17 @@ if __name__ == '__main__':
     al_process.join()
     o_process.join()
     pl_process.join()
+    logging.info(f"Every controller process has finished => system_state={SystemStates(system_state.value).name}")
 
     # TODO: implement terminate training case => if convergence
     if system_state.value == int(SystemStates.FINISH_TRAINING):
+        logging.info("Soft end for training process => empty query set and training set")
         o.finish_training()
         pl.finish_training()
+
+    elif system_state.value == int(SystemStates.ERROR):
+        logging.error("A fatal error occurred => model training has failed")
+        raise ALSystemError()
 
     logging.info("Finished training process")
     system_state.set(int(SystemStates.PREDICT))

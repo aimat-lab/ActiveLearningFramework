@@ -12,3 +12,9 @@ class NoMoreCandidatesException(Exception):
     def __init__(self):
         logging.info("No more candidates available in candidate source => finish training process")
         pass
+
+
+class ALSystemError(Exception):
+    def __init__(self):
+        logging.error("Fatal error => system failed")
+        pass
