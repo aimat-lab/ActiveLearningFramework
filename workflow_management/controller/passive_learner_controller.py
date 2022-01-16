@@ -89,7 +89,8 @@ class PassiveLearnerController:
                     1. sleep
                     2. restart job
 
-        :param system_state: The current system state (shared over all controllers)
+        :param system_state: The current system state (shared over all controllers, values align with enum SystemStates)
+        :return: if the process should end => indicated by system_state
         """
 
         if system_state.value > int(SystemStates.TRAINING):
@@ -141,6 +142,12 @@ class PassiveLearnerController:
         return
 
     def finish_training(self):
+        """
+        Soft end for training => get remaining instances from training set and train pl with it
+
+        :return: once the final training is finished
+        """
+
         logging.info(f"{pl_controller_logging_prefix} Soft end of training process => train with remaining instances in training set")
         self.pl.load_model()
 
