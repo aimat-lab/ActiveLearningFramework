@@ -2,3 +2,4 @@ from .datasets import TrainingSetHouses, QuerySetHouses, CandidateSetHouses
 from .oracle import OracleHouses
 from .simple_regression import SimpleRegressionHousing
 from .uncertainty_info_analyser import UncertaintyInfoAnalyser
+from .default_perf_evaluator import DefaultPerformanceEvaluator
