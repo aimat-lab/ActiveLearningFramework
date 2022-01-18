@@ -1,6 +1,5 @@
-from typing import Tuple
+from typing import Tuple, List
 
-from numpy import ndarray
 
 from helpers import X, Y
 
@@ -27,7 +26,7 @@ class TrainingSet:
         raise NotImplementedError
 
     # TODO: pop instead of retrieve/remove?
-    def retrieve_labelled_instance(self) -> Tuple[ndarray, ndarray]:
+    def retrieve_labelled_instance(self) -> Tuple[X, Y]:
         """
         Get first instance from database
 
@@ -36,7 +35,7 @@ class TrainingSet:
         """
         raise NotImplementedError
 
-    def retrieve_all_labelled_instances(self) -> Tuple[ndarray, ndarray]:
+    def retrieve_all_labelled_instances(self) -> Tuple[List[X], List[Y]]:
         """
         Get all instances from database
 
@@ -45,7 +44,7 @@ class TrainingSet:
         """
         raise NotImplementedError
 
-    def remove_labelled_instance(self, x: ndarray) -> None:
+    def remove_labelled_instance(self, x: X) -> None:
         """
         Ensures the instance identified through input x is not in the database (either remove if existing)
 
