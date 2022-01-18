@@ -1,11 +1,11 @@
 import logging
 from multiprocessing import Process, Manager
 
-from keras.datasets import boston_housing
-
+from additional_component_interfaces import PassiveLearner, Oracle
+from al_components.candidate_update import CandidateInformationCreator
 from al_components.candidate_update.candidate_updater_implementations import Pool, Stream, Generator
-from example__house_pricing import SimpleRegressionHousing, CandidateSetHouses, OracleHouses, QuerySetHouses, TrainingSetHouses, UncertaintyInfoAnalyser, DefaultPerformanceEvaluator
-from example__house_pricing.default_candidate_information_creator import DefaultCandidateInformationCreator
+from al_components.perfomance_evaluation import PerformanceEvaluator
+from al_components.query_selection.informativeness_analyser import InformativenessAnalyser
 from helpers import Scenarios, SystemStates
 from helpers.exceptions import IncorrectScenarioImplementation, ALSystemError
 from workflow_management.controller import PassiveLearnerController, OracleController, ActiveLearnerController
@@ -15,18 +15,13 @@ logging.basicConfig(format='LOGGING:  %(levelname)s:%(message)s :END LOGGING', l
 
 if __name__ == '__main__':
     # set scenario
-    scenario = Scenarios.PbS
+    scenario = None  # TODO case implementation: set scenario
     logging.info(f"Start of AL framework, chosen scenario: {scenario.name}")
 
     # WORKFLOW: Initialization
     state_manager = Manager()
     system_state = state_manager.Value('i', int(SystemStates.INIT))
     logging.info(f"------ Initialize AL framework ------  => system_state={SystemStates(system_state.value).name}")
-
-    # in boston housing case: load data from existing set
-    (x_train, y_train), (x_test_ori, y_test_ori) = boston_housing.load_data(test_split=0.9)
-    x_test = x_test_ori[:50]
-    y_test = y_test_ori[:50]
 
     # initialize candidate source
     # type of candidate_source depends on the scenario:
@@ -42,27 +37,33 @@ if __name__ == '__main__':
         candidate_source_type = Generator
     logging.info(f"Initialize datasource => type: {candidate_source_type}")
 
-    candidate_source: candidate_source_type = CandidateSetHouses()
+    candidate_source: candidate_source_type = None  # TODO case implementation: implement concrete candidate source => initialize accordingly
     if not isinstance(candidate_source, candidate_source_type):
         raise IncorrectScenarioImplementation(f"candidate_source needs to be of type {candidate_source_type}, but is of type {candidate_source.__class__}")
 
-    candidate_source.initiate_pool(x_test)  # load data into candidate_source
-
     # init databases (usually empty)
-    logging.info("Initialize datasets")
-    training_set: TrainingSet = TrainingSetHouses()
-    candidate_set: CandidateSet = candidate_source  # only in case of PbS same as candidate_source
-    query_set: QuerySet = QuerySetHouses()
+    logging.info("Initialize datasets")  # TODO case implementation: implement concrete datasets
+    training_set: TrainingSet = None
+    candidate_set: CandidateSet = None
+    query_set: QuerySet = None
 
     # init components (workflow controller)
     logging.info("Initialize components")
-    sl_model = SimpleRegressionHousing()
-    pl = PassiveLearnerController(pl=sl_model, training_set=training_set, candidate_set=candidate_set, scenario=scenario, info_creator=DefaultCandidateInformationCreator(), pl_evaluator=DefaultPerformanceEvaluator(sl_model))
-    o = OracleController(o=OracleHouses(x_test, y_test), training_set=training_set, query_set=query_set)
-    al = ActiveLearnerController(candidate_set=candidate_set, query_set=query_set, info_analyser=UncertaintyInfoAnalyser(candidate_set), scenario=scenario)
+
+    sl_model: PassiveLearner = None  # TODO case implementation: implement concrete sl model (passive learner)
+    info_creator: CandidateInformationCreator = None  # TODO case implementation: implement concrete candidate information creator
+    pl_performance_evaluator: PerformanceEvaluator = None  # TODO case implementation: implement concrete sl performance evaluator
+    pl = PassiveLearnerController(pl=sl_model, training_set=training_set, candidate_set=candidate_set, scenario=scenario, info_creator=info_creator, pl_evaluator=pl_performance_evaluator)
+
+    oracle: Oracle = None  # TODO case implementation: implement concrete oracle (with knowledge about ground truth)
+    o = OracleController(o=oracle, training_set=training_set, query_set=query_set)
+
+    info_analyser: InformativenessAnalyser = None  # TODO case implementation: implement concrete informativeness analyser => base for query selection
+    al = ActiveLearnerController(candidate_set=candidate_set, query_set=query_set, info_analyser=info_analyser, scenario=scenario)
 
     logging.info("Initial training and first candidate update")
-    # initial training, data source
+    # initial training, data source update
+    x_train, y_train = None, None  # TODO case implementation: set the initial training data for the sl model
     pl.init_pl(x_train, y_train, batch_size=8, epochs=10)  # training with initial training data
     pl.init_candidates()
 
@@ -106,11 +107,5 @@ if __name__ == '__main__':
     logging.info("Finished training process")
     system_state.set(int(SystemStates.PREDICT))
     logging.info(f"----- Prediction ------- => system_state={SystemStates(system_state.value).name}")
+    # TODO: how should prediction be performed???
 
-    pl.pl.load_model()
-    predict_40 = pl.pl.predict(x_test_ori[40])
-    print(f"prediction: {predict_40}, {y_test_ori[40]}")
-    predict_50 = pl.pl.predict(x_test_ori[50])
-    print(f"prediction: {predict_50}, {y_test_ori[50]}")
-    predict_60 = pl.pl.predict(x_test_ori[60])
-    print(f"prediction: {predict_60}, {y_test_ori[60]}")
