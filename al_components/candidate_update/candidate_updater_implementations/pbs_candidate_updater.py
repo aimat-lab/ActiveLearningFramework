@@ -1,10 +1,10 @@
 import logging
-from typing import Tuple, Any, List
+from typing import Tuple, List, Optional
 
 from numpy import ndarray
 
 from additional_component_interfaces import PassiveLearner
-from al_components.candidate_update import CandidateUpdater
+from al_components.candidate_update import CandidateUpdater, CandidateInformationCreator
 from helpers import CandInfo, X
 from helpers.exceptions import IncorrectParameters, NoMoreCandidatesException, NoNewElementException
 from workflow_management.database_interfaces import CandidateSet
@@ -33,7 +33,7 @@ class Pool(CandidateSet):
     def is_empty(self) -> bool:
         raise NotImplementedError
 
-    def initiate_pool(self, x_initial: List[X]) -> None:
+    def initiate_pool(self, x_initial: List[X] or ndarray) -> None:
         """
         Pool needs to be initialized with a list of input instances
 
@@ -41,7 +41,7 @@ class Pool(CandidateSet):
         """
         raise NotImplementedError
 
-    def update_instances(self, xs: List[X], new_additional_infos: List[CandInfo] = None) -> None:
+    def update_instances(self, xs: List[X] or ndarray, new_additional_infos: List[CandInfo] or ndarray = None) -> None:
         """
         alter the prediction and uncertainty for the provided candidates (identified by provided input)
 
@@ -53,11 +53,11 @@ class Pool(CandidateSet):
         # TODO: if no such element maybe just ignore update for this instance?
         raise NotImplementedError
 
-    def retrieve_all_instances(self) -> Tuple[List[X], List[CandInfo]]:
+    def retrieve_all_instances(self) -> Tuple[List[X] or ndarray, Optional[List[CandInfo] or ndarray]]:
         """
         retrieves all candidates from database (database is left unchanged)
 
-        :return: tuple of numpy arrays [x] (array of arrays), [prediction] (array of arrays), [uncertainty] (array of Any)
+        :return: tuple of lists [x] (array of inputs), [addition_info] (array of additional information)
         :raises NoNewElementException: if no instance is in database
         """
         raise NotImplementedError
@@ -67,12 +67,13 @@ class Pool(CandidateSet):
 class PbS_CandidateUpdater(CandidateUpdater):
     # TODO: logging, documentation
 
-    def __init__(self, candidate_set: Pool, pl: PassiveLearner):
+    def __init__(self, info_creator: CandidateInformationCreator, candidate_set: Pool, pl: PassiveLearner):
         if (candidate_set is None) or (not isinstance(candidate_set, Pool)) or (pl is None) or (not isinstance(pl, PassiveLearner)):
             raise IncorrectParameters("PbS_CandidateUpdater needs to be initialized with a candidate_set (of type Pool) and pl (of type PassiveLearner)")
         else:
             self.candidate_set = candidate_set
             self.pl = pl
+            self.info_creator = info_creator
 
     def update_candidate_set(self):
         # noinspection PyUnusedLocal
@@ -84,12 +85,11 @@ class PbS_CandidateUpdater(CandidateUpdater):
         if len(xs) == 0:
             raise NoMoreCandidatesException()
 
-        predictions, uncertainties = [], []
+        candidate_information = []
         for x in xs:
-            prediction, uncertainty = self.pl.predict(x)
-            predictions.append(prediction)
-            uncertainties.append(uncertainty)
+            prediction, additional_information = self.pl.predict(x)
+            # TODO: how to set additional information/candidate information => extra class with method
+            candidate_information.append(self.info_creator.get_candidate_additional_information(x=x, prediction=prediction, additional_prediction_info=additional_information))
 
-        # TODO: update implementation to match new typing
-        self.candidate_set.update_instances(xs, predictions, uncertainties)
-        logging.info("updated whole candidate pool with new predictions and uncertainties")
+        self.candidate_set.update_instances(xs, candidate_information)
+        logging.info("updated whole candidate pool")

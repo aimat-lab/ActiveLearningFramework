@@ -1,11 +1,12 @@
 import logging
-from typing import Tuple, Any
+from typing import Tuple, List
 
 import mysql.connector
 import numpy as np
 from numpy import ndarray
 
 from al_components.candidate_update.candidate_updater_implementations import Pool
+from helpers import X, Y, CandInfo
 from helpers.exceptions import NoNewElementException, NoSuchElementException
 from workflow_management.database_interfaces import TrainingSet, QuerySet
 
@@ -39,21 +40,17 @@ output_reference = "PRICE"
 output_placeholders = "%s"
 output_equal_check = "PRICE = %s"
 
-prediction_definition = "predicted_PRICE double"
-prediction_reference = "predicted_PRICE"
-prediction_placeholders = "%s"
-prediction_equal_check = "predicted_PRICE = %s"
 
-
-def uncertainty_to_str_tuple(uncertainty):
-    return (str(uncertainty),)
+def additional_candidate_information_to_str_tuple(additional_candidate_information):
+    return str(additional_candidate_information[0]), str(additional_candidate_information[1])
 
 
 # TODO: how should uncertainty look?????
-uncertainty_definition = "uncertainty double"
-uncertainty_reference = "uncertainty"
-uncertainty_placeholders = "%s"
-uncertainty_equal_check = "uncertainty = %s"
+additional_candidate_information_definition = "predicted_PRICE double, uncertainty double"
+additional_candidate_information_reference = "predicted_PRICE, uncertainty"
+additional_candidate_information_placeholders = "%s, %s"
+additional_candidate_information_equal_check = "predicted_PRICE = %s AND uncertainty = %s"
+additional_candidate_information_set = "predicted_PRICE = %s, uncertainty = %s"
 
 schema_name = "house_pricing_example"
 candidate_set_name = "predicted_set"
@@ -82,15 +79,15 @@ class TrainingSetHouses(TrainingSet):
 
         logging.info(f"finished initializing the Training set, database name: '{schema_name}.{training_set_name}'")
 
-    def append_labelled_instance(self, x: ndarray, y: ndarray) -> None:
+    def append_labelled_instance(self, x: X, y: Y) -> None:
         db = connect_to_house_pricing_example_db()
         cursor = db.cursor()
 
         sql = f"""INSERT INTO {training_set_name} (
-                                {input_reference}, {output_reference}
-                             ) VALUES (
-                                {input_placeholders}, {output_placeholders}
-                             )"""
+                                        {input_reference}, {output_reference}
+                                     ) VALUES (
+                                        {input_placeholders}, {output_placeholders}
+                                     )"""
         val = x_to_str_tuple(x) + y_to_str_tuple(y)
 
         cursor.execute(sql, val)
@@ -98,7 +95,7 @@ class TrainingSetHouses(TrainingSet):
 
         db.close()
 
-    def retrieve_labelled_instance(self) -> Tuple[ndarray, ndarray]:
+    def retrieve_labelled_instance(self) -> Tuple[X, Y]:
         db = connect_to_house_pricing_example_db()
         cursor = db.cursor()
 
@@ -110,11 +107,11 @@ class TrainingSetHouses(TrainingSet):
             raise NoNewElementException(f"{schema_name}.{training_set_name}")
 
         x = np.array(result[0][1:-1])
-        y = np.array(result[0][-1])
+        y = result[0][-1]
 
         return x, y
 
-    def retrieve_all_labelled_instances(self) -> Tuple[ndarray, ndarray]:
+    def retrieve_all_labelled_instances(self) -> Tuple[List[X] or ndarray, List[Y] or ndarray]:
         db = connect_to_house_pricing_example_db()
         cursor = db.cursor()
 
@@ -130,14 +127,14 @@ class TrainingSetHouses(TrainingSet):
         for item in res:
             if len(xs) == 0:  # and len(ys) == 0
                 xs = np.array([np.array(item[1:-1])])
-                ys = np.array([np.array(item[-1])])
+                ys = np.array(np.array(item[-1]))
             else:
                 xs = np.append(xs, [np.array(item[1:-1])], axis=0)
-                ys = np.append(ys, [np.array(item[-1])], axis=0)
+                ys = np.append(ys, np.array(item[-1]))
 
         return xs, ys
 
-    def remove_labelled_instance(self, x: ndarray) -> None:
+    def remove_labelled_instance(self, x: X) -> None:
         db = connect_to_house_pricing_example_db()
         cursor = db.cursor()
 
@@ -170,7 +167,7 @@ class CandidateSetHouses(Pool):
 
         sql = f"""CREATE TABLE {candidate_set_name} (
                         id int AUTO_INCREMENT PRIMARY KEY,
-                        {input_definition}, {prediction_definition}, {uncertainty_definition}
+                        {input_definition}, {additional_candidate_information_definition}
                   )"""
         cursor.execute(sql)
 
@@ -178,15 +175,11 @@ class CandidateSetHouses(Pool):
 
         logging.info(f"finished initializing the Candidate set, database name: '{schema_name}.{candidate_set_name}'")
 
-    def initiate_pool(self, x_initial: ndarray) -> None:
+    def initiate_pool(self, x_initial: List[X] or ndarray) -> None:
         db = connect_to_house_pricing_example_db()
         cursor = db.cursor()
 
-        sql = f"""INSERT INTO {candidate_set_name} (
-                                    {input_reference}
-                                 ) VALUES (
-                                    {input_placeholders}
-                                 )"""
+        sql = f"INSERT INTO {candidate_set_name} ({input_reference}) VALUES ({input_placeholders})"
         val = []
         for i in range(len(x_initial)):
             val.append(x_to_str_tuple(x_initial[i]))
@@ -196,107 +189,29 @@ class CandidateSetHouses(Pool):
 
         db.close()
 
-    def is_empty(self) -> bool:
-        try:
-            self.retrieve_all_instances()
-        except NoNewElementException:
-            return True
-        return False
-
-    def add_instance(self, x: ndarray, y_prediction: ndarray, uncertainty) -> None:
-        db = connect_to_house_pricing_example_db()
-        cursor = db.cursor()
-
-        sql = f"""INSERT INTO {candidate_set_name} (
-                                    {input_reference}, {prediction_reference}, {uncertainty_reference} 
-                                 ) VALUES (
-                                    {input_placeholders}, {prediction_placeholders}, {uncertainty_placeholders}
-                                 )"""
-        val = x_to_str_tuple(x) + y_to_str_tuple(y_prediction) + uncertainty_to_str_tuple(uncertainty)
-
-        cursor.execute(sql, val)
-        db.commit()
-
-        db.close()
-
-    def retrieve_all_instances(self) -> Tuple[ndarray, ndarray, ndarray]:
-        db = connect_to_house_pricing_example_db()
-        cursor = db.cursor()
-
-        cursor.execute(f"SELECT {input_reference}, {prediction_reference}, {uncertainty_reference} FROM {candidate_set_name}")
-        res = cursor.fetchall()
-
-        if (len(res) == 0) or (res[0][0] is None):
-            db.close()
-            raise NoNewElementException(f"{schema_name}.{candidate_set_name}")
-
-        db.close()
-
-        xs, ys, certainties = None, None, np.array([])
-        for item in res:
-            if len(xs) == 0:  # and len(ys) == 0
-                xs = np.array([np.array(item[0:-2])])
-                ys = np.append([np.array(item[-2])])
-            else:
-                xs = np.append(xs, [np.array(item[0:-2])], axis=0)
-                ys = np.append(ys, [np.array(item[-2])], axis=0)
-            certainties = np.append(certainties, item[-1])
-
-        return xs, ys, certainties
-
-    def remove_instance(self, x: ndarray) -> None:
-        db = connect_to_house_pricing_example_db()
-        cursor = db.cursor()
-
-        sql = f"DELETE FROM {candidate_set_name} WHERE {input_equal_check}"
-        val = x_to_str_tuple(x)
-
-        cursor.execute(sql, val)
-        db.commit()
-
-        db.close()
-
-    def update_instances(self, xs: ndarray, new_y_predictions: ndarray, new_certainties: ndarray) -> None:
-        db = connect_to_house_pricing_example_db()
-        cursor = db.cursor()
-
-        sql = f"UPDATE {candidate_set_name} SET {prediction_equal_check}, {uncertainty_equal_check} WHERE {input_equal_check}"
-        val = []
-        for i in range(len(xs)):
-            val.append(y_to_str_tuple(new_y_predictions[i]) + uncertainty_to_str_tuple(new_certainties[i]) + x_to_str_tuple(xs[i]))
-
-        cursor.executemany(sql, val)
-        db.commit()
-
-        db.close()
-
-    def get_first_instance(self) -> Tuple[ndarray, ndarray, Any]:
+    def get_first_instance(self) -> Tuple[X, CandInfo]:
         db = connect_to_house_pricing_example_db()
         cursor = db.cursor()
 
         cursor.execute(f"""SELECT 
                                 MIN(id),
-                                {input_reference}, {prediction_reference}, {uncertainty_reference}
-                            FROM {candidate_set_name}""")
+                                {input_reference}, {additional_candidate_information_reference}
+                           FROM {candidate_set_name}""")
         res = cursor.fetchall()
-
-        if (len(res) == 0) or (res[0][0] is None):
-            db.close()
-            raise NoNewElementException(f"{schema_name}.{candidate_set_name}")
-
         db.close()
 
-        x = np.array(res[0][1:-2])
-        predicted = np.array(res[0][-2])
-        uncertainty = res[0][-1]
-        return x, predicted, uncertainty
+        if (len(res) == 0) or (res[0][0] is None):
+            raise NoNewElementException(f"{schema_name}.{candidate_set_name}")
 
-    def get_instance(self, x: ndarray) -> Tuple[ndarray, ndarray, Any]:
+        x = np.array(res[0][1:-2])
+        additional_info = (res[0][-2], res[0][-1])
+        return x, additional_info
+
+    def get_instance(self, x: X) -> Tuple[X, CandInfo]:
         db = connect_to_house_pricing_example_db()
         cursor = db.cursor()
 
-        sql = f"""SELECT 
-                        {input_reference}, {prediction_reference}, {uncertainty_reference}
+        sql = f"""SELECT {input_reference}, {additional_candidate_information_reference}
                   FROM {candidate_set_name} 
                   WHERE {input_equal_check}"""
         val = x_to_str_tuple(x)
@@ -311,9 +226,81 @@ class CandidateSetHouses(Pool):
         db.close()
 
         x = np.array(res[0][1:-2])
-        predicted = np.array(res[0][-2])
-        uncertainty = res[0][-1]
-        return x, predicted, uncertainty
+        addition_info = (res[0][-2], res[0][-1])
+        return x, addition_info
+
+    def remove_instance(self, x: X) -> None:
+        db = connect_to_house_pricing_example_db()
+        cursor = db.cursor()
+
+        sql = f"DELETE FROM {candidate_set_name} WHERE {input_equal_check}"
+        val = x_to_str_tuple(x)
+
+        cursor.execute(sql, val)
+        db.commit()
+
+        db.close()
+
+    def add_instance(self, x: X, additional_info: CandInfo = None) -> None:
+        db = connect_to_house_pricing_example_db()
+        cursor = db.cursor()
+
+        sql = f"""INSERT INTO {candidate_set_name} (
+                                            {input_reference}, {additional_candidate_information_reference} 
+                                         ) VALUES (
+                                            {input_placeholders}, {additional_candidate_information_placeholders}
+                                         )"""
+        val = x_to_str_tuple(x) + additional_candidate_information_to_str_tuple(additional_info)
+
+        cursor.execute(sql, val)
+        db.commit()
+
+        db.close()
+
+    def is_empty(self) -> bool:
+        try:
+            self.retrieve_all_instances()
+        except NoNewElementException:
+            return True
+        return False
+
+    def update_instances(self, xs: List[X] or ndarray, new_additional_infos: List[CandInfo] or ndarray = None) -> None:
+        db = connect_to_house_pricing_example_db()
+        cursor = db.cursor()
+
+        sql = f"UPDATE {candidate_set_name} SET {additional_candidate_information_set} WHERE {input_equal_check}"
+        val = []
+        for i in range(len(xs)):
+            val.append(additional_candidate_information_to_str_tuple(new_additional_infos[i]) + x_to_str_tuple(xs[i]))
+
+        cursor.executemany(sql, val)
+        db.commit()
+
+        db.close()
+
+    def retrieve_all_instances(self) -> Tuple[List[X] or ndarray, List[CandInfo] or ndarray]:
+        db = connect_to_house_pricing_example_db()
+        cursor = db.cursor()
+
+        cursor.execute(f"SELECT {input_reference}, {additional_candidate_information_reference} FROM {candidate_set_name}")
+        res = cursor.fetchall()
+
+        if (len(res) == 0) or (res[0][0] is None):
+            db.close()
+            raise NoNewElementException(f"{schema_name}.{candidate_set_name}")
+
+        db.close()
+
+        xs, add_infos = np.array([]), None
+        for item in res:
+            if len(xs) == 0:
+                xs = np.array([np.array(item[0:-2])])
+                add_infos = np.array((item[-2], item[-1]))
+            else:
+                xs = np.append(xs, [np.array(item[0:-2])], axis=0)
+                add_infos = np.append((item[-2], item[-1]))
+
+        return xs, add_infos
 
 
 class QuerySetHouses(QuerySet):
@@ -334,7 +321,7 @@ class QuerySetHouses(QuerySet):
         db.close()
         logging.info(f"finished initializing the Query set, database name: '{schema_name}.{query_set_name}'")
 
-    def add_instance(self, x: ndarray) -> None:
+    def add_instance(self, x: X) -> None:
         db = connect_to_house_pricing_example_db()
         cursor = db.cursor()
 
@@ -351,7 +338,7 @@ class QuerySetHouses(QuerySet):
 
         db.close()
 
-    def get_instance(self) -> ndarray:
+    def get_instance(self) -> X:
         db = connect_to_house_pricing_example_db()
         cursor = db.cursor()
 
@@ -365,7 +352,7 @@ class QuerySetHouses(QuerySet):
         x = np.array(res[0][1:])
         return x
 
-    def remove_instance(self, x: ndarray):
+    def remove_instance(self, x: X) -> None:
         db = connect_to_house_pricing_example_db()
         cursor = db.cursor()
         sql = f"DELETE from {query_set_name} WHERE {input_equal_check}"

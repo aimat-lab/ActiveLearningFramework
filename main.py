@@ -5,6 +5,7 @@ from keras.datasets import boston_housing
 
 from al_components.candidate_update.candidate_updater_implementations import Pool, Stream, Generator
 from example__house_pricing import SimpleRegressionHousing, CandidateSetHouses, OracleHouses, QuerySetHouses, TrainingSetHouses, UncertaintyInfoAnalyser, DefaultPerformanceEvaluator
+from example__house_pricing.default_candidate_information_creator import DefaultCandidateInformationCreator
 from helpers import Scenarios, SystemStates
 from helpers.exceptions import IncorrectScenarioImplementation, ALSystemError
 from workflow_management.controller import PassiveLearnerController, OracleController, ActiveLearnerController
@@ -56,7 +57,7 @@ if __name__ == '__main__':
     # init components (workflow controller)
     logging.info("Initialize components")
     sl_model = SimpleRegressionHousing()
-    pl = PassiveLearnerController(pl=sl_model, training_set=training_set, candidate_set=candidate_set, scenario=scenario, pl_evaluator=DefaultPerformanceEvaluator(sl_model))
+    pl = PassiveLearnerController(pl=sl_model, training_set=training_set, candidate_set=candidate_set, scenario=scenario, info_creator=DefaultCandidateInformationCreator(), pl_evaluator=DefaultPerformanceEvaluator(sl_model))
     o = OracleController(o=OracleHouses(x_test, y_test), training_set=training_set, query_set=query_set)
     al = ActiveLearnerController(candidate_set=candidate_set, query_set=query_set, info_analyser=UncertaintyInfoAnalyser(candidate_set), scenario=scenario)
 

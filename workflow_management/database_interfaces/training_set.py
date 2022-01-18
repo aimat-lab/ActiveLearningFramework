@@ -1,5 +1,6 @@
 from typing import Tuple, List
 
+from nparray import ndarray
 
 from helpers import X, Y
 
@@ -35,11 +36,11 @@ class TrainingSet:
         """
         raise NotImplementedError
 
-    def retrieve_all_labelled_instances(self) -> Tuple[List[X], List[Y]]:
+    def retrieve_all_labelled_instances(self) -> Tuple[List[X] or ndarray, List[Y] or ndarray]:
         """
         Get all instances from database
 
-        :return: tuple of numpy arrays [x] (array of arrays), [y] (array of arrays)
+        :return: tuple of numpy arrays [x] (array of input), [y] (array of outputs)
         :raises NoNewElementException: if no instance is in database
         """
         raise NotImplementedError
