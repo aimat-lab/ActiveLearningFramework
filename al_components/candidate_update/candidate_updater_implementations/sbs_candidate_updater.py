@@ -36,6 +36,7 @@ class SbS_CandidateUpdater(CandidateUpdater):
 
     def update_candidate_set(self):
         # TODO: should instances already in candidate set be updated (new predictions) => currently no
+        # noinspection PyUnusedLocal
         x = None
         try:
             x = self.source.get_element()

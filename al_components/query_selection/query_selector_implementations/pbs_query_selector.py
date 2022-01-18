@@ -16,7 +16,7 @@ class PbS_QuerySelector(QuerySelector):
     candidate_set: Pool
 
     def select_query_instance(self) -> (X, bool):
-        (xs, _, _) = self.candidate_set.retrieve_all_instances()
+        (xs, _) = self.candidate_set.retrieve_all_instances()
 
         max_x, max_info = None, -1
         for x in xs:

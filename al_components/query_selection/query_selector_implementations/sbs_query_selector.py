@@ -17,7 +17,7 @@ class SbS_QuerySelector(QuerySelector):
     candidate_set: CandidateSet
 
     def select_query_instance(self) -> (X, bool):
-        (x, _, _) = self.candidate_set.get_first_instance()
+        (x, _) = self.candidate_set.get_first_instance()
         info = self.info_analyser.get_informativeness(x)
         if decide_discard(info):
             return x, False

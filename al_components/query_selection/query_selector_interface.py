@@ -1,5 +1,3 @@
-from numpy import ndarray
-
 from helpers import X
 
 

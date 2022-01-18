@@ -9,5 +9,5 @@ class UncertaintyInfoAnalyser(InformativenessAnalyser):
     candidate_set: CandidateSet
 
     def get_informativeness(self, x):
-        _, _, uncertainty = self.candidate_set.get_instance(x)
+        _, (prediction, uncertainty) = self.candidate_set.get_instance(x)
         return uncertainty

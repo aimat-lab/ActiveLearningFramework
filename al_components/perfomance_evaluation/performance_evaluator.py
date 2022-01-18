@@ -6,15 +6,12 @@ class PerformanceEvaluator:
     Evaluate the performance of the pl => of the SL model/whole model
 
     - Evaluation is **not part of the PL** training **, but** part of the **AL training** (to check if more training data is necessary)
+
+    Arguments for initiation:
+        - *pl: PassiveLearner* - the evaluated passive learner
+        - *kwargs* - additional properties can be provided, e.g., a set of test data for the evaluation
     """
     pl: PassiveLearner
-
-    def __init__(self, pl: PassiveLearner, **kwargs):
-        """
-        :param pl: the evaluated passive learner
-        :param kwargs: additional properties can be provided, e.g., a set of test data for the evaluation
-        """
-        raise NotImplementedError
 
     def pl_satisfies_evaluation(self) -> bool:
         """
