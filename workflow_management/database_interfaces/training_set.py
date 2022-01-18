@@ -1,3 +1,8 @@
+from typing import Tuple
+
+from numpy import ndarray
+
+
 class TrainingSet:
     """
     Labelled database containing instances, the passive learner will be trained with
@@ -8,7 +13,7 @@ class TrainingSet:
     **Communication** between oracle (providing labelled instances) and PL (retrieving instances for training)
     """
 
-    def append_labelled_instance(self, x, y):
+    def append_labelled_instance(self, x: ndarray, y: ndarray) -> None:
         """
         Add new labelled instance to end of database (new last entry)
 
@@ -20,25 +25,25 @@ class TrainingSet:
         raise NotImplementedError
 
     # TODO: pop instead of retrieve/remove?
-    def retrieve_labelled_instance(self):
+    def retrieve_labelled_instance(self) -> Tuple[ndarray, ndarray]:
         """
         Get first instance from database
-
-        :return: tuple of numpy arrays [x], [y]
-        :raises NoNewElementException: if no instance is in database
-        """
-        raise NotImplementedError
-
-    def retrieve_all_labelled_instances(self):
-        """
-        Get all instances from database
 
         :return: tuple of input and label: x, y
         :raises NoNewElementException: if no instance is in database
         """
         raise NotImplementedError
 
-    def remove_labelled_instance(self, x):
+    def retrieve_all_labelled_instances(self) -> Tuple[ndarray, ndarray]:
+        """
+        Get all instances from database
+
+        :return: tuple of numpy arrays [x] (array of arrays), [y] (array of arrays)
+        :raises NoNewElementException: if no instance is in database
+        """
+        raise NotImplementedError
+
+    def remove_labelled_instance(self, x: ndarray) -> None:
         """
         Ensures the instance identified through input x is not in the database (either remove if existing)
 
@@ -46,7 +51,7 @@ class TrainingSet:
         """
         raise NotImplementedError
 
-    def clear(self):
+    def clear(self) -> None:
         """
         Remove all instances from database
         """

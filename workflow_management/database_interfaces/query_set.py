@@ -1,3 +1,6 @@
+from numpy import ndarray
+
+
 class QuerySet:
     """
     database interface for to be queried instances
@@ -9,7 +12,7 @@ class QuerySet:
     **Communication** between AL (adding most informative instance for querying) and oracle (retrieving unlabelled instances and labelling them)
     """
 
-    def add_instance(self, x):
+    def add_instance(self, x: ndarray) -> None:
         """
         add to be queried instance to set (if instance is already in database: will keep original position)
 
@@ -18,7 +21,7 @@ class QuerySet:
         raise NotImplementedError
 
     # TODO: pop instead of get/remove?
-    def get_instance(self):
+    def get_instance(self) -> ndarray:
         """
         get the first instance in the database
 
@@ -27,7 +30,7 @@ class QuerySet:
         """
         raise NotImplementedError
 
-    def remove_instance(self, x):
+    def remove_instance(self, x: ndarray) -> None:
         """
         ensures the provided x is not in database
 

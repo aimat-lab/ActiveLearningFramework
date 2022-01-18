@@ -1,3 +1,8 @@
+from typing import Tuple, Any
+
+from numpy import ndarray
+
+
 class CandidateSet:
     """
     database interface for candidates # TODO candidate set needs to be database?
@@ -16,7 +21,7 @@ class CandidateSet:
         """
         raise NotImplementedError
 
-    def add_instance(self, x, y_prediction, uncertainty):
+    def add_instance(self, x: ndarray, y_prediction: ndarray, uncertainty: Any) -> None:
         """
         adds new instance (new last entry) into the candidate database (can be selected for query)
 
@@ -26,7 +31,7 @@ class CandidateSet:
         """
         raise NotImplementedError
 
-    def get_first_instance(self):
+    def get_first_instance(self) -> Tuple[ndarray, ndarray, Any]:
         """
         retrieve first instance from candidates
 
@@ -35,7 +40,7 @@ class CandidateSet:
         """
         raise NotImplementedError
 
-    def get_instance(self, x):
+    def get_instance(self, x: ndarray) -> Tuple[ndarray, ndarray, Any]:
         """
         retrieve instance identified by x
 
@@ -45,7 +50,7 @@ class CandidateSet:
         """
         raise NotImplementedError
 
-    def remove_instance(self, x):
+    def remove_instance(self, x: ndarray) -> None:
         """
         remove a candidate based on the input values (if instance doesn't exist, counts as removed as well)
 

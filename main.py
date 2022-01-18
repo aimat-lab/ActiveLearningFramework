@@ -100,6 +100,7 @@ if __name__ == '__main__':
         logging.error("A fatal error occurred => model training has failed")
         raise ALSystemError()
 
+    # WORKFLOW: Prediction
     logging.info("Finished training process")
     system_state.set(int(SystemStates.PREDICT))
     logging.info(f"----- Prediction ------- => system_state={SystemStates(system_state.value).name}")

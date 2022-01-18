@@ -51,23 +51,27 @@ class OracleController:
         if system_state.value > int(SystemStates.TRAINING):
             logging.warning(f"{oracle_controller_logging_prefix} Training process was terminated => end training job (system_state: {SystemStates(system_state.value).name})")
             return
-
-        # noinspection PyUnusedLocal
-        query_instance = None
         try:
-            query_instance = self.query_set.get_instance()
-        except NoNewElementException:
-            logging.info(f"{oracle_controller_logging_prefix} Wait for new queries")
-            time.sleep(5)
+            # noinspection PyUnusedLocal
+            query_instance = None
+            try:
+                query_instance = self.query_set.get_instance()
+            except NoNewElementException:
+                logging.info(f"{oracle_controller_logging_prefix} Wait for new queries")
+                time.sleep(5)
 
-            self.training_job(system_state)
+                self.training_job(system_state)
+                return
+
+            logging.info(f"{oracle_controller_logging_prefix} Retrieve unresolved query => will add label")
+            label = self.o.query(query_instance)
+            self.query_set.remove_instance(query_instance)
+            self.training_set.append_labelled_instance(query_instance, label)
+            logging.info(f"{oracle_controller_logging_prefix} Query for instance x resolved with label y, added to training set for PL; x = `{query_instance}`, y = `{label}`")
+        except Exception as e:
+            logging.error(f"{oracle_controller_logging_prefix} Exception during query job: {e}")
+            system_state.set(int(SystemStates.FINISH_TRAINING))
             return
-
-        logging.info(f"{oracle_controller_logging_prefix} Retrieve unresolved query => will add label")
-        label = self.o.query(query_instance)
-        self.query_set.remove_instance(query_instance)
-        self.training_set.append_labelled_instance(query_instance, label)
-        logging.info(f"{oracle_controller_logging_prefix} Query for instance x resolved with label y, added to training set for PL; x = `{query_instance}`, y = `{label}`")
 
         self.training_job(system_state)
         return
