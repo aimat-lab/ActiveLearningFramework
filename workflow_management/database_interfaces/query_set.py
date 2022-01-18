@@ -1,4 +1,4 @@
-from numpy import ndarray
+from helpers import X
 
 
 class QuerySet:
@@ -12,7 +12,7 @@ class QuerySet:
     **Communication** between AL (adding most informative instance for querying) and oracle (retrieving unlabelled instances and labelling them)
     """
 
-    def add_instance(self, x: ndarray) -> None:
+    def add_instance(self, x: X) -> None:
         """
         add to be queried instance to set (if instance is already in database: will keep original position)
 
@@ -21,7 +21,7 @@ class QuerySet:
         raise NotImplementedError
 
     # TODO: pop instead of get/remove?
-    def get_instance(self) -> ndarray:
+    def get_instance(self) -> X:
         """
         get the first instance in the database
 
@@ -30,9 +30,9 @@ class QuerySet:
         """
         raise NotImplementedError
 
-    def remove_instance(self, x: ndarray) -> None:
+    def remove_instance(self, x: X) -> None:
         """
-        ensures the provided x is not in database
+        ensures the provided x is not in database => if x is in database, will be deleted, otherwise database is left unchanged
 
         :param x: input of removed instance
         """

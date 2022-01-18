@@ -1,9 +1,10 @@
 from al_components.candidate_update import CandidateUpdater
+from helpers import X
 
 
 class Generator:
 
-    def generate_instance(self):
+    def generate_instance(self) -> X:
         raise NotImplementedError
 
 

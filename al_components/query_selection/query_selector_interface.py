@@ -1,12 +1,14 @@
 from numpy import ndarray
 
+from helpers import X
+
 
 class QuerySelector:
     """
     Responsible for selecting the best candidate out of the candidate set for querying
     """
 
-    def select_query_instance(self) -> (ndarray, bool):
+    def select_query_instance(self) -> (X, bool):
         """
         Evaluate the candidates (direct access to the candidate set), select the next instance for potential querying, return instance and information to query/just discard
 

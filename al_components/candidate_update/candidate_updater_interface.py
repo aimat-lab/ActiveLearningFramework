@@ -5,7 +5,7 @@ class CandidateUpdater:
 
     def update_candidate_set(self):
         """
-        Scenario dependent: get instance(s) from candidate_source (Pool/Stream/Generator), adds predictions from current PL and inserts instance into candidate set
+        Scenario dependent: get instance(s) from candidate_source (Pool/Stream/Generator), add predictions from current PL and insert instance into candidate set
 
         :raise NoMoreCandidatesException: if no new element can be fetched from candidate source
         """

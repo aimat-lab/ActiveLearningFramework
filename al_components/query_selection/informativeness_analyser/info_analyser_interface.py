@@ -1,4 +1,4 @@
-from numpy import ndarray
+from helpers import X
 
 
 class InformativenessAnalyser:
@@ -9,13 +9,13 @@ class InformativenessAnalyser:
         1. Input data
             - influence on SL model/components/error => need information about the PL, ...
             - relation to underlying distribution of input => need information about input space/distribution, or needs to obtain it itself (e.g. database storing information about queried input instances)
-        2. Predictions of PL
+        2. Predictions of PL (or other additional information from candidate set)
             - needs access to predictions, uncertainties => access to candidate set
         3. History of queries:
             - keep track of queries
     """
 
-    def get_informativeness(self, x: ndarray) -> float:
+    def get_informativeness(self, x: X) -> float:
         """
         Evaluate informativeness of a single input instance => gather necessary information for evaluation
 

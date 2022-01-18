@@ -1,10 +1,11 @@
 import logging
 import time
 from multiprocessing.managers import ValueProxy
+from typing import List
 
 from additional_component_interfaces import PassiveLearner
 from al_components.candidate_update import CandidateUpdater, init_candidate_updater
-from helpers import Scenarios, SystemStates
+from helpers import Scenarios, SystemStates, X, Y
 from helpers.exceptions import NoNewElementException, NoMoreCandidatesException
 from workflow_management.database_interfaces import TrainingSet, CandidateSet
 
@@ -38,15 +39,15 @@ class PassiveLearnerController:
 
         self.pl_and_candidates_align = False  # keeps track of whether it makes sense to update candidates => if nothing changed in pl, candidates don't need to be updated
 
-    def init_pl(self, x_train, y_train, **kwargs):
+    def init_pl(self, x_train: List[X], y_train: List[Y], **kwargs):
         """
         Initialize the sl model
 
         - initial training (including setting the scaling for the input)
         - save the model => so it can be loaded in new process environment
 
-        :param x_train: Initial training data input
-        :param y_train: Initial training data labels
+        :param x_train: Initial training data input (list of input data, most likely numpy array)
+        :param y_train: Initial training data labels (list of assigned output to input data, most likely numpy array)
         :param kwargs: can provide the `batch_size` and `epochs` for initial training
         """
 
@@ -62,11 +63,12 @@ class PassiveLearnerController:
 
     def init_candidates(self):
         """
-        Add initial predictions for candidates (after initial training of pl)
+        Initial candidate update (e.g. add additional information to candidates after initial training of PL)
         """
 
         logging.info(f"{pl_controller_logging_prefix} Initial predictions for candidate set")
 
+        # TODO: move pl.load/save model into candidate update
         self.pl.load_model()
         self.candidate_updater.update_candidate_set()
 
@@ -76,7 +78,7 @@ class PassiveLearnerController:
 
     def training_job(self, system_state: ValueProxy):
         """
-        The actual training job for the PL components => should be in separate process
+        The actual training job for the PL components => should run in separate process
 
         Job sequence:
             1. update candidates (if this provides new information)

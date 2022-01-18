@@ -2,6 +2,8 @@ from typing import Tuple
 
 from numpy import ndarray
 
+from helpers import X, Y
+
 
 class TrainingSet:
     """
@@ -13,7 +15,7 @@ class TrainingSet:
     **Communication** between oracle (providing labelled instances) and PL (retrieving instances for training)
     """
 
-    def append_labelled_instance(self, x: ndarray, y: ndarray) -> None:
+    def append_labelled_instance(self, x: X, y: Y) -> None:
         """
         Add new labelled instance to end of database (new last entry)
 
