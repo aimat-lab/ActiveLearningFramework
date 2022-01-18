@@ -32,7 +32,7 @@ input_equal_check = "ZERO = %s AND ONE = %s AND TWO = %s AND THREE = %s AND FOUR
 
 
 def y_to_str_tuple(y):
-    return (str(y[0]),)
+    return (str(y),)
 
 
 output_definition = "PRICE double"
@@ -298,7 +298,7 @@ class CandidateSetHouses(Pool):
                 add_infos = np.array((item[-2], item[-1]))
             else:
                 xs = np.append(xs, [np.array(item[0:-2])], axis=0)
-                add_infos = np.append((item[-2], item[-1]))
+                add_infos = np.append(add_infos, (item[-2], item[-1]))
 
         return xs, add_infos
 

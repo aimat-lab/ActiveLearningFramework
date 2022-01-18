@@ -67,8 +67,8 @@ if __name__ == '__main__':
     pl.init_candidates()
 
     # WORKFLOW: Training in parallel processes
-    if system_state == int(SystemStates.INIT):
-        system_state = state_manager.Value('i', int(SystemStates.TRAINING))
+    if system_state.value == int(SystemStates.INIT):
+        system_state.set(int(SystemStates.TRAINING))
     else:
         logging.error("An error occurred during initiation => system failed")
         raise ALSystemError()
