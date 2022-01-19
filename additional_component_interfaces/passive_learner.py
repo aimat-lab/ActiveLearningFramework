@@ -32,7 +32,6 @@ class PassiveLearner:
         raise NotImplementedError
 
     def initial_training(self, x_train: List[X], y_train: List[Y], **kwargs) -> None:
-        # TODO: maybe move scaling of data into initiation??
         """
         Initial batch training => for determination of initial weights and potentially for setting the scaler for the input data
 

@@ -26,7 +26,6 @@ class TrainingSet:
         """
         raise NotImplementedError
 
-    # TODO: pop instead of retrieve/remove?
     def retrieve_labelled_instance(self) -> Tuple[X, Y]:
         """
         Get first instance from database

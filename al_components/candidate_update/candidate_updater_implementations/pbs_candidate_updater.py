@@ -9,8 +9,8 @@ from helpers import CandInfo, X, Y, AddInfo_Y
 from helpers.exceptions import IncorrectParameters, NoMoreCandidatesException, NoNewElementException
 from workflow_management.database_interfaces import CandidateSet
 
+pbs_cand_updater_logging_prefix = "PbS Candidate Updater: "
 
-# TODO: implement alternative pool/pbs candidate updater => only part of pool at a time updates (maybe extra scenario)
 
 class Pool(CandidateSet):
     """
@@ -45,12 +45,11 @@ class Pool(CandidateSet):
         """
         alter the prediction and uncertainty for the provided candidates (identified by provided input)
 
+        - if an instance x doesn't exist: it will be added with the according information
+
         :param xs: array of input values
         :param new_additional_infos: array containing new additional information (optional => if candidate set doesn't include additional information, can be None)
-
-        :raises NoSuchElement: if an instance within xs does not exist
         """
-        # TODO: if no such element maybe just ignore update for this instance?
         raise NotImplementedError
 
     def retrieve_all_instances(self) -> Tuple[List[X] or ndarray, Optional[List[CandInfo] or ndarray]]:
@@ -65,7 +64,9 @@ class Pool(CandidateSet):
 
 # noinspection PyPep8Naming
 class PbS_CandidateUpdater(CandidateUpdater):
-    # TODO: logging, documentation
+    """
+    The candidate updater within a PbS scenario => whole pool (= candidate set) will be updated with new predictions/information
+    """
 
     def __init__(self, cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo], candidate_set: Pool, pl: PassiveLearner):
         if (candidate_set is None) or (not isinstance(candidate_set, Pool)) or (pl is None) or (not isinstance(pl, PassiveLearner)):
@@ -73,9 +74,18 @@ class PbS_CandidateUpdater(CandidateUpdater):
         else:
             self.candidate_set = candidate_set
             self.pl = pl
-            self.info_creator = cand_info_mapping
+            self.cand_info_mapping = cand_info_mapping
+            logging.info(f"{pbs_cand_updater_logging_prefix} successfully initiated the candidate updater")
 
-    def update_candidate_set(self):
+    def update_candidate_set(self) -> None:
+        """
+        Update of the whole pool/candidate set
+
+        Add new predictions/information to every instance within pool
+
+        :raise NoMoreCandidatesException if pool is empty
+        """
+
         # noinspection PyUnusedLocal
         xs = None
         try:
@@ -85,11 +95,13 @@ class PbS_CandidateUpdater(CandidateUpdater):
         if len(xs) == 0:
             raise NoMoreCandidatesException()
 
+        logging.info(f"{pbs_cand_updater_logging_prefix} retrieved all instances from pool => now add information")
         candidate_information = []
         for x in xs:
             prediction, additional_information = self.pl.predict(x)
-            # TODO: how to set additional information/candidate information => extra class with method
-            candidate_information.append(self.info_creator(x, prediction, additional_information))
+            candidate_information.append(self.cand_info_mapping(x, prediction, additional_information))
 
+        logging.info(f"{pbs_cand_updater_logging_prefix} added information to all instances => now load new information into pool/candidate set")
         self.candidate_set.update_instances(xs, candidate_information)
+
         logging.info("updated whole candidate pool")

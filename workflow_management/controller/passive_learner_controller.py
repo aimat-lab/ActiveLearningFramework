@@ -35,6 +35,7 @@ class PassiveLearnerController:
 
         logging.info(f"{pl_controller_logging_prefix} Init passive learner controller => set pl, training set, candidate set, init candidate_updater")
 
+        self.scenario = scenario
         self.pl = pl
         self.training_set = training_set
         self.candidate_set = candidate_set
@@ -121,8 +122,8 @@ class PassiveLearnerController:
 
         # check if candidate update is necessary:
         # # for PbS: pl didn't change => no new information provided through candidate update
-        # # for SbS/MQS: only if candidate set is not empty assumption form PbS can be made  # TODO: maybe remove check for SbS/MQS
-        if not self.pl_and_candidates_align or self.candidate_set.is_empty():
+        # # for SbS/MQS: only if candidate set is not empty assumption form PbS can be made => because it can slow down process: will just always update if scenario is SbS or MQS
+        if (self.scenario != Scenarios.PbS) or (not self.pl_and_candidates_align) or (self.candidate_set.is_empty()):
             logging.info(f"{pl_controller_logging_prefix} Update candidate set")
 
             try:

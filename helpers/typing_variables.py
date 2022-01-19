@@ -8,7 +8,6 @@ Type of the input of instances
 - typing of equality trying to be taught to SL model:   X -> Y
 """
 
-# TODO: will type of the predictions always align with actual labels? => if not introduce new TypeVar
 Y = TypeVar("Y")
 """
 Type of the output of labelled instances

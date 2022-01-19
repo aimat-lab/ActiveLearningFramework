@@ -7,6 +7,8 @@ from helpers import CandInfo, AddInfo_Y, Y, X
 from helpers.exceptions import IncorrectParameters, NoNewElementException, NoMoreCandidatesException
 from workflow_management.database_interfaces import CandidateSet
 
+sbs_cand_updater_logging_prefix = "SbS Candidate Updater: "
+
 
 class Stream:
     """
@@ -25,7 +27,9 @@ class Stream:
 
 # noinspection PyPep8Naming
 class SbS_CandidateUpdater(CandidateUpdater):
-    # TODO: logging, documentation
+    """
+    Candidate updater within a SbS scenario => will fetch instance from stream, add information/predictions, and insert instance into candidate set
+    """
 
     def __init__(self, cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo], candidate_set: CandidateSet, source_stream: Stream, pl: PassiveLearner):
         if (candidate_set is None) or (not isinstance(candidate_set, CandidateSet)) or (pl is None) or (not isinstance(source_stream, Stream)) or (source_stream is None) or (not isinstance(pl, PassiveLearner)):
@@ -35,16 +39,25 @@ class SbS_CandidateUpdater(CandidateUpdater):
             self.source = source_stream
             self.pl = pl
             self.cand_info_mapping = cand_info_mapping
+            logging.info(f"{sbs_cand_updater_logging_prefix} successfully initiated the sbs candidate updater")
 
-    def update_candidate_set(self):
-        # TODO: should instances already in candidate set be updated (new predictions) => currently no
+    def update_candidate_set(self) -> None:
+        """
+        Will update the candidate set by adding one newly fetched instance (augmented with additional information based on prediction)
+
+        :raise NoMoreCandidatesException if stream doesn't provide new instances
+        """
+        # TODO: should instances that are already stored in candidate set be updated with new info/predictions => currently no (only add new)
         # noinspection PyUnusedLocal
         x = None
         try:
             x = self.source.get_element()
         except NoNewElementException:
             raise NoMoreCandidatesException()
+        logging.info(f"{sbs_cand_updater_logging_prefix} fetched new instance from stream")
 
         prediction, additional_information = self.pl.predict(x)
+        logging.info(f"{sbs_cand_updater_logging_prefix} added information to the instance")
+
         self.candidate_set.add_instance(x, self.cand_info_mapping(x, prediction, additional_information))
-        logging.info("added new instance to candidates set => fetched from stream, predicted")
+        logging.info(f"{sbs_cand_updater_logging_prefix} inserted new candidate into set")

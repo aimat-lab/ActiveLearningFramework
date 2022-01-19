@@ -26,7 +26,7 @@ class InitiationHelper:
 
         :return: the selected scenario
         """
-        # TODO case implementation: set scenario
+        # case implementation: set scenario
         raise NotImplementedError
 
     def get_candidate_source(self) -> Pool or Stream or Generator:
@@ -35,7 +35,7 @@ class InitiationHelper:
 
         :return: the candidate source
         """
-        # TODO case implementation: implement concrete candidate source => initialize accordingly
+        # case implementation: implement concrete candidate source => initialize accordingly
         raise NotImplementedError
 
     def get_datasets(self) -> Tuple[TrainingSet, CandidateSet, QuerySet]:
@@ -46,7 +46,7 @@ class InitiationHelper:
 
         :return: the datasets needed for the workflow
         """
-        # TODO case implementation: implement concrete datasets
+        # case implementation: implement concrete datasets
         raise NotImplementedError
 
     def get_sl_model(self) -> PassiveLearner:
@@ -55,7 +55,7 @@ class InitiationHelper:
 
         :return: the model
         """
-        # TODO case implementation: implement concrete sl model (passive learner)
+        # case implementation: implement concrete sl model (passive learner)
         raise NotImplementedError
 
     def get_initial_training_data(self) -> Tuple[List[X] or ndarray, List[Y] or ndarray, Optional, Optional]:
@@ -68,7 +68,7 @@ class InitiationHelper:
 
         :return: input data, correct output, optional epochs, optional batch_size
         """
-        # TODO case implementation: set the initial training data for the sl model
+        # case implementation: set the initial training data for the sl model
         raise NotImplementedError
 
     # noinspection PyUnreachableCode,PyTypeChecker
@@ -79,7 +79,7 @@ class InitiationHelper:
         :return: the mapper function
         """
         raise NotImplementedError
-        function = get_candidate_additional_information  # TODO case implementation: implement concrete candidate information creation function
+        function = get_candidate_additional_information  # case implementation: implement concrete candidate information creation function
 
     def get_pl_performance_evaluator(self) -> PerformanceEvaluator:
         """
@@ -87,7 +87,7 @@ class InitiationHelper:
 
         :return: the evaluator
         """
-        # TODO case implementation: implement concrete sl performance evaluator
+        # case implementation: implement concrete sl performance evaluator
         raise NotImplementedError
 
     def get_oracle(self) -> Oracle:
@@ -96,7 +96,7 @@ class InitiationHelper:
 
         :return: the oracle instance
         """
-        # TODO case implementation: implement concrete oracle (with knowledge about ground truth)
+        # case implementation: implement concrete oracle (with knowledge about ground truth)
         raise NotImplementedError
 
     def get_informativeness_analyser(self) -> InformativenessAnalyser:
@@ -105,13 +105,13 @@ class InitiationHelper:
 
         :return: the informativeness analyser
         """
-        # TODO case implementation: implement concrete informativeness analyser => foundation for query selection
+        # case implementation: implement concrete informativeness analyser => foundation for query selection
         raise NotImplementedError
 
 
 if __name__ == '__main__':
 
-    init_helper: InitiationHelper = InitiationHelper()  # TODO case implementation: implement initiation helper => rest of training/workflow management/... is done by the framework
+    init_helper: InitiationHelper = InitiationHelper()  # case implementation: implement initiation helper => rest of training/workflow management/... is done by the framework
 
     # set scenario
     scenario: Scenarios = init_helper.get_scenario()

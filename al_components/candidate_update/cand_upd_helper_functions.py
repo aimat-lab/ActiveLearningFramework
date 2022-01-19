@@ -18,7 +18,7 @@ def get_candidate_additional_information(x: X, prediction: Y, additional_predict
     :param additional_prediction_info: the additional information provided from the PL about its predictions (e.g., uncertainty about prediction)
     :return: the information for the candidate stored in the candidate set additionally to the raw input (e.g., the uncertainty)
     """
-    # TODO case implementation: implement this function
+    # case implementation: implement this function
     raise NotImplementedError
 
 

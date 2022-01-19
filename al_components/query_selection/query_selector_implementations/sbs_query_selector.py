@@ -6,20 +6,29 @@ from helpers import X
 from workflow_management.database_interfaces import CandidateSet
 
 
-def decide_discard(info):
-    return info < 0.7
-
-
 # noinspection PyPep8Naming
 @dataclass()
 class SbS_QuerySelector(QuerySelector):
     info_analyser: InformativenessAnalyser
     candidate_set: CandidateSet
 
+    # noinspection PyMethodMayBeStatic
+    def decide_discard(self, info: float) -> bool:
+        # TODO: maybe not static/hard implemented => instead default method and one that can be inserted in implementation?
+        # TODO: if threshold kept => what should be value?? => should value adapt over time
+        return info < 0.7
+
     def select_query_instance(self) -> (X, bool):
+        """
+        Get the first element (ordered by time of insertion) of the candidate set and decide based on informativeness whether to discard or query it
+
+        - discarded: remove instance permanently from candidate set
+
+        :return: the evaluated instance, [True if instance should be queried, False if instance should be discarded]
+        """
         (x, _) = self.candidate_set.get_first_instance()
         info = self.info_analyser.get_informativeness(x)
-        if decide_discard(info):
+        if self.decide_discard(info):
             return x, False
         else:
             return x, True
