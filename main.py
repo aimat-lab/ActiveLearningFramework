@@ -17,6 +17,7 @@ from workflow_management.database_interfaces import TrainingSet, CandidateSet, Q
 logging.basicConfig(format='LOGGING:  %(levelname)s:%(message)s :END LOGGING', level=logging.INFO)
 
 
+# noinspection PyUnusedLocal
 class InitiationHelper:
 
     def get_scenario(self) -> Scenarios:
@@ -70,14 +71,15 @@ class InitiationHelper:
         # TODO case implementation: set the initial training data for the sl model
         raise NotImplementedError
 
+    # noinspection PyUnreachableCode,PyTypeChecker
     def get_mapper_function_prediction_to_candidate_info(self) -> Callable[[X, Y, AddInfo_Y], CandInfo]:
         """
         Return a function => see *al_components.candidate_update.get_candidate_additional_information* for more information
 
         :return: the mapper function
         """
-        function = get_candidate_additional_information  # TODO case implementation: implement concrete candidate information creation function
         raise NotImplementedError
+        function = get_candidate_additional_information  # TODO case implementation: implement concrete candidate information creation function
 
     def get_pl_performance_evaluator(self) -> PerformanceEvaluator:
         """

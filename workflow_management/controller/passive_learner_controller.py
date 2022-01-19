@@ -4,7 +4,7 @@ from multiprocessing.managers import ValueProxy
 from typing import List, Callable
 
 from additional_component_interfaces import PassiveLearner
-from al_components.candidate_update import CandidateUpdater, init_candidate_updater, CandidateInformationCreator
+from al_components.candidate_update import CandidateUpdater, init_candidate_updater
 from al_components.perfomance_evaluation import PerformanceEvaluator
 from helpers import Scenarios, SystemStates, X, Y, AddInfo_Y, CandInfo
 from helpers.exceptions import NoNewElementException, NoMoreCandidatesException, IncorrectParameters

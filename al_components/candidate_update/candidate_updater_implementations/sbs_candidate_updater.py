@@ -2,7 +2,7 @@ import logging
 from typing import Callable
 
 from additional_component_interfaces import PassiveLearner
-from al_components.candidate_update import CandidateUpdater, CandidateInformationCreator
+from al_components.candidate_update import CandidateUpdater
 from helpers import CandInfo, AddInfo_Y, Y, X
 from helpers.exceptions import IncorrectParameters, NoNewElementException, NoMoreCandidatesException
 from workflow_management.database_interfaces import CandidateSet

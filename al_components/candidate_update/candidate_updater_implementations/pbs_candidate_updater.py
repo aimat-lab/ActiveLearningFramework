@@ -4,7 +4,7 @@ from typing import Tuple, List, Optional, Callable
 from numpy import ndarray
 
 from additional_component_interfaces import PassiveLearner
-from al_components.candidate_update import CandidateUpdater, CandidateInformationCreator
+from al_components.candidate_update import CandidateUpdater
 from helpers import CandInfo, X, Y, AddInfo_Y
 from helpers.exceptions import IncorrectParameters, NoMoreCandidatesException, NoNewElementException
 from workflow_management.database_interfaces import CandidateSet

@@ -6,6 +6,7 @@ from al_components.candidate_update.candidate_updater_implementations import MQS
 from helpers import Scenarios, X, Y, AddInfo_Y, CandInfo
 
 
+# noinspection PyUnusedLocal
 def get_candidate_additional_information(x: X, prediction: Y, additional_prediction_info: AddInfo_Y) -> CandInfo:
     """
     To be implemented function (case dependent) => use this function as orientation
