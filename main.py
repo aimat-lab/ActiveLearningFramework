@@ -1,12 +1,12 @@
 import logging
 from multiprocessing import Process, Manager
+from typing import Callable
 
 from additional_component_interfaces import PassiveLearner, Oracle
-from al_components.candidate_update import CandidateInformationCreator
-from al_components.candidate_update.candidate_updater_implementations import Pool, Stream, Generator
+from al_components.candidate_update import get_candidate_source_type, get_candidate_additional_information
 from al_components.perfomance_evaluation import PerformanceEvaluator
 from al_components.query_selection.informativeness_analyser import InformativenessAnalyser
-from helpers import Scenarios, SystemStates
+from helpers import SystemStates, CandInfo, AddInfo_Y, Y, X
 from helpers.exceptions import IncorrectScenarioImplementation, ALSystemError
 from workflow_management.controller import PassiveLearnerController, OracleController, ActiveLearnerController
 from workflow_management.database_interfaces import TrainingSet, CandidateSet, QuerySet
@@ -28,18 +28,12 @@ if __name__ == '__main__':
     #   - PbS: Pool => should be the candidate_set as well
     #   - MQS: Generator
     #   - SbS: Stream
-    candidate_source_type = None
-    if scenario == Scenarios.PbS:
-        candidate_source_type = Pool
-    elif scenario == Scenarios.SbS:
-        candidate_source_type = Stream
-    else:  # scenario == Scenarios.MQS
-        candidate_source_type = Generator
+    candidate_source_type = get_candidate_source_type()
     logging.info(f"Initialize datasource => type: {candidate_source_type}")
 
     candidate_source: candidate_source_type = None  # TODO case implementation: implement concrete candidate source => initialize accordingly
     if not isinstance(candidate_source, candidate_source_type):
-        raise IncorrectScenarioImplementation(f"candidate_source needs to be of type {candidate_source_type}, but is of type {candidate_source.__class__}")
+        raise IncorrectScenarioImplementation(f"candidate_source needs to be of type {candidate_source_type}")
 
     # init databases (usually empty)
     logging.info("Initialize datasets")  # TODO case implementation: implement concrete datasets
@@ -51,7 +45,7 @@ if __name__ == '__main__':
     logging.info("Initialize components")
 
     sl_model: PassiveLearner = None  # TODO case implementation: implement concrete sl model (passive learner)
-    info_creator: CandidateInformationCreator = None  # TODO case implementation: implement concrete candidate information creator
+    info_creator: Callable[[X, Y, AddInfo_Y], CandInfo] = get_candidate_additional_information  # TODO case implementation: implement concrete candidate information creation function
     pl_performance_evaluator: PerformanceEvaluator = None  # TODO case implementation: implement concrete sl performance evaluator
     pl = PassiveLearnerController(pl=sl_model, training_set=training_set, candidate_set=candidate_set, scenario=scenario, info_creator=info_creator, pl_evaluator=pl_performance_evaluator)
 
@@ -108,4 +102,3 @@ if __name__ == '__main__':
     system_state.set(int(SystemStates.PREDICT))
     logging.info(f"----- Prediction ------- => system_state={SystemStates(system_state.value).name}")
     # TODO: how should prediction be performed???
-

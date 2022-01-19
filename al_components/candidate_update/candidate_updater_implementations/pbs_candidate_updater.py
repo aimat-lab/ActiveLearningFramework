@@ -1,11 +1,11 @@
 import logging
-from typing import Tuple, List, Optional
+from typing import Tuple, List, Optional, Callable
 
 from numpy import ndarray
 
 from additional_component_interfaces import PassiveLearner
 from al_components.candidate_update import CandidateUpdater, CandidateInformationCreator
-from helpers import CandInfo, X
+from helpers import CandInfo, X, Y, AddInfo_Y
 from helpers.exceptions import IncorrectParameters, NoMoreCandidatesException, NoNewElementException
 from workflow_management.database_interfaces import CandidateSet
 
@@ -67,7 +67,7 @@ class Pool(CandidateSet):
 class PbS_CandidateUpdater(CandidateUpdater):
     # TODO: logging, documentation
 
-    def __init__(self, info_creator: CandidateInformationCreator, candidate_set: Pool, pl: PassiveLearner):
+    def __init__(self, info_creator: Callable[[X, Y, AddInfo_Y], CandInfo], candidate_set: Pool, pl: PassiveLearner):
         if (candidate_set is None) or (not isinstance(candidate_set, Pool)) or (pl is None) or (not isinstance(pl, PassiveLearner)):
             raise IncorrectParameters("PbS_CandidateUpdater needs to be initialized with a candidate_set (of type Pool) and pl (of type PassiveLearner)")
         else:
@@ -89,7 +89,7 @@ class PbS_CandidateUpdater(CandidateUpdater):
         for x in xs:
             prediction, additional_information = self.pl.predict(x)
             # TODO: how to set additional information/candidate information => extra class with method
-            candidate_information.append(self.info_creator.get_candidate_additional_information(x=x, prediction=prediction, additional_prediction_info=additional_information))
+            candidate_information.append(self.info_creator(x, prediction, additional_information))
 
         self.candidate_set.update_instances(xs, candidate_information)
         logging.info("updated whole candidate pool")
