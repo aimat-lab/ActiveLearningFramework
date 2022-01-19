@@ -1,12 +1,12 @@
 import logging
 import time
 from multiprocessing.managers import ValueProxy
-from typing import List
+from typing import List, Callable
 
 from additional_component_interfaces import PassiveLearner
 from al_components.candidate_update import CandidateUpdater, init_candidate_updater, CandidateInformationCreator
 from al_components.perfomance_evaluation import PerformanceEvaluator
-from helpers import Scenarios, SystemStates, X, Y
+from helpers import Scenarios, SystemStates, X, Y, AddInfo_Y, CandInfo
 from helpers.exceptions import NoNewElementException, NoMoreCandidatesException, IncorrectParameters
 from workflow_management.database_interfaces import TrainingSet, CandidateSet
 
@@ -20,14 +20,14 @@ class PassiveLearnerController:
     => the actual SL model (including performance evaluation) and the candidate updater (needs PL for prediction calculation)
     """
 
-    def __init__(self, pl: PassiveLearner, training_set: TrainingSet, candidate_set: CandidateSet, info_creator: CandidateInformationCreator, scenario: Scenarios, pl_evaluator: PerformanceEvaluator, **kwargs):
+    def __init__(self, pl: PassiveLearner, training_set: TrainingSet, candidate_set: CandidateSet, cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo], scenario: Scenarios, pl_evaluator: PerformanceEvaluator, **kwargs):
         """
         Set the pl arguments, initializes the candidate updater
 
         :param pl: sl model (implemented interface)
         :param training_set: dataset based on which the pl is trained
         :param candidate_set: dataset containing the candidates (gets updated by candidate_updater)
-        :param info_creator: can generate the information stored for every candidate out of the information provided from the prediction
+        :param cand_info_mapping: can generate the information stored for every candidate out of the information provided from the prediction
         :param scenario: determines the candidate updater implementation
         :param pl_evaluator: evaluator of the current SL model performance
         :param kwargs: depends on the scenario/needed arguments for candidate updater (see documentation for init_candidate_updater)
@@ -43,7 +43,7 @@ class PassiveLearnerController:
             raise IncorrectParameters("The pl provided to the pl_controller and the pl of the pl_evaluator need to be the same!")
 
         candidate_source = kwargs.get("candidate_source")  # not needed in PbS scenario (candidate_set = source)
-        self.candidate_updater: CandidateUpdater = init_candidate_updater(scenario, info_creator, pl=pl, candidate_set=candidate_set, candidate_source=candidate_source)
+        self.candidate_updater: CandidateUpdater = init_candidate_updater(scenario, cand_info_mapping, pl=pl, candidate_set=candidate_set, candidate_source=candidate_source)
 
         self.pl_and_candidates_align = False  # keeps track of whether it makes sense to update candidates => if nothing changed in pl, candidates don't need to be updated
 

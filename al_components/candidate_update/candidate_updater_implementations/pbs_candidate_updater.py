@@ -67,13 +67,13 @@ class Pool(CandidateSet):
 class PbS_CandidateUpdater(CandidateUpdater):
     # TODO: logging, documentation
 
-    def __init__(self, info_creator: Callable[[X, Y, AddInfo_Y], CandInfo], candidate_set: Pool, pl: PassiveLearner):
+    def __init__(self, cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo], candidate_set: Pool, pl: PassiveLearner):
         if (candidate_set is None) or (not isinstance(candidate_set, Pool)) or (pl is None) or (not isinstance(pl, PassiveLearner)):
             raise IncorrectParameters("PbS_CandidateUpdater needs to be initialized with a candidate_set (of type Pool) and pl (of type PassiveLearner)")
         else:
             self.candidate_set = candidate_set
             self.pl = pl
-            self.info_creator = info_creator
+            self.info_creator = cand_info_mapping
 
     def update_candidate_set(self):
         # noinspection PyUnusedLocal

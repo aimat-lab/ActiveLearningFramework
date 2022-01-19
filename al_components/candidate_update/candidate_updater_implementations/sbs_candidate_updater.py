@@ -27,14 +27,14 @@ class Stream:
 class SbS_CandidateUpdater(CandidateUpdater):
     # TODO: logging, documentation
 
-    def __init__(self, info_creator: Callable[[X, Y, AddInfo_Y], CandInfo], candidate_set: CandidateSet, source_stream: Stream, pl: PassiveLearner):
+    def __init__(self, cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo], candidate_set: CandidateSet, source_stream: Stream, pl: PassiveLearner):
         if (candidate_set is None) or (not isinstance(candidate_set, CandidateSet)) or (pl is None) or (not isinstance(source_stream, Stream)) or (source_stream is None) or (not isinstance(pl, PassiveLearner)):
-            raise IncorrectParameters("SbS_CandidateUpdater needs to be initialized with an info_creator (of type CandidateInformationCreator), a candidate_set (of type CandidateSet), a source_stream (of type Stream), and pl (of type PassiveLearner)")
+            raise IncorrectParameters("SbS_CandidateUpdater needs to be initialized with an cand_info_mapping (of type CandidateInformationCreator), a candidate_set (of type CandidateSet), a source_stream (of type Stream), and pl (of type PassiveLearner)")
         else:
             self.candidate_set = candidate_set
             self.source = source_stream
             self.pl = pl
-            self.info_creator = info_creator
+            self.cand_info_mapping = cand_info_mapping
 
     def update_candidate_set(self):
         # TODO: should instances already in candidate set be updated (new predictions) => currently no
@@ -46,5 +46,5 @@ class SbS_CandidateUpdater(CandidateUpdater):
             raise NoMoreCandidatesException()
 
         prediction, additional_information = self.pl.predict(x)
-        self.candidate_set.add_instance(x, self.info_creator(x, prediction, additional_information))
+        self.candidate_set.add_instance(x, self.cand_info_mapping(x, prediction, additional_information))
         logging.info("added new instance to candidates set => fetched from stream, predicted")

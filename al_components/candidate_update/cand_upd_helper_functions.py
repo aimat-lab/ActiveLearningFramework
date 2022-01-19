@@ -40,7 +40,7 @@ def get_candidate_source_type(scenario: Scenarios) -> type:
         return Generator
 
 
-def init_candidate_updater(scenario: Scenarios, info_creator: Callable[[X, Y, AddInfo_Y], CandInfo], **kwargs) -> CandidateUpdater:
+def init_candidate_updater(scenario: Scenarios, cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo], **kwargs) -> CandidateUpdater:
     """
     Initialize the candidate updater, dependent on scenario
 
@@ -52,7 +52,7 @@ def init_candidate_updater(scenario: Scenarios, info_creator: Callable[[X, Y, Ad
     - *MQS*: not implemented  # TODO: if MQS candidate updater is implemented, add description
 
     :param scenario: the selected scenario
-    :param info_creator: see get_candidate_additional_information
+    :param cand_info_mapping: see get_candidate_additional_information
     :param kwargs: arguments depending on the scenario (see description arguments)
     :return: the scenario dependent candidate updater
     """
@@ -60,15 +60,15 @@ def init_candidate_updater(scenario: Scenarios, info_creator: Callable[[X, Y, Ad
     if scenario == Scenarios.MQS:
         logging.info("Initialize MQS candidate updater")
         logging.warning("MQS candidate updater is not yet implemented!!")  # TODO: if MQS candidate updater is implemented, remove warning
-        return MQS_CandidateUpdater(info_creator)
+        return MQS_CandidateUpdater(cand_info_mapping)
     elif scenario == Scenarios.PbS:
         logging.info("Initialize PbS candidate updater")
         candidate_set = kwargs.get("candidate_set")
         pl = kwargs.get("pl")
-        return PbS_CandidateUpdater(info_creator, candidate_set, pl)
+        return PbS_CandidateUpdater(cand_info_mapping, candidate_set, pl)
     else:  # scenario == Scenarios.SbS:
         logging.info("Initialize SbS candidate updater")
         candidate_set = kwargs.get("candidate_set")
         pl = kwargs.get("pl")
         source_stream = kwargs.get("candidate_source")
-        return SbS_CandidateUpdater(info_creator, candidate_set, source_stream, pl)
+        return SbS_CandidateUpdater(cand_info_mapping, candidate_set, source_stream, pl)

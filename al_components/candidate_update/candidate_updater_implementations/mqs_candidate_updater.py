@@ -15,7 +15,7 @@ class Generator:
 # noinspection PyPep8Naming
 @dataclass()
 class MQS_CandidateUpdater(CandidateUpdater):
-    info_creator: Callable[[X, Y, AddInfo_Y], CandInfo]
+    cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo]
 
     def update_candidate_set(self):
         raise NotImplementedError

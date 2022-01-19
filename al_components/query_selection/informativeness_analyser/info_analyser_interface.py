@@ -10,7 +10,7 @@ class InformativenessAnalyser:
             - influence on SL model/components/error => need information about the PL, ...
             - relation to underlying distribution of input => need information about input space/distribution, or needs to obtain it itself (e.g. database storing information about queried input instances)
         2. Predictions of PL (or other additional information from candidate set)
-            - needs access to predictions, uncertainties => access to candidate set
+            - needs access to predictions, uncertainties => access to candidate set (ONLY read access!!)
         3. History of queries:
             - keep track of queries
     """
