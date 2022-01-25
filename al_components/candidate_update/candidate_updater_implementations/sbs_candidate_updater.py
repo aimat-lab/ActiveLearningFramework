@@ -31,7 +31,7 @@ class SbS_CandidateUpdater(CandidateUpdater):
     Candidate updater within a SbS scenario => will fetch instance from stream, add information/predictions, and insert instance into candidate set
     """
 
-    def __init__(self, cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo], candidate_set: CandidateSet, candidate_source: Stream, pl: PassiveLearner):
+    def __init__(self, cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo], candidate_set: CandidateSet, candidate_source: Stream, pl: PassiveLearner, **kwargs):
         if (candidate_set is None) or (not isinstance(candidate_set, CandidateSet)) or (pl is None) or (not isinstance(candidate_source, Stream)) or (candidate_source is None) or (not isinstance(pl, PassiveLearner)):
             raise IncorrectParameters("SbS_CandidateUpdater needs to be initialized with an cand_info_mapping (of type CandidateInformationCreator), a candidate_set (of type CandidateSet), a candidate_source (of type Stream), and pl (of type PassiveLearner)")
         else:
