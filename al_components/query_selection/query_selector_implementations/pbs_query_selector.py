@@ -1,19 +1,23 @@
-from dataclasses import dataclass
-
 from al_components.candidate_update.candidate_updater_implementations import Pool
 from al_components.query_selection import QuerySelector
 from al_components.query_selection.informativeness_analyser import InformativenessAnalyser
 from helpers import X
 
+from helpers.exceptions import IncorrectParameters
+
 
 # noinspection PyPep8Naming
-@dataclass()
 class PbS_QuerySelector(QuerySelector):
     """"
     Implementation of the query selector for the PbS scenario => will evaluate the whole candidate pool
     """
-    info_analyser: InformativenessAnalyser
-    candidate_set: Pool
+
+    def __init__(self, info_analyser: InformativenessAnalyser, candidate_set: Pool):
+        if (candidate_set is None) or (not isinstance(candidate_set, Pool)) or (info_analyser is None) or (not isinstance(info_analyser, InformativenessAnalyser)):
+            raise IncorrectParameters("PbS_CandidateUpdater needs to be initialized with a candidate_set (of type Pool) and info_analyser (of type InformativenessAnalyser)")
+        else:
+            self.candidate_set = candidate_set
+            self.info_analyser = info_analyser
 
     def select_query_instance(self) -> (X, bool):
         """

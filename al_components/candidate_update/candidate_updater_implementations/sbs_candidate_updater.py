@@ -31,12 +31,12 @@ class SbS_CandidateUpdater(CandidateUpdater):
     Candidate updater within a SbS scenario => will fetch instance from stream, add information/predictions, and insert instance into candidate set
     """
 
-    def __init__(self, cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo], candidate_set: CandidateSet, source_stream: Stream, pl: PassiveLearner):
-        if (candidate_set is None) or (not isinstance(candidate_set, CandidateSet)) or (pl is None) or (not isinstance(source_stream, Stream)) or (source_stream is None) or (not isinstance(pl, PassiveLearner)):
-            raise IncorrectParameters("SbS_CandidateUpdater needs to be initialized with an cand_info_mapping (of type CandidateInformationCreator), a candidate_set (of type CandidateSet), a source_stream (of type Stream), and pl (of type PassiveLearner)")
+    def __init__(self, cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo], candidate_set: CandidateSet, candidate_source: Stream, pl: PassiveLearner):
+        if (candidate_set is None) or (not isinstance(candidate_set, CandidateSet)) or (pl is None) or (not isinstance(candidate_source, Stream)) or (candidate_source is None) or (not isinstance(pl, PassiveLearner)):
+            raise IncorrectParameters("SbS_CandidateUpdater needs to be initialized with an cand_info_mapping (of type CandidateInformationCreator), a candidate_set (of type CandidateSet), a candidate_source (of type Stream), and pl (of type PassiveLearner)")
         else:
             self.candidate_set = candidate_set
-            self.source = source_stream
+            self.source = candidate_source
             self.pl = pl
             self.cand_info_mapping = cand_info_mapping
             logging.info(f"{sbs_cand_updater_logging_prefix} successfully initiated the sbs candidate updater")

@@ -5,6 +5,18 @@ from al_components.candidate_update import CandidateUpdater
 from al_components.candidate_update.candidate_updater_implementations import MQS_CandidateUpdater, PbS_CandidateUpdater, SbS_CandidateUpdater, Generator, Stream, Pool
 from helpers import Scenarios, X, Y, AddInfo_Y, CandInfo
 
+candidate_source_type = {
+    Scenarios.PbS: Pool,
+    Scenarios.SbS: Stream,
+    Scenarios.MQS: Generator
+}
+
+candidate_updater = {
+    Scenarios.PbS: PbS_CandidateUpdater,
+    Scenarios.SbS: SbS_CandidateUpdater,
+    Scenarios.MQS: MQS_CandidateUpdater
+}
+
 
 # noinspection PyUnusedLocal
 def get_candidate_additional_information(x: X, prediction: Y, additional_prediction_info: AddInfo_Y) -> CandInfo:
@@ -32,13 +44,7 @@ def get_candidate_source_type(scenario: Scenarios) -> type:
     :param scenario: of the current AL project
     :return: the correct type
     """
-
-    if scenario == Scenarios.PbS:
-        return Pool
-    elif scenario == Scenarios.SbS:
-        return Stream
-    else:  # scenario == Scenarios.MQS
-        return Generator
+    return candidate_source_type[scenario]
 
 
 def init_candidate_updater(scenario: Scenarios, cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo], **kwargs) -> CandidateUpdater:
@@ -48,7 +54,7 @@ def init_candidate_updater(scenario: Scenarios, cand_info_mapping: Callable[[X, 
 
     **Arguments**:
 
-    - *SbS*: source_stream: Stream (source for new candidates), candidate_set: CandidateSet (where new candidates get entered to), pl: PassiveLearner
+    - *SbS*: candidate_source: Stream (source for new candidates), candidate_set: CandidateSet (where new candidates get entered to), pl: PassiveLearner
     - *PbS*: candidate_set: Pool (and also CandidateSet, will function as source for candidates and as candidate target), pl: PassiveLearner
     - *MQS*: not implemented  # TODO: if MQS candidate updater is implemented, add description
 
@@ -58,18 +64,14 @@ def init_candidate_updater(scenario: Scenarios, cand_info_mapping: Callable[[X, 
     :return: the scenario dependent candidate updater
     """
 
+    logging.info(f"Initialize {scenario.name} candidate updater")
     if scenario == Scenarios.MQS:
-        logging.info("Initialize MQS candidate updater")
         logging.warning("MQS candidate updater is not yet implemented!!")  # TODO: if MQS candidate updater is implemented, remove warning
-        return MQS_CandidateUpdater(cand_info_mapping)
-    elif scenario == Scenarios.PbS:
-        logging.info("Initialize PbS candidate updater")
-        candidate_set = kwargs.get("candidate_set")
-        pl = kwargs.get("pl")
-        return PbS_CandidateUpdater(cand_info_mapping, candidate_set, pl)
-    else:  # scenario == Scenarios.SbS:
-        logging.info("Initialize SbS candidate updater")
-        candidate_set = kwargs.get("candidate_set")
-        pl = kwargs.get("pl")
-        source_stream = kwargs.get("candidate_source")
-        return SbS_CandidateUpdater(cand_info_mapping, candidate_set, source_stream, pl)
+
+    # get all possible arguments
+    candidate_set = kwargs.get("candidate_set")
+    pl = kwargs.get("pl")
+    candidate_source = kwargs.get("candidate_source")
+
+    return candidate_updater[scenario](cand_info_mapping=cand_info_mapping, candidate_set=candidate_set, pl=pl, candidate_source=candidate_source)
+
