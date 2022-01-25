@@ -51,7 +51,7 @@ if __name__ == '__main__':
         system_state.set(int(SystemStates.ERROR))
         raise IncorrectParameters("The pl provided to the pl_controller and the pl of the pl_evaluator need to be the same!")
     # set the passive learner controller
-    pl = PassiveLearnerController(pl=sl_model, training_set=training_set, candidate_set=candidate_set, scenario=scenario, cand_info_mapping=cand_info_mapping, pl_evaluator=pl_performance_evaluator)
+    pl = PassiveLearnerController(pl=sl_model, training_set=training_set, candidate_set=candidate_set, scenario=scenario, cand_info_mapping=cand_info_mapping, pl_evaluator=pl_performance_evaluator, candidate_source=candidate_source)
 
     # init oracle
     oracle: Oracle = init_helper.get_oracle()
