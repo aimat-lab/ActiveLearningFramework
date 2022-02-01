@@ -35,6 +35,7 @@ class ActiveLearnerController:
     def training_job(self, system_state: ValueProxy):
         """
         Actual training job of the active learner controller => selects query
+        Also including the soft training end job
 
         Job sequence:
             1. retrieve candidates
@@ -43,7 +44,7 @@ class ActiveLearnerController:
                     2. query instance (add to query set)
                     3. restart job
                 1. else:
-                    1. sleep
+                    1. sleep (or set state to FINISH_TRAINING__ORACLE and return if state is FINISH_TRAINING__AL)
                     2. restart job
 
         :param system_state: The current system state (shared over all controllers, values align with enum SystemStates)
@@ -67,8 +68,17 @@ class ActiveLearnerController:
                     logging.info(f"{al_controller_logging_prefix} Discarded the candidate: x = `{query_instance}`")
 
         except NoNewElementException:
-            logging.info(f"{al_controller_logging_prefix} Wait for new candidates")
-            time.sleep(5)
+            if system_state.value == int(SystemStates.FINISH_TRAINING__AL):
+                logging.info(f"{al_controller_logging_prefix} Candidate database empty, all candidates evaluated => only Oracle and PL need to softly end training")
+
+                system_state.set(int(SystemStates.FINISH_TRAINING__ORACLE))
+                logging.warning(f"{al_controller_logging_prefix} Enter Oracle finish training state => soft end (set system_state: {SystemStates(system_state.value).name})")
+
+                return
+
+            else:
+                logging.info(f"{al_controller_logging_prefix} Wait for new candidates")
+                time.sleep(5)
 
         self.training_job(system_state)
         return

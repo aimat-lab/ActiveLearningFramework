@@ -88,6 +88,7 @@ class PassiveLearnerController:
     def training_job(self, system_state: ValueProxy):
         """
         The actual training job for the PL components => should run in separate process
+        Also including the soft training end job
 
         Job sequence:
             1. evaluate performance of pl
@@ -102,14 +103,14 @@ class PassiveLearnerController:
                     2. remove training instance from set
                     3. restart job
                 1. else:
-                    1. sleep
+                    1. sleep (or return if system state is FINISH_TRAINING__PL)
                     2. restart job
 
         :param system_state: The current system state (shared over all controllers, values align with enum SystemStates)
         :return: if the process should end => indicated by system_state
         """
 
-        if system_state.value > int(SystemStates.TRAINING):
+        if system_state.value >= int(SystemStates.TERMINATE_TRAINING):
             logging.warning(f"{pl_controller_logging_prefix} Training process was terminated => end training job (system_state: {SystemStates(system_state.value).name})")
             return
 
@@ -129,7 +130,7 @@ class PassiveLearnerController:
             try:
                 self.candidate_updater.update_candidate_set()
             except NoMoreCandidatesException:
-                system_state.set(int(SystemStates.FINISH_TRAINING))
+                system_state.set(int(SystemStates.FINISH_TRAINING__AL))
 
                 logging.warning(f"{pl_controller_logging_prefix} Initiate finishing of training process, no more candidates => soft end (set system_state: {SystemStates(system_state.value).name})")
                 return
@@ -144,11 +145,16 @@ class PassiveLearnerController:
         try:
             (x_train, y_train) = self.training_set.retrieve_labelled_instance()
         except NoNewElementException:
-            logging.info(f"{pl_controller_logging_prefix} Wait for new training data")
-            time.sleep(5)
+            if system_state.value == int(SystemStates.FINISH_TRAINING__PL):
+                logging.info(f"{pl_controller_logging_prefix} Training database empty, slow end of training finished")
+                return
 
-            self.training_job(system_state)
-            return
+            else:
+                logging.info(f"{pl_controller_logging_prefix} Wait for new training data")
+                time.sleep(5)
+
+                self.training_job(system_state)
+                return
 
         logging.info(f"{pl_controller_logging_prefix} Train PL with (x, y): x = `{x_train}`, y = `{y_train}`")
         self.pl.train(x_train, y_train)
@@ -162,30 +168,3 @@ class PassiveLearnerController:
 
         self.training_job(system_state)
         return
-
-    def finish_training(self):
-        """
-        Soft end for training => get remaining instances from training set and train pl with it
-
-        :return: once the final training is finished
-        """
-
-        logging.info(f"{pl_controller_logging_prefix} Soft end of training process => train with remaining instances in training set")
-        self.pl.load_model()
-
-        while True:
-            # noinspection PyUnusedLocal
-            x_train, y_train = None, None
-            try:
-                (x_train, y_train) = self.training_set.retrieve_labelled_instance()
-            except NoNewElementException:
-                logging.info(f"{pl_controller_logging_prefix} No more training data available")
-                break
-
-            logging.info(f"{pl_controller_logging_prefix} Train PL with (x, y): x = `{x_train}`, y = `{y_train}`")
-            self.pl.train(x_train, y_train)
-            self.training_set.remove_labelled_instance(x_train)
-            logging.info(f"{pl_controller_logging_prefix} Removed (x, y) from the training set => PL already trained with it: x = `{x_train}`, y = `{y_train}`")
-
-        self.pl.save_model()
-        logging.info(f"{pl_controller_logging_prefix} Finished soft end of training of SL model => SL model ready for predictions")

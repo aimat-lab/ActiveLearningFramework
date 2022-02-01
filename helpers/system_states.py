@@ -2,7 +2,7 @@ from enum import IntEnum
 
 
 class SystemStates(IntEnum):
-    INIT = 0
+    INITIALIZATION = 0
     """
     Initiation system_state => initiation of databases, components, initial training, ...
     """
@@ -12,28 +12,47 @@ class SystemStates(IntEnum):
     Active training process, components work in parallel
     """
 
-    FINISH_TRAINING = 2
+    FINISH_TRAINING__AL = 2
     """
     Soft end for training process => components can finish their tasks
-    
+
     Order of finished jobs:
-        1. AL -> no more informativeness analysis, no new queried
-        2. candidate update -> no more candidates need to be evaluated
-        3. Oracle -> finish all queries
-        4. PL -> no more new training data will come up 
+        1. AL -> empty candidate set (no more candidate evaluation incl. informativeness analysis)
+        2. Oracle -> resolve all queries
+        3. PL -> empty training set
     """
 
-    TERMINATE_TRAINING = 3
+    FINISH_TRAINING__ORACLE = 3
+    """
+    Soft end for training process with AL part already done => components can finish their tasks
+
+    Order of finished jobs:
+        (1. AL -> empty candidate set (no more candidate evaluation incl. informativeness analysis)) => already finished
+        2. Oracle -> resolve all queries
+        3. PL -> empty training set
+    """
+
+    FINISH_TRAINING__PL = 4
+    """
+    Soft end for training process with AL and oracle part done => components can finish their tasks
+
+    Order of finished jobs:
+        (1. AL -> empty candidate set (no more candidate evaluation incl. informativeness analysis))  => already finished
+        (2. Oracle -> resolve all queries) => already finished
+        3. PL -> empty training set
+    """
+
+    TERMINATE_TRAINING = 5
     """
     Hard end of training process => components should immediately stop their tasks
     """
 
-    PREDICT = 4
+    PREDICT = 6
     """
     Training is finished => SL model can be used for prediction
     """
 
-    ERROR = 5
+    ERROR = 7
     """
     Fatal error => model won't work
     

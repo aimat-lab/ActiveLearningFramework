@@ -23,7 +23,7 @@ if __name__ == '__main__':
 
     # WORKFLOW: Initialization
     state_manager = Manager()
-    system_state = state_manager.Value('i', int(SystemStates.INIT))
+    system_state = state_manager.Value('i', int(SystemStates.INITIALIZATION))
 
     logging.info(f"------ Initialize AL framework ------  => system_state={SystemStates(system_state.value).name}")
 
@@ -72,7 +72,7 @@ if __name__ == '__main__':
     # WORKFLOW: Training in parallel processes
     # from here on out, no further case dependent implementation necessary => just in initiation phase
 
-    if system_state.value == int(SystemStates.INIT):
+    if system_state.value == int(SystemStates.INITIALIZATION):
         system_state.set(int(SystemStates.TRAINING))
     else:
         logging.error("An error occurred during initiation => system failed")
@@ -97,13 +97,7 @@ if __name__ == '__main__':
     pl_process.join()
     logging.info(f"Every controller process has finished => system_state={SystemStates(system_state.value).name}")
 
-    # TODO: implement terminate training case => if convergence
-    if system_state.value == int(SystemStates.FINISH_TRAINING):
-        logging.info("Soft end for training process => empty query set and training set")
-        o.finish_training()
-        pl.finish_training()
-
-    elif system_state.value == int(SystemStates.ERROR):
+    if system_state.value == int(SystemStates.ERROR):
         logging.error("A fatal error occurred => model training has failed")
         raise ALSystemError()
 
