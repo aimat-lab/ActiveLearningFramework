@@ -51,7 +51,7 @@ class ActiveLearnerController:
         :return: if the process should end => indicated by system_state
         """
 
-        if system_state.value > int(SystemStates.TRAINING):
+        if system_state.value >= int(SystemStates.TERMINATE_TRAINING):
             logging.warning(f"{al_controller_logging_prefix} Training process terminated => end training job of active learner, system_state={SystemStates(system_state.value).name}")
             return
 

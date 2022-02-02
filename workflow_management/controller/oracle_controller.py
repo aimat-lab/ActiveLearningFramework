@@ -85,29 +85,3 @@ class OracleController:
 
         self.training_job(system_state)
         return
-
-    def finish_training(self):
-        """
-        Soft end for training => oracle will process all remaining queries
-
-        :return: once all queries are resolved
-        """
-
-        logging.info(f"{oracle_controller_logging_prefix} Soft end of training process => solve all queries from query set")
-
-        while True:
-            # noinspection PyUnusedLocal
-            query_instance = None
-            try:
-                query_instance = self.query_set.get_instance()
-            except NoNewElementException:
-                logging.info(f"{oracle_controller_logging_prefix} Finished handling every outstanding query")
-                break
-
-            label = self.o.query(query_instance)
-            self.query_set.remove_instance(query_instance)
-
-            self.training_set.append_labelled_instance(query_instance, label)
-            logging.info(f"{oracle_controller_logging_prefix} Query for instance x resolved with label y, added to training set for PL; x = `{query_instance}`, y = `{label}`")
-
-        logging.info(f"{oracle_controller_logging_prefix} Finished soft end of training of oracle => oracle can shut down")
