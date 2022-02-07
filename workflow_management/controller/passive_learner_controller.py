@@ -1,52 +1,35 @@
 import logging
 import time
 from multiprocessing.managers import ValueProxy
-from typing import List, Callable
+from typing import List
 
 from additional_component_interfaces import PassiveLearner
-from al_components.candidate_update import CandidateUpdater, init_candidate_updater
-from al_components.perfomance_evaluation import PerformanceEvaluator
-from helpers import Scenarios, SystemStates, X, Y, AddInfo_Y, CandInfo
-from helpers.exceptions import NoNewElementException, NoMoreCandidatesException, IncorrectParameters
-from workflow_management.database_interfaces import TrainingSet, CandidateSet
+from helpers import Scenarios, SystemStates, X, Y
+from helpers.exceptions import NoNewElementException
+from workflow_management.database_interfaces import TrainingSet
 
 pl_controller_logging_prefix = "PL_controller: "
 
 
 class PassiveLearnerController:
     """
-    Controls the workflow for components working with the PL
-
-    => the actual SL model (including performance evaluation) and the candidate updater (needs PL for prediction calculation)
+    Controls the workflow for the actual SL model
     """
 
-    def __init__(self, pl: PassiveLearner, training_set: TrainingSet, candidate_set: CandidateSet, cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo], scenario: Scenarios, pl_evaluator: PerformanceEvaluator, **kwargs):
+    def __init__(self, pl: PassiveLearner, training_set: TrainingSet, scenario: Scenarios):
         """
         Set the pl arguments, initializes the candidate updater
 
         :param pl: sl model (implemented interface)
         :param training_set: dataset based on which the pl is trained
-        :param candidate_set: dataset containing the candidates (gets updated by candidate_updater)
-        :param cand_info_mapping: can generate the information stored for every candidate out of the information provided from the prediction
         :param scenario: determines the candidate updater implementation
-        :param pl_evaluator: evaluator of the current SL model performance
-        :param kwargs: depends on the scenario/needed arguments for candidate updater (see documentation for init_candidate_updater)
         """
 
-        logging.info(f"{pl_controller_logging_prefix} Init passive learner controller => set pl, training set, candidate set, init candidate_updater")
+        logging.info(f"{pl_controller_logging_prefix} Init passive learner controller => set pl, training set")
 
         self.scenario = scenario
         self.pl = pl
         self.training_set = training_set
-        self.candidate_set = candidate_set
-        self.pl_evaluator = pl_evaluator
-        if not self.pl_evaluator.pl == pl:
-            raise IncorrectParameters("The pl provided to the pl_controller and the pl of the pl_evaluator need to be the same!")
-
-        candidate_source = kwargs.get("candidate_source")  # not needed in PbS scenario (candidate_set = source)
-        self.candidate_updater: CandidateUpdater = init_candidate_updater(scenario, cand_info_mapping, pl=pl, candidate_set=candidate_set, candidate_source=candidate_source)
-
-        self.pl_and_candidates_align = False  # keeps track of whether it makes sense to update candidates => if nothing changed in pl, candidates don't need to be updated
 
     def init_pl(self, x_train: List[X], y_train: List[Y], **kwargs):
         """
@@ -68,22 +51,6 @@ class PassiveLearnerController:
         self.pl.save_model()
 
         logging.info(f"{pl_controller_logging_prefix} SL model and candidate_set don't align (SL newly trained)")
-        self.pl_and_candidates_align = False
-
-    def init_candidates(self):
-        """
-        Initial candidate update (e.g. add additional information to candidates after initial training of PL)
-        """
-
-        logging.info(f"{pl_controller_logging_prefix} Initial predictions for candidate set")
-
-        # TODO: move pl.load/save model into candidate update??
-        self.pl.load_model()
-        self.candidate_updater.update_candidate_set()
-
-        logging.info(f"{pl_controller_logging_prefix} SL model and candidate_set align (candidates freshly updated)")
-        self.pl_and_candidates_align = True
-        self.pl.save_model()
 
     def training_job(self, system_state: ValueProxy):
         """
@@ -91,13 +58,7 @@ class PassiveLearnerController:
         Also including the soft training end job
 
         Job sequence:
-            1. evaluate performance of pl
-                1. if performance satisfies evaluation criterion:
-                    1. set system state to terminate training, return
-                2. else:
-                    1. keep training
-            2. update candidates (if this provides new information)
-            3. retrieve new training data
+            1. retrieve new training data
                 1. if new data available:
                     1. retrain pl
                     2. remove training instance from set
@@ -113,32 +74,6 @@ class PassiveLearnerController:
         if system_state.value >= int(SystemStates.TERMINATE_TRAINING):
             logging.warning(f"{pl_controller_logging_prefix} Training process was terminated => end training job (system_state: {SystemStates(system_state.value).name})")
             return
-
-        self.pl.load_model()
-
-        if self.pl_evaluator.pl_satisfies_evaluation():
-            logging.warning(f"{pl_controller_logging_prefix} PL is trained well enough => terminate training process")
-            system_state.set(int(SystemStates.TERMINATE_TRAINING))
-            return
-
-        # check if candidate update is necessary:
-        # # for PbS: pl didn't change => no new information provided through candidate update
-        # # for SbS/MQS: only if candidate set is not empty assumption form PbS can be made => because it can slow down process: will just always update if scenario is SbS or MQS
-        if (self.scenario != Scenarios.PbS) or (not self.pl_and_candidates_align) or (self.candidate_set.is_empty()):
-            logging.info(f"{pl_controller_logging_prefix} Update candidate set")
-
-            try:
-                self.candidate_updater.update_candidate_set()
-            except NoMoreCandidatesException:
-                system_state.set(int(SystemStates.FINISH_TRAINING__AL))
-
-                logging.warning(f"{pl_controller_logging_prefix} Initiate finishing of training process, no more candidates => soft end (set system_state: {SystemStates(system_state.value).name})")
-                return
-
-            logging.info(f"{pl_controller_logging_prefix} SL model and candidate_set align (candidates freshly updated)")
-            self.pl_and_candidates_align = True
-        else:
-            logging.info(f"{pl_controller_logging_prefix} Candidate set doesn't need to be updated => skipped update step")
 
         # noinspection PyUnusedLocal
         x_train, y_train = None, None
@@ -157,11 +92,9 @@ class PassiveLearnerController:
                 return
 
         logging.info(f"{pl_controller_logging_prefix} Train PL with (x, y): x = `{x_train}`, y = `{y_train}`")
+        self.pl.load_model()
         self.pl.train(x_train, y_train)
         self.pl.save_model()
-
-        self.pl_and_candidates_align = False
-        logging.info(f"{pl_controller_logging_prefix} SL model and candidate_set don't align (SL newly trained)")
 
         self.training_set.remove_labelled_instance(x_train)
         logging.info(f"{pl_controller_logging_prefix} Removed (x, y) from the training set => PL already trained with it: x = `{x_train}`, y = `{y_train}`")

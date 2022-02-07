@@ -12,7 +12,7 @@ class SystemStates(IntEnum):
     Active training process, components work in parallel
     """
 
-    FINISH_TRAINING__AL = 2
+    FINISH_TRAINING__INFO = 2
     """
     Soft end for training process => components can finish their tasks
 

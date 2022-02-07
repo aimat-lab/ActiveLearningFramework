@@ -9,7 +9,7 @@ from al_components.query_selection.informativeness_analyser import Informativene
 from helpers import SystemStates, CandInfo, AddInfo_Y, Y, X, Scenarios
 from helpers.exceptions import IncorrectScenarioImplementation, ALSystemError, IncorrectParameters
 from helpers.system_initiator import InitiationHelper
-from workflow_management.controller import PassiveLearnerController, OracleController, ActiveLearnerController
+from workflow_management.controller import PassiveLearnerController, OracleController, ActiveLearnerController, CandidateUpdaterController, QuerySelectionController
 
 logging.basicConfig(format='LOGGING:  %(levelname)s:%(message)s :END LOGGING', level=logging.INFO)
 
@@ -38,36 +38,34 @@ if __name__ == '__main__':
 
     # init databases (usually empty)
     logging.info("Initialize datasets")
-    (training_set, candidate_set, query_set) = init_helper.get_datasets()
+    (training_set, stored_labelled_set_db, candidate_set, log_query_decision_db, query_set) = init_helper.get_datasets()
 
     # init components (workflow controller)
     logging.info("Initialize components")
 
-    # init passive learner and every component needed for pl workflow
+    # init passive learner
     sl_model: PassiveLearner = init_helper.get_sl_model()
-    cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo] = init_helper.get_mapper_function_prediction_to_candidate_info()
-    pl_performance_evaluator: PerformanceEvaluator = init_helper.get_pl_performance_evaluator()
-    if pl_performance_evaluator.pl != sl_model:
-        system_state.set(int(SystemStates.ERROR))
-        raise IncorrectParameters("The pl provided to the pl_controller and the pl of the pl_evaluator need to be the same!")
-    # set the passive learner controller
-    pl = PassiveLearnerController(pl=sl_model, training_set=training_set, candidate_set=candidate_set, scenario=scenario, cand_info_mapping=cand_info_mapping, pl_evaluator=pl_performance_evaluator, candidate_source=candidate_source)
+    pl = PassiveLearnerController(pl=sl_model, training_set=training_set, scenario=scenario)
 
     # init oracle
     oracle: Oracle = init_helper.get_oracle()
     # set the oracle controller
-    o = OracleController(o=oracle, training_set=training_set, query_set=query_set)
+    o = OracleController(o=oracle, training_set=training_set, stored_labelled_set_db=stored_labelled_set_db, query_set=query_set)
 
-    # init the components needed for the al workflow => info_analyser
+    # init candidate updater
+    cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo] = init_helper.get_mapper_function_prediction_to_candidate_info()
+    pl_performance_evaluator: PerformanceEvaluator = init_helper.get_pl_performance_evaluator()
+    cand_up = CandidateUpdaterController(pl=sl_model, candidate_set=candidate_set, cand_info_mapping=cand_info_mapping, scenario=scenario, pl_evaluator=pl_performance_evaluator)
+
+    # init info analyser (query selection)
     info_analyser: InformativenessAnalyser = init_helper.get_informativeness_analyser()
-    # set the al controller
-    al = ActiveLearnerController(candidate_set=candidate_set, query_set=query_set, info_analyser=info_analyser, scenario=scenario)
+    query_select = QuerySelectionController(candidate_set=candidate_set, log_query_decision_db=log_query_decision_db, query_set=query_set, scenario=scenario, info_analyser=info_analyser)
 
     # initial training, data source update
     logging.info("Initial training and first candidate update")
     x_train, y_train, epochs, batch_size = init_helper.get_initial_training_data()
     pl.init_pl(x_train, y_train, batch_size=batch_size, epochs=epochs)  # training with initial training data
-    pl.init_candidates()
+    cand_up.init_candidates()
 
     # WORKFLOW: Training in parallel processes
     # from here on out, no further case dependent implementation necessary => just in initiation phase
@@ -81,18 +79,21 @@ if __name__ == '__main__':
     logging.info(f"------ Active Training ------ => system_state={SystemStates(system_state.value).name}")
 
     # create processes
-    al_process = Process(target=al.training_job, args=(system_state,), name="Process-AL")
+    cand_updater_process = Process(target=cand_up.training_job, args=(system_state,), name="Process-AL-candidate-update")
+    query_selection_process = Process(target=query_select.training_job, args=(system_state,), name="Process-AL-query-selection")
     o_process = Process(target=o.training_job, args=(system_state,), name="Process-Oracle")
     pl_process = Process(target=pl.training_job, args=(system_state,), name="Process-PL")
 
-    logging.info(f"Start every controller process: al - {al_process.name}, oracle - {o_process.name}, pl - {pl_process.name}")
+    logging.info(f"Start every controller process: al candidate update - {cand_updater_process.name}, al query selection - {query_selection_process.name}, oracle - {o_process.name}, pl - {pl_process.name}")
     # actually start the processes
-    al_process.start()
+    cand_updater_process.start()
+    query_selection_process.start()
     o_process.start()
     pl_process.start()
 
     # collect the processes
-    al_process.join()
+    cand_updater_process.join()
+    query_selection_process.join()
     o_process.join()
     pl_process.join()
     logging.info(f"Every controller process has finished => system_state={SystemStates(system_state.value).name}")
@@ -105,4 +106,5 @@ if __name__ == '__main__':
     logging.info("Finished training process")
     system_state.set(int(SystemStates.PREDICT))
     logging.info(f"----- Prediction ------- => system_state={SystemStates(system_state.value).name}")
-    # TODO: how should prediction be performed???
+
+    # case implementation: results are available (use the stored SL model for predictions or use the stored labelled set for further training)

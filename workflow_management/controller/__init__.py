@@ -1,3 +1,4 @@
-from .active_learner_controller import ActiveLearnerController
+from .candidate_updater_controller import CandidateUpdaterController
+from .query_selection_controller import QuerySelectionController
 from .oracle_controller import OracleController
 from .passive_learner_controller import PassiveLearnerController
