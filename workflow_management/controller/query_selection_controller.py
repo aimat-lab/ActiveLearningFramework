@@ -64,7 +64,7 @@ class QuerySelectionController:
                 if gets_queried:
                     self.candidate_set.remove_instance(query_instance)
                     self.query_set.add_instance(query_instance)
-                    logging.info(f"{query_selection_controller_logging_prefix} Selected new unlabelled queried: x = `{query_instance}`")
+                    logging.info(f"{query_selection_controller_logging_prefix} Selected new unlabelled query: x = `{query_instance}`")
                     break
                 else:
                     self.candidate_set.remove_instance(query_instance)
