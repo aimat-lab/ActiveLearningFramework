@@ -7,9 +7,9 @@ from al_components.candidate_update import get_candidate_source_type
 from al_components.perfomance_evaluation import PerformanceEvaluator
 from al_components.query_selection.informativeness_analyser import InformativenessAnalyser
 from helpers import SystemStates, CandInfo, AddInfo_Y, Y, X, Scenarios
-from helpers.exceptions import IncorrectScenarioImplementation, ALSystemError, IncorrectParameters
+from helpers.exceptions import IncorrectScenarioImplementation, ALSystemError
 from helpers.system_initiator import InitiationHelper
-from workflow_management.controller import PassiveLearnerController, OracleController, ActiveLearnerController, CandidateUpdaterController, QuerySelectionController
+from workflow_management.controller import PassiveLearnerController, OracleController, CandidateUpdaterController, QuerySelectionController
 
 logging.basicConfig(format='LOGGING:  %(levelname)s:%(message)s :END LOGGING', level=logging.INFO)
 
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     # init oracle
     oracle: Oracle = init_helper.get_oracle()
     # set the oracle controller
-    o = OracleController(o=oracle, training_set=training_set, stored_labelled_set_db=stored_labelled_set_db, query_set=query_set)
+    o = OracleController(o=oracle, training_set=training_set, stored_labelled_set=stored_labelled_set_db, query_set=query_set)
 
     # init candidate updater
     cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo] = init_helper.get_mapper_function_prediction_to_candidate_info()

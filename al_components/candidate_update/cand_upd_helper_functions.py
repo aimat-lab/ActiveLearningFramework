@@ -74,4 +74,3 @@ def init_candidate_updater(scenario: Scenarios, cand_info_mapping: Callable[[X, 
     candidate_source = kwargs.get("candidate_source")
 
     return candidate_updater[scenario](cand_info_mapping=cand_info_mapping, candidate_set=candidate_set, pl=pl, candidate_source=candidate_source)
-

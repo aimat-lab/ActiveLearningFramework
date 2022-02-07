@@ -1,5 +1,3 @@
-
-
 # noinspection PyUnusedLocal
 from typing import Tuple, List, Optional, Callable
 
@@ -74,6 +72,7 @@ class InitiationHelper:
         :return: the mapper function
         """
         raise NotImplementedError
+        # noinspection PyUnusedLocal
         function = get_candidate_additional_information  # case implementation: implement concrete candidate information creation function
 
     def get_pl_performance_evaluator(self) -> PerformanceEvaluator:

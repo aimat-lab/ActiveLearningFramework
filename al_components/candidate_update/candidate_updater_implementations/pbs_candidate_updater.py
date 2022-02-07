@@ -68,6 +68,7 @@ class PbS_CandidateUpdater(CandidateUpdater):
     The candidate updater within a PbS scenario => whole pool (= candidate set) will be updated with new predictions/information
     """
 
+    # noinspection PyUnusedLocal
     def __init__(self, cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo], candidate_set: Pool, pl: PassiveLearner, **kwargs):
         if (candidate_set is None) or (not isinstance(candidate_set, Pool)) or (pl is None) or (not isinstance(pl, PassiveLearner)):
             raise IncorrectParameters("PbS_CandidateUpdater needs to be initialized with a candidate_set (of type Pool) and pl (of type PassiveLearner)")

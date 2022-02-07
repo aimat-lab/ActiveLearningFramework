@@ -1,5 +1,7 @@
 from typing import List, Tuple, Optional
 
+from nparray import ndarray
+
 from helpers import X, Y, AddInfo_Y
 
 
@@ -49,7 +51,7 @@ class PassiveLearner:
         :return: prediction y (usually one numerical value, but can alter), optionally additional information (e.g. uncertainty)
         """
         raise NotImplementedError
-    
+
     def predict_set(self, xs: List[X] or ndarray) -> Tuple[List[Y] or ndarray, Optional[List[AddInfo_Y] or ndarray]]:
         """
         Get the predicted output based on the current training state of the ML model => predict whole set
@@ -57,7 +59,7 @@ class PassiveLearner:
         :param xs: list of input values
         :return: predictions ys (list) (usually one numerical value, but can alter), optionally additional information (e.g. uncertainties) (list)
         """
-        raise NotImplementedError    
+        raise NotImplementedError
 
     def train(self, x: X, y: Y) -> None:
         """
