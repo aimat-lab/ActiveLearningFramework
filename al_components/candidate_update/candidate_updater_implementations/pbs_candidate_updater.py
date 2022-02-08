@@ -70,7 +70,7 @@ class PbS_CandidateUpdater(CandidateUpdater):
 
     # noinspection PyUnusedLocal
     def __init__(self, cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo], candidate_set: Pool, ro_pl: ReadOnlyPassiveLearner, **kwargs):
-        if (candidate_set is None) or (not isinstance(candidate_set, Pool)) or (pl is None) or (not isinstance(ro_pl, ReadOnlyPassiveLearner)):
+        if (candidate_set is None) or (not isinstance(candidate_set, Pool)) or (ro_pl is None) or (not isinstance(ro_pl, ReadOnlyPassiveLearner)):
             raise IncorrectParameters("PbS_CandidateUpdater needs to be initialized with a candidate_set (of type Pool) and ro_pl (of type ReadOnlyPassiveLearner)")
         else:
             self.candidate_set = candidate_set
