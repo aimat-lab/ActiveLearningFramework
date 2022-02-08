@@ -16,7 +16,7 @@ class SbS_QuerySelector(QuerySelector):
     def decide_discard(self, info: float) -> bool:
         # TODO: maybe not static/hard implemented => instead default method and one that can be inserted in implementation?
         # TODO: if threshold kept => what should be value?? => should value adapt over time
-        return info < 0.7
+        return info < 0.5
 
     def select_query_instance(self) -> (X, float, bool):
         """

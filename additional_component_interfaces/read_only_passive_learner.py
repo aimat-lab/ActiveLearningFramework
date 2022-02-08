@@ -23,6 +23,12 @@ class ReadOnlyPassiveLearner:
         """
         raise NotImplementedError
 
+    def close_model(self) -> None:
+        """
+        Close the loaded model (and the connection)
+        """
+        raise NotImplementedError
+
     def pl_satisfies_evaluation(self) -> bool:
         """
         Evaluates the performance of the current SL model (pl) => decides if pl is trained enough (satisfies performance acceptance criterion)

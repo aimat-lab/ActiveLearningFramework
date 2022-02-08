@@ -49,6 +49,7 @@ class CandidateUpdaterController:
 
         self.ro_pl.load_model()
         self.candidate_updater.update_candidate_set()
+        self.ro_pl.close_model()
 
     def training_job(self, system_state: ValueProxy):
         """
