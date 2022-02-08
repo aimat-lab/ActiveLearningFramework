@@ -33,7 +33,7 @@ class SbS_CandidateUpdater(CandidateUpdater):
 
     # noinspection PyUnusedLocal
     def __init__(self, cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo], candidate_set: CandidateSet, candidate_source: Stream, ro_pl: ReadOnlyPassiveLearner, **kwargs):
-        if (candidate_set is None) or (not isinstance(candidate_set, CandidateSet)) or (pl is None) or (not isinstance(candidate_source, Stream)) or (candidate_source is None) or (not isinstance(ro_pl, ReadOnlyPassiveLearner)):
+        if (candidate_set is None) or (not isinstance(candidate_set, CandidateSet)) or (ro_pl is None) or (not isinstance(candidate_source, Stream)) or (candidate_source is None) or (not isinstance(ro_pl, ReadOnlyPassiveLearner)):
             raise IncorrectParameters("SbS_CandidateUpdater needs to be initialized with an cand_info_mapping (of type CandidateInformationCreator), a candidate_set (of type CandidateSet), a candidate_source (of type Stream), and ro_pl (of type ReadOnlyPassiveLearner)")
         else:
             self.candidate_set = candidate_set
