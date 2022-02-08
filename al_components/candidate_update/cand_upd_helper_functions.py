@@ -54,8 +54,8 @@ def init_candidate_updater(scenario: Scenarios, cand_info_mapping: Callable[[X, 
 
     **Arguments**:
 
-    - *SbS*: candidate_source: Stream (source for new candidates), candidate_set: CandidateSet (where new candidates get entered to), pl: PassiveLearner
-    - *PbS*: candidate_set: Pool (and also CandidateSet, will function as source for candidates and as candidate target), pl: PassiveLearner
+    - *SbS*: candidate_source: Stream (source for new candidates), candidate_set: CandidateSet (where new candidates get entered to), ro_pl: ReadOnlyPassiveLearner
+    - *PbS*: candidate_set: Pool (and also CandidateSet, will function as source for candidates and as candidate target), ro_pl: ReadOnlyPassiveLearner
     - *MQS*: not implemented  # TODO: if MQS candidate updater is implemented, add description
 
     :param scenario: the selected scenario
@@ -70,7 +70,7 @@ def init_candidate_updater(scenario: Scenarios, cand_info_mapping: Callable[[X, 
 
     # get all possible arguments
     candidate_set = kwargs.get("candidate_set")
-    pl = kwargs.get("pl")
+    ro_pl = kwargs.get("ro_pl")
     candidate_source = kwargs.get("candidate_source")
 
-    return candidate_updater[scenario](cand_info_mapping=cand_info_mapping, candidate_set=candidate_set, pl=pl, candidate_source=candidate_source)
+    return candidate_updater[scenario](cand_info_mapping=cand_info_mapping, candidate_set=candidate_set, ro_pl=ro_pl, candidate_source=candidate_source)

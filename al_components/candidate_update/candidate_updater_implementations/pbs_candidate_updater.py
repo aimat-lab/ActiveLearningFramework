@@ -3,7 +3,7 @@ from typing import Tuple, List, Optional, Callable
 
 from numpy import ndarray
 
-from additional_component_interfaces import PassiveLearner
+from additional_component_interfaces import ReadOnlyPassiveLearner
 from al_components.candidate_update import CandidateUpdater
 from helpers import CandInfo, X, Y, AddInfo_Y
 from helpers.exceptions import IncorrectParameters, NoMoreCandidatesException, NoNewElementException
@@ -69,12 +69,12 @@ class PbS_CandidateUpdater(CandidateUpdater):
     """
 
     # noinspection PyUnusedLocal
-    def __init__(self, cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo], candidate_set: Pool, pl: PassiveLearner, **kwargs):
-        if (candidate_set is None) or (not isinstance(candidate_set, Pool)) or (pl is None) or (not isinstance(pl, PassiveLearner)):
-            raise IncorrectParameters("PbS_CandidateUpdater needs to be initialized with a candidate_set (of type Pool) and pl (of type PassiveLearner)")
+    def __init__(self, cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo], candidate_set: Pool, ro_pl: ReadOnlyPassiveLearner, **kwargs):
+        if (candidate_set is None) or (not isinstance(candidate_set, Pool)) or (pl is None) or (not isinstance(ro_pl, ReadOnlyPassiveLearner)):
+            raise IncorrectParameters("PbS_CandidateUpdater needs to be initialized with a candidate_set (of type Pool) and ro_pl (of type ReadOnlyPassiveLearner)")
         else:
             self.candidate_set = candidate_set
-            self.pl = pl
+            self.ro_pl = ro_pl
             self.cand_info_mapping = cand_info_mapping
             logging.info(f"{pbs_cand_updater_logging_prefix} successfully initiated the candidate updater")
 
@@ -99,7 +99,7 @@ class PbS_CandidateUpdater(CandidateUpdater):
         logging.info(f"{pbs_cand_updater_logging_prefix} retrieved all instances from pool => now add information")
         candidate_information = []
         for x in xs:
-            prediction, additional_information = self.pl.predict(x)
+            prediction, additional_information = self.ro_pl.predict(x)
             candidate_information.append(self.cand_info_mapping(x, prediction, additional_information))
 
         logging.info(f"{pbs_cand_updater_logging_prefix} added information to all instances => now load new information into pool/candidate set")

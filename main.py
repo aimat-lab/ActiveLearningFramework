@@ -2,7 +2,7 @@ import logging
 from multiprocessing import Process, Manager
 from typing import Callable
 
-from additional_component_interfaces import PassiveLearner, Oracle
+from additional_component_interfaces import PassiveLearner, Oracle, ReadOnlyPassiveLearner
 from al_components.candidate_update import get_candidate_source_type
 from al_components.perfomance_evaluation import PerformanceEvaluator
 from al_components.query_selection.informativeness_analyser import InformativenessAnalyser
@@ -54,8 +54,8 @@ if __name__ == '__main__':
 
     # init candidate updater
     cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo] = init_helper.get_mapper_function_prediction_to_candidate_info()
-    pl_performance_evaluator: PerformanceEvaluator = init_helper.get_pl_performance_evaluator()
-    cand_up = CandidateUpdaterController(pl=sl_model, candidate_set=candidate_set, cand_info_mapping=cand_info_mapping, scenario=scenario, pl_evaluator=pl_performance_evaluator)
+    ro_pl: ReadOnlyPassiveLearner = init_helper.get_ro_sl_model()
+    cand_up = CandidateUpdaterController(ro_pl=ro_pl, candidate_set=candidate_set, cand_info_mapping=cand_info_mapping, scenario=scenario)
 
     # init info analyser (query selection)
     info_analyser: InformativenessAnalyser = init_helper.get_informativeness_analyser()
@@ -86,10 +86,14 @@ if __name__ == '__main__':
 
     logging.info(f"Start every controller process: al candidate update - {cand_updater_process.name}, al query selection - {query_selection_process.name}, oracle - {o_process.name}, pl - {pl_process.name}")
     # actually start the processes
-    cand_updater_process.start()
     query_selection_process.start()
+    logging.info(f"al query selection process ({query_selection_process.name}) started")
     o_process.start()
+    logging.info(f"oracle process ({o_process.name}) started")
     pl_process.start()
+    logging.info(f"pl process ({pl_process.name}) started")
+    cand_updater_process.start()
+    logging.info(f"al candidate update process ({cand_updater_process.name}) started")
 
     # collect the processes
     cand_updater_process.join()

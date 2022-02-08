@@ -18,17 +18,17 @@ class SbS_QuerySelector(QuerySelector):
         # TODO: if threshold kept => what should be value?? => should value adapt over time
         return info < 0.7
 
-    def select_query_instance(self) -> (X, bool):
+    def select_query_instance(self) -> (X, float, bool):
         """
         Get the first element (ordered by time of insertion) of the candidate set and decide based on informativeness whether to discard or query it
 
         - discarded: remove instance permanently from candidate set
 
-        :return: the evaluated instance, [True if instance should be queried, False if instance should be discarded]
+        :return: the evaluated instance, informativeness value, [True if instance should be queried, False if instance should be discarded]
         """
         (x, _) = self.candidate_set.get_first_instance()
         info = self.info_analyser.get_informativeness(x)
         if self.decide_discard(info):
-            return x, False
+            return x, info, False
         else:
-            return x, True
+            return x, info, True

@@ -19,11 +19,11 @@ class PbS_QuerySelector(QuerySelector):
             self.candidate_set = candidate_set
             self.info_analyser = info_analyser
 
-    def select_query_instance(self) -> (X, bool):
+    def select_query_instance(self) -> (X, float, bool):
         """
         Evaluates the whole candidate set => selects instance maximizing the informativeness measure
 
-        :return: the maximizing instance, True (instances in pbs scenario are never discarded => just stay in pool)
+        :return: the maximizing instance, informativeness value, True (instances in pbs scenario are never discarded => just stay in pool)
         """
         (xs, _) = self.candidate_set.retrieve_all_instances()
 
@@ -34,4 +34,4 @@ class PbS_QuerySelector(QuerySelector):
                 max_x = x
                 max_info = info
 
-        return max_x, True
+        return max_x, max_info, True

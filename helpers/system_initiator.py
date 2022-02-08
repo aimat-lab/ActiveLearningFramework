@@ -3,9 +3,8 @@ from typing import Tuple, List, Optional, Callable
 
 from nparray import ndarray
 
-from additional_component_interfaces import PassiveLearner, Oracle
+from additional_component_interfaces import PassiveLearner, Oracle, ReadOnlyPassiveLearner
 from al_components.candidate_update.candidate_updater_implementations import Pool, Stream, Generator
-from al_components.perfomance_evaluation import PerformanceEvaluator
 from al_components.query_selection.informativeness_analyser import InformativenessAnalyser
 from helpers import Scenarios, X, Y, AddInfo_Y, CandInfo
 from workflow_management.database_interfaces import CandidateSet, QuerySet, TrainingSet, StoredLabelledSetDB, LogQueryDecisionDB
@@ -75,15 +74,6 @@ class InitiationHelper:
         # noinspection PyUnusedLocal
         function = get_candidate_additional_information  # case implementation: implement concrete candidate information creation function
 
-    def get_pl_performance_evaluator(self) -> PerformanceEvaluator:
-        """
-        Return a performance evaluator (evaluate performance of pl form perspective of the AL project => performance of AL model = performance of PL model)
-
-        :return: the evaluator
-        """
-        # case implementation: implement concrete sl performance evaluator
-        raise NotImplementedError
-
     def get_oracle(self) -> Oracle:
         """
         Return the instance correctly labelling the unlabelled data then to be added to the training data
@@ -91,6 +81,14 @@ class InitiationHelper:
         :return: the oracle instance
         """
         # case implementation: implement concrete oracle (with knowledge about ground truth)
+        raise NotImplementedError
+
+    def get_ro_sl_model(self) -> ReadOnlyPassiveLearner:
+        """
+        Return the read only version/view of the sl model (assure through load function, that PassiveLearner and ReadOnlyPassiveLearner work on the same models)
+        :return: the RO passive learner
+        """
+        # case implementation: implement concrete read only sl model
         raise NotImplementedError
 
     def get_informativeness_analyser(self) -> InformativenessAnalyser:

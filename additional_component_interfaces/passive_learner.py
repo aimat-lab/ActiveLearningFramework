@@ -52,15 +52,6 @@ class PassiveLearner:
         """
         raise NotImplementedError
 
-    def predict_set(self, xs: List[X] or ndarray) -> Tuple[List[Y] or ndarray, Optional[List[AddInfo_Y] or ndarray]]:
-        """
-        Get the predicted output based on the current training state of the ML model => predict whole set
-
-        :param xs: list of input values
-        :return: predictions ys (list) (usually one numerical value, but can alter), optionally additional information (e.g. uncertainties) (list)
-        """
-        raise NotImplementedError
-
     def train(self, x: X, y: Y) -> None:
         """
         Train the ML model with one instance (can internally store the training instances in order to achieve batch training)
