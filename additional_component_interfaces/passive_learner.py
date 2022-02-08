@@ -1,7 +1,5 @@
 from typing import List, Tuple, Optional
 
-from nparray import ndarray
-
 from helpers import X, Y, AddInfo_Y
 
 

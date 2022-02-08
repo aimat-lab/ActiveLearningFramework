@@ -4,7 +4,6 @@ from typing import Callable
 
 from additional_component_interfaces import PassiveLearner, Oracle, ReadOnlyPassiveLearner
 from al_components.candidate_update import get_candidate_source_type
-from al_components.perfomance_evaluation import PerformanceEvaluator
 from al_components.query_selection.informativeness_analyser import InformativenessAnalyser
 from helpers import SystemStates, CandInfo, AddInfo_Y, Y, X, Scenarios
 from helpers.exceptions import IncorrectScenarioImplementation, ALSystemError
