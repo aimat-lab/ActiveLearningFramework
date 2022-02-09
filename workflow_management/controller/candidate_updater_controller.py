@@ -81,31 +81,37 @@ class CandidateUpdaterController:
         :param system_state: The current system state (shared over all controllers, values align with enum SystemStates)
         :return: if the process should end => indicated by system_state
         """
-
-        if system_state.value >= int(SystemStates.FINISH_TRAINING__INFO):
-            log.warning(f"Training process was terminated => end training job (system_state: {SystemStates(system_state.value).name})")
-            return
         try:
-            log.debug("Load the read only SL model")
-            self.ro_pl.load_model()
+
+            if system_state.value >= int(SystemStates.FINISH_TRAINING__INFO):
+                log.warning(f"Training process was terminated => end training job (system_state: {SystemStates(system_state.value).name})")
+                return
+            try:
+                log.debug("Load the read only SL model")
+                self.ro_pl.load_model()
+            except Exception as e:
+                log.error("During loading of model, an error occurred", e)
+                raise LoadingModelException("Read Only Passive Learner (withing candidate updater)")
+
+            try:
+                self.candidate_updater.update_candidate_set()
+            except NoMoreCandidatesException:
+                system_state.set(int(SystemStates.FINISH_TRAINING__INFO))
+                log.warning(f"Initiate finishing of training process, no more candidates => soft end (set system_state: {SystemStates(system_state.value).name})")
+                self.close_sl_connection()
+                return
+
+            if self.ro_pl.pl_satisfies_evaluation():
+                log.warning("PL is trained well enough => terminate training process")
+                system_state.set(int(SystemStates.TERMINATE_TRAINING))
+                self.close_sl_connection()
+                return
+
+            self.close_sl_connection()
+            self.training_job(system_state)
+            return
+
         except Exception as e:
-            log.error("During loading of model, an error occurred", e)
-            raise LoadingModelException("Read Only Passive Learner (withing candidate updater)")
-
-        try:
-            self.candidate_updater.update_candidate_set()
-        except NoMoreCandidatesException:
-            system_state.set(int(SystemStates.FINISH_TRAINING__INFO))
-            log.warning(f"Initiate finishing of training process, no more candidates => soft end (set system_state: {SystemStates(system_state.value).name})")
-            self.close_sl_connection()
+            log.error("An error occurred during the execution of candidate updater training job => terminate system", e)
+            system_state.set(int(SystemStates.ERROR))
             return
-
-        if self.ro_pl.pl_satisfies_evaluation():
-            log.warning("PL is trained well enough => terminate training process")
-            system_state.set(int(SystemStates.TERMINATE_TRAINING))
-            self.close_sl_connection()
-            return
-
-        self.close_sl_connection()
-        self.training_job(system_state)
-        return

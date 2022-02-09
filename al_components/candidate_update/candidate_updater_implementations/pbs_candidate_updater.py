@@ -2,6 +2,7 @@ import logging
 from typing import Tuple, List, Optional, Callable
 
 from numpy import ndarray
+from tqdm import tqdm
 
 from additional_component_interfaces import ReadOnlyPassiveLearner
 from al_components.candidate_update import CandidateUpdater
@@ -105,7 +106,7 @@ class PbS_CandidateUpdater(CandidateUpdater):
 
         log.info("Retrieved all instances from pool => now add information")
         candidate_information = []
-        for x in xs:
+        for x in tqdm(xs, desc="Evaluation of candidate pool"):
             prediction, additional_information = self.ro_pl.predict(x)
             candidate_information.append(self.cand_info_mapping(x, prediction, additional_information))
 

@@ -4,11 +4,11 @@ from multiprocessing.managers import ValueProxy
 from typing import List
 
 from additional_component_interfaces import PassiveLearner
-from helpers import Scenarios, SystemStates, X, Y
-from helpers.exceptions import NoNewElementException
+from helpers import SystemStates, X, Y
+from helpers.exceptions import NoNewElementException, StoringModelException, LoadingModelException
 from workflow_management.database_interfaces import TrainingSet
 
-pl_controller_logging_prefix = "PL_controller: "
+log = logging.getLogger("Passive Learner controller")
 
 
 class PassiveLearnerController:
@@ -16,20 +16,26 @@ class PassiveLearnerController:
     Controls the workflow for the actual SL model
     """
 
-    def __init__(self, pl: PassiveLearner, training_set: TrainingSet, scenario: Scenarios):
+    def __init__(self, pl: PassiveLearner, training_set: TrainingSet):
         """
         Set the pl arguments, initializes the candidate updater
 
         :param pl: sl model (implemented interface)
         :param training_set: dataset based on which the pl is trained
-        :param scenario: determines the candidate updater implementation
         """
+        log.info("Init passive learner controller")
 
-        logging.info(f"{pl_controller_logging_prefix} Init passive learner controller => set pl, training set")
-
-        self.scenario = scenario
+        log.debug("Set pl and training set")
         self.pl = pl
         self.training_set = training_set
+
+    def save_sl_model(self):
+        try:
+            log.debug("Store the updated SL model")
+            self.pl.save_model()
+        except Exception as e:
+            log.error("During saving of model, an error occurred", e)
+            raise StoringModelException("Passive learner (within pl controller)")
 
     def init_pl(self, x_train: List[X], y_train: List[Y], **kwargs):
         """
@@ -43,14 +49,12 @@ class PassiveLearnerController:
         :param kwargs: can provide the `batch_size` and `epochs` for initial training
         """
 
-        logging.info(f"{pl_controller_logging_prefix} Initial training of pl")
+        log.info("Initial training of pl")
 
         batch_size = kwargs.get("batch_size")
         epochs = kwargs.get("epochs")
         self.pl.initial_training(x_train, y_train, batch_size=batch_size, epochs=epochs)
-        self.pl.save_model()
-
-        logging.info(f"{pl_controller_logging_prefix} SL model and candidate_set don't align (SL newly trained)")
+        self.save_sl_model()
 
     def training_job(self, system_state: ValueProxy):
         """
@@ -70,34 +74,45 @@ class PassiveLearnerController:
         :param system_state: The current system state (shared over all controllers, values align with enum SystemStates)
         :return: if the process should end => indicated by system_state
         """
-
-        if system_state.value >= int(SystemStates.TERMINATE_TRAINING):
-            logging.warning(f"{pl_controller_logging_prefix} Training process was terminated => end training job (system_state: {SystemStates(system_state.value).name})")
-            return
-
-        # noinspection PyUnusedLocal
-        x_train, y_train = None, None
         try:
-            (x_train, y_train) = self.training_set.retrieve_labelled_instance()
-        except NoNewElementException:
-            if system_state.value == int(SystemStates.FINISH_TRAINING__PL):
-                logging.info(f"{pl_controller_logging_prefix} Training database empty, slow end of training finished")
+            if system_state.value >= int(SystemStates.TERMINATE_TRAINING):
+                log.warning(f"Training process was terminated => end training job (system_state: {SystemStates(system_state.value).name})")
                 return
 
-            else:
-                logging.info(f"{pl_controller_logging_prefix} Wait for new training data")
-                time.sleep(5)
+            # noinspection PyUnusedLocal
+            x_train, y_train = None, None
+            try:
+                (x_train, y_train) = self.training_set.retrieve_labelled_instance()
+            except NoNewElementException:
+                if system_state.value == int(SystemStates.FINISH_TRAINING__PL):
+                    log.info("Training database empty, slow end of training finished")
+                    return
 
-                self.training_job(system_state)
-                return
+                else:
+                    log.info("Wait for new training data")
+                    time.sleep(5)
 
-        logging.info(f"{pl_controller_logging_prefix} Train PL with (x, y): x = `{x_train}`, y = `{y_train}`")
-        self.pl.load_model()
-        self.pl.train(x_train, y_train)
-        self.pl.save_model()
+                    self.training_job(system_state)
+                    return
 
-        self.training_set.remove_labelled_instance(x_train)
-        logging.info(f"{pl_controller_logging_prefix} Removed (x, y) from the training set => PL already trained with it: x = `{x_train}`, y = `{y_train}`")
+            log.info(f"Train PL with (x, y): x = `{x_train}`, y = `{y_train}`")
 
-        self.training_job(system_state)
-        return
+            try:
+                log.debug("Load the read only SL model")
+                self.pl.load_model()
+            except Exception as e:
+                log.error("During loading of model, an error occurred", e)
+                raise LoadingModelException("Passive Learner (withing pl controller)")
+
+            self.pl.train(x_train, y_train)
+            self.save_sl_model()
+
+            self.training_set.remove_labelled_instance(x_train)
+            log.info(f"Removed (x, y) from the training set => PL already trained with it: x = `{x_train}`, y = `{y_train}`")
+
+            self.training_job(system_state)
+            return
+        except Exception as e:
+            log.error("An error occurred during the execution of pl training job => terminate system", e)
+            system_state.set(int(SystemStates.ERROR))
+            return
