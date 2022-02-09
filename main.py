@@ -10,7 +10,8 @@ from helpers.exceptions import IncorrectScenarioImplementation, ALSystemError
 from helpers.system_initiator import InitiationHelper
 from workflow_management.controller import PassiveLearnerController, OracleController, CandidateUpdaterController, QuerySelectionController
 
-logging.basicConfig(format='LOGGING:  %(levelname)s:%(message)s :END LOGGING', level=logging.INFO)
+logging.basicConfig(format='LOGGING:  %(levelname)s: %(message)s :END LOGGING', level=logging.INFO)
+log = logging.getLogger("Main logger")
 
 if __name__ == '__main__':
 
@@ -18,29 +19,29 @@ if __name__ == '__main__':
 
     # set scenario
     scenario: Scenarios = init_helper.get_scenario()
-    logging.info(f"Start of AL framework, chosen scenario: {scenario.name}")
+    log.info(f"Start of AL framework, chosen scenario: {scenario.name}")
 
     # WORKFLOW: Initialization
     state_manager = Manager()
     system_state = state_manager.Value('i', int(SystemStates.INITIALIZATION))
 
-    logging.info(f"------ Initialize AL framework ------  => system_state={SystemStates(system_state.value).name}")
+    log.info(f"------ Initialize AL framework ------  => system_state={SystemStates(system_state.value).name}")
 
     # initialize candidate source
     # type of candidate_source depends on the scenario
     candidate_source_type = get_candidate_source_type(scenario)
-    logging.info(f"Initialize datasource => type: {candidate_source_type}")
+    log.info(f"Initialize datasource => type: {candidate_source_type}")
     candidate_source: candidate_source_type = init_helper.get_candidate_source()
     if not isinstance(candidate_source, candidate_source_type):
         system_state.set(int(SystemStates.ERROR))
         raise IncorrectScenarioImplementation(f"candidate_source needs to be of type {candidate_source_type}")
 
     # init databases (usually empty)
-    logging.info("Initialize datasets")
+    log.info("Initialize datasets")
     (training_set, stored_labelled_set_db, candidate_set, log_query_decision_db, query_set) = init_helper.get_datasets()
 
     # init components (workflow controller)
-    logging.info("Initialize components")
+    log.info("Initialize components")
 
     # init passive learner
     sl_model: PassiveLearner = init_helper.get_sl_model()
@@ -61,7 +62,7 @@ if __name__ == '__main__':
     query_select = QuerySelectionController(candidate_set=candidate_set, log_query_decision_db=log_query_decision_db, query_set=query_set, scenario=scenario, info_analyser=info_analyser)
 
     # initial training, data source update
-    logging.info("Initial training and first candidate update")
+    log.info("Initial training and first candidate update")
     x_train, y_train, epochs, batch_size = init_helper.get_initial_training_data()
     pl.init_pl(x_train, y_train, batch_size=batch_size, epochs=epochs)  # training with initial training data
     cand_up.init_candidates()
@@ -72,10 +73,10 @@ if __name__ == '__main__':
     if system_state.value == int(SystemStates.INITIALIZATION):
         system_state.set(int(SystemStates.TRAINING))
     else:
-        logging.error("An error occurred during initiation => system failed")
+        log.error("An error occurred during initiation => system failed")
         raise ALSystemError()
 
-    logging.info(f"------ Active Training ------ => system_state={SystemStates(system_state.value).name}")
+    log.info(f"------ Active Training ------ => system_state={SystemStates(system_state.value).name}")
 
     # create processes
     cand_updater_process = Process(target=cand_up.training_job, args=(system_state,), name="Process-AL-candidate-update")
@@ -83,31 +84,36 @@ if __name__ == '__main__':
     o_process = Process(target=o.training_job, args=(system_state,), name="Process-Oracle")
     pl_process = Process(target=pl.training_job, args=(system_state,), name="Process-PL")
 
-    logging.info(f"Start every controller process: al candidate update - {cand_updater_process.name}, al query selection - {query_selection_process.name}, oracle - {o_process.name}, pl - {pl_process.name}")
+    log.info(f"Start every controller process: al candidate update - {cand_updater_process.name}, al query selection - {query_selection_process.name}, oracle - {o_process.name}, pl - {pl_process.name}")
     # actually start the processes
     query_selection_process.start()
-    logging.info(f"al query selection process ({query_selection_process.name}) started")
+    log.info(f"al query selection process ({query_selection_process.name}) started")
     o_process.start()
-    logging.info(f"oracle process ({o_process.name}) started")
+    log.info(f"oracle process ({o_process.name}) started")
     pl_process.start()
-    logging.info(f"pl process ({pl_process.name}) started")
+    log.info(f"pl process ({pl_process.name}) started")
     cand_updater_process.start()
-    logging.info(f"al candidate update process ({cand_updater_process.name}) started")
+    log.info(f"al candidate update process ({cand_updater_process.name}) started")
 
     # collect the processes
-    cand_updater_process.join()
-    query_selection_process.join()
-    o_process.join()
-    pl_process.join()
-    logging.info(f"Every controller process has finished => system_state={SystemStates(system_state.value).name}")
+    try:
+        cand_updater_process.join()
+        query_selection_process.join()
+        o_process.join()
+        pl_process.join()
+    except Exception as e:
+        log.error("An error occurred during the execution of training jobs => terminate system", e)
+        system_state.set(int(SystemStates.ERROR))
+
+    log.info(f"Every controller process has finished => system_state={SystemStates(system_state.value).name}")
 
     if system_state.value == int(SystemStates.ERROR):
-        logging.error("A fatal error occurred => model training has failed")
+        log.error("A fatal error occurred => model training has failed")
         raise ALSystemError()
 
     # WORKFLOW: Prediction
     logging.info("Finished training process")
     system_state.set(int(SystemStates.PREDICT))
-    logging.info(f"----- Prediction ------- => system_state={SystemStates(system_state.value).name}")
+    log.info(f"----- Prediction ------- => system_state={SystemStates(system_state.value).name}")
 
     # case implementation: results are available (use the stored SL model for predictions or use the stored labelled set for further training)

@@ -7,7 +7,7 @@ from helpers import SystemStates
 from helpers.exceptions import NoNewElementException
 from workflow_management.database_interfaces import TrainingSet, QuerySet, StoredLabelledSetDB
 
-oracle_controller_logging_prefix = "oracle_controller: "
+log = logging.getLogger("Oracle controller")
 
 
 class OracleController:
@@ -25,8 +25,9 @@ class OracleController:
         :param query_set: dataset providing outstanding queries
         """
 
-        logging.info(f"{oracle_controller_logging_prefix} Init oracle controller => set oracle, training set, stored labelled set, query set")
+        log.info("Init oracle controller")
 
+        log.debug("Set oracle, training set, stored labelled set, and query set")
         self.o = o
         self.training_set = training_set
         self.stored_labelled_set = stored_labelled_set
@@ -52,39 +53,36 @@ class OracleController:
         """
 
         if system_state.value >= int(SystemStates.TERMINATE_TRAINING):
-            logging.warning(f"{oracle_controller_logging_prefix} Training process was terminated => end training job (system_state: {SystemStates(system_state.value).name})")
+            log.warning("Training process was terminated => end training job (system_state: {SystemStates(system_state.value).name})")
             return
+
+        # noinspection PyUnusedLocal
+        query_instance = None
         try:
-            # noinspection PyUnusedLocal
-            query_instance = None
-            try:
-                query_instance = self.query_set.get_instance()
-            except NoNewElementException:
-                if system_state.value == int(SystemStates.FINISH_TRAINING__ORACLE):
-                    logging.info(f"{oracle_controller_logging_prefix} Query database empty, all queries resolved => only PL needs to softly end training")
+            query_instance = self.query_set.get_instance()
+        except NoNewElementException:
+            if system_state.value == int(SystemStates.FINISH_TRAINING__ORACLE):
+                log.info("Query database empty, all queries resolved => only PL needs to softly end training")
 
-                    system_state.set(int(SystemStates.FINISH_TRAINING__PL))
-                    logging.warning(f"{oracle_controller_logging_prefix} Enter PL finish training state => soft end (set system_state: {SystemStates(system_state.value).name})")
+                system_state.set(int(SystemStates.FINISH_TRAINING__PL))
+                log.warning(f"Enter PL finish training state => soft end (set system_state: {SystemStates(system_state.value).name})")
+                return
 
-                    return
+            else:
+                log.info("Wait for new queries")
+                time.sleep(5)
 
-                else:
-                    logging.info(f"{oracle_controller_logging_prefix} Wait for new queries")
-                    time.sleep(5)
+                self.training_job(system_state)
+                return
 
-                    self.training_job(system_state)
-                    return
+        log.info("Retrieve unresolved query => will add label")
 
-            logging.info(f"{oracle_controller_logging_prefix} Retrieve unresolved query => will add label")
-            label = self.o.query(query_instance)
-            self.query_set.remove_instance(query_instance)
-            self.training_set.append_labelled_instance(query_instance, label)
-            self.stored_labelled_set.add_labelled_instance(query_instance, label)
-            logging.info(f"{oracle_controller_logging_prefix} Query for instance x resolved with label y, added to training set for PL; x = `{query_instance}`, y = `{label}`")
-        except Exception as e:
-            logging.error(f"{oracle_controller_logging_prefix} Exception during query job: {e}")
-            system_state.set(int(SystemStates.ERROR))
-            return
+        label = self.o.query(query_instance)
+        self.query_set.remove_instance(query_instance)
+        self.training_set.append_labelled_instance(query_instance, label)
+        self.stored_labelled_set.add_labelled_instance(query_instance, label)
+
+        log.info(f"Query for instance x resolved with label y, added to training set and stored labelled set for PL; x = `{query_instance}`, y = `{label}`")
 
         self.training_job(system_state)
         return

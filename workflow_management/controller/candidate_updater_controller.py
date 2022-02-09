@@ -5,10 +5,10 @@ from typing import Callable
 from additional_component_interfaces import ReadOnlyPassiveLearner
 from al_components.candidate_update import CandidateUpdater, init_candidate_updater
 from helpers import Scenarios, SystemStates, X, Y, AddInfo_Y, CandInfo
-from helpers.exceptions import NoMoreCandidatesException
+from helpers.exceptions import NoMoreCandidatesException, LoadingModelException, ClosingModelException
 from workflow_management.database_interfaces import CandidateSet
 
-candidate_updater_controller_logging_prefix = "AL_cand_updater_controller: "
+log = logging.getLogger("AL candidate updater controller")
 
 
 class CandidateUpdaterController:
@@ -22,7 +22,7 @@ class CandidateUpdaterController:
 
     def __init__(self, ro_pl: ReadOnlyPassiveLearner, candidate_set: CandidateSet, cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo], scenario: Scenarios, **kwargs):
         """
-        Set the pl arguments, initializes the candidate updater
+        Initializes the candidate updater, set the read only Passive Learner
 
         :param ro_pl: read only view on sl model (implemented interface, including performance evaluation)
         :param candidate_set: dataset containing the candidates (gets updated by candidate_updater)
@@ -30,26 +30,40 @@ class CandidateUpdaterController:
         :param scenario: determines the candidate updater implementation
         :param kwargs: depends on the scenario/needed arguments for candidate updater (see documentation for init_candidate_updater)
         """
+        log.info("Initialize candidate updater controller")
 
-        logging.info(f"{candidate_updater_controller_logging_prefix} Init candidate updater controller => set ro_pl, candidate set, performance evaluator, init candidate_updater")
-
+        log.debug("Set scenario, read only passive learner (including performance evaluation) and candidate set")
         self.scenario = scenario
         self.ro_pl = ro_pl
         self.candidate_set = candidate_set
 
-        candidate_source = kwargs.get("candidate_source")  # not needed in PbS scenario (candidate_set = source)
+        candidate_source = kwargs.get("candidate_source")  # not needed in PbS scenario (candidate_set = source) => candidate_source = None
         self.candidate_updater: CandidateUpdater = init_candidate_updater(scenario, cand_info_mapping, ro_pl=ro_pl, candidate_set=candidate_set, candidate_source=candidate_source)
+        log.debug(f"Initialized the candidate updater, scenario: {scenario} => candidate updater type: {type(self.candidate_updater)}")
+
+    def close_sl_connection(self):
+        try:
+            log.debug("Close connection to read only SL model")
+            self.ro_pl.close_model()
+        except Exception as e:
+            log.error("During closing of model, an error occurred", e)
+            raise ClosingModelException("Read Only Passive learner (within candidate updater)")
 
     def init_candidates(self):
         """
         Initial candidate update (e.g. add additional information to candidates after initial training of PL)
         """
 
-        logging.info(f"{candidate_updater_controller_logging_prefix} Initial predictions for candidate set")
+        log.info("Initial update of candidate set => insert first candidate/add initial additional information after first training of PL")
 
-        self.ro_pl.load_model()
+        try:
+            log.debug("Load the read only SL model")
+            self.ro_pl.load_model()
+        except Exception as e:
+            log.error("During loading of model, an error occurred", e)
+            raise LoadingModelException("Read Only Passive Learner (withing candidate updater)")
         self.candidate_updater.update_candidate_set()
-        self.ro_pl.close_model()
+        self.close_sl_connection()
 
     def training_job(self, system_state: ValueProxy):
         """
@@ -69,24 +83,29 @@ class CandidateUpdaterController:
         """
 
         if system_state.value >= int(SystemStates.FINISH_TRAINING__INFO):
-            logging.warning(f"{candidate_updater_controller_logging_prefix} Training process was terminated => end training job (system_state: {SystemStates(system_state.value).name})")
+            log.warning(f"Training process was terminated => end training job (system_state: {SystemStates(system_state.value).name})")
             return
-
-        self.ro_pl.load_model()
-        logging.info(f"{candidate_updater_controller_logging_prefix} Update candidate set")
+        try:
+            log.debug("Load the read only SL model")
+            self.ro_pl.load_model()
+        except Exception as e:
+            log.error("During loading of model, an error occurred", e)
+            raise LoadingModelException("Read Only Passive Learner (withing candidate updater)")
 
         try:
             self.candidate_updater.update_candidate_set()
         except NoMoreCandidatesException:
             system_state.set(int(SystemStates.FINISH_TRAINING__INFO))
-
-            logging.warning(f"{candidate_updater_controller_logging_prefix} Initiate finishing of training process, no more candidates => soft end (set system_state: {SystemStates(system_state.value).name})")
+            log.warning(f"Initiate finishing of training process, no more candidates => soft end (set system_state: {SystemStates(system_state.value).name})")
+            self.close_sl_connection()
             return
 
         if self.ro_pl.pl_satisfies_evaluation():
-            logging.warning(f"{candidate_updater_controller_logging_prefix} PL is trained well enough => terminate training process")
+            log.warning("PL is trained well enough => terminate training process")
             system_state.set(int(SystemStates.TERMINATE_TRAINING))
+            self.close_sl_connection()
             return
 
+        self.close_sl_connection()
         self.training_job(system_state)
         return

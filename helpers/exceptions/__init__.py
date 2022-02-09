@@ -1,3 +1,4 @@
 from .db_exceptions import NoNewElementException, NoSuchElementException
 from .definition_exceptions import IncorrectParameters, IncorrectScenarioImplementation
 from .workflow_exceptions import EndTrainingException, NoMoreCandidatesException, ALSystemError
+from .model_exceptions import LoadingModelException, ClosingModelException, StoringModelException

@@ -5,18 +5,6 @@ from al_components.candidate_update import CandidateUpdater
 from al_components.candidate_update.candidate_updater_implementations import MQS_CandidateUpdater, PbS_CandidateUpdater, SbS_CandidateUpdater, Generator, Stream, Pool
 from helpers import Scenarios, X, Y, AddInfo_Y, CandInfo
 
-candidate_source_type = {
-    Scenarios.PbS: Pool,
-    Scenarios.SbS: Stream,
-    Scenarios.MQS: Generator
-}
-
-candidate_updater = {
-    Scenarios.PbS: PbS_CandidateUpdater,
-    Scenarios.SbS: SbS_CandidateUpdater,
-    Scenarios.MQS: MQS_CandidateUpdater
-}
-
 
 # noinspection PyUnusedLocal
 def get_candidate_additional_information(x: X, prediction: Y, additional_prediction_info: AddInfo_Y) -> CandInfo:
@@ -34,6 +22,19 @@ def get_candidate_additional_information(x: X, prediction: Y, additional_predict
     raise NotImplementedError
 
 
+candidate_source_type = {
+    Scenarios.PbS: Pool,
+    Scenarios.SbS: Stream,
+    Scenarios.MQS: Generator
+}
+
+candidate_updater = {
+    Scenarios.PbS: PbS_CandidateUpdater,
+    Scenarios.SbS: SbS_CandidateUpdater,
+    Scenarios.MQS: MQS_CandidateUpdater
+}
+
+
 def get_candidate_source_type(scenario: Scenarios) -> type:
     """
     Get the type of the candidate source needed for an implementation of the provided scenario
@@ -45,6 +46,9 @@ def get_candidate_source_type(scenario: Scenarios) -> type:
     :return: the correct type
     """
     return candidate_source_type[scenario]
+
+
+log = logging.getLogger("Candidate updater initialization")
 
 
 def init_candidate_updater(scenario: Scenarios, cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo], **kwargs) -> CandidateUpdater:
@@ -64,9 +68,7 @@ def init_candidate_updater(scenario: Scenarios, cand_info_mapping: Callable[[X, 
     :return: the scenario dependent candidate updater
     """
 
-    logging.info(f"Initialize {scenario.name} candidate updater")
-    if scenario == Scenarios.MQS:
-        logging.warning("MQS candidate updater is not yet implemented!!")  # TODO: if MQS candidate updater is implemented, remove warning
+    log.info(f"Initialize candidate updater for scenario {scenario.name}")
 
     # get all possible arguments
     candidate_set = kwargs.get("candidate_set")

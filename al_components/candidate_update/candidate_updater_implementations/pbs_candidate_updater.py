@@ -9,8 +9,6 @@ from helpers import CandInfo, X, Y, AddInfo_Y
 from helpers.exceptions import IncorrectParameters, NoMoreCandidatesException, NoNewElementException
 from workflow_management.database_interfaces import CandidateSet
 
-pbs_cand_updater_logging_prefix = "PbS Candidate Updater: "
-
 
 class Pool(CandidateSet):
     """
@@ -62,6 +60,9 @@ class Pool(CandidateSet):
         raise NotImplementedError
 
 
+log = logging.getLogger("PbS candidate updater")
+
+
 # noinspection PyPep8Naming
 class PbS_CandidateUpdater(CandidateUpdater):
     """
@@ -70,13 +71,18 @@ class PbS_CandidateUpdater(CandidateUpdater):
 
     # noinspection PyUnusedLocal
     def __init__(self, cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo], candidate_set: Pool, ro_pl: ReadOnlyPassiveLearner, **kwargs):
-        if (candidate_set is None) or (not isinstance(candidate_set, Pool)) or (ro_pl is None) or (not isinstance(ro_pl, ReadOnlyPassiveLearner)):
-            raise IncorrectParameters("PbS_CandidateUpdater needs to be initialized with a candidate_set (of type Pool) and ro_pl (of type ReadOnlyPassiveLearner)")
+        log.debug(f"""Initialize PbS candidate updater => should have the following parameters:\
+                        candidate_set of type Pool ({candidate_set}, has correct type? {isinstance(candidate_set, Pool)})\
+                        ro_pl of type ReadOnlyPassiveLearner ({ro_pl}, has correct type? {isinstance(ro_pl, ReadOnlyPassiveLearner)})\
+                        cand_info_mapping as a function, mapping the information provided through predictions to the candidate information ({cand_info_mapping}, for correct type: debug)""")
+
+        if (cand_info_mapping is None) or (candidate_set is None) or (not isinstance(candidate_set, Pool)) or (ro_pl is None) or (not isinstance(ro_pl, ReadOnlyPassiveLearner)):
+            raise IncorrectParameters("PbS_CandidateUpdater needs to be initialized with cand_info_mapping (function), a candidate_set (of type Pool) and ro_pl (of type ReadOnlyPassiveLearner)")
         else:
             self.candidate_set = candidate_set
             self.ro_pl = ro_pl
             self.cand_info_mapping = cand_info_mapping
-            logging.info(f"{pbs_cand_updater_logging_prefix} successfully initiated the candidate updater")
+            log.info("Successfully initiated the PbS candidate updater")
 
     def update_candidate_set(self) -> None:
         """
@@ -86,6 +92,7 @@ class PbS_CandidateUpdater(CandidateUpdater):
 
         :raise NoMoreCandidatesException if pool is empty
         """
+        log.info("Start candidate update")
 
         # noinspection PyUnusedLocal
         xs = None
@@ -96,13 +103,14 @@ class PbS_CandidateUpdater(CandidateUpdater):
         if len(xs) == 0:
             raise NoMoreCandidatesException()
 
-        logging.info(f"{pbs_cand_updater_logging_prefix} retrieved all instances from pool => now add information")
+        log.info("Retrieved all instances from pool => now add information")
         candidate_information = []
         for x in xs:
             prediction, additional_information = self.ro_pl.predict(x)
             candidate_information.append(self.cand_info_mapping(x, prediction, additional_information))
 
-        logging.info(f"{pbs_cand_updater_logging_prefix} added information to all instances => now load new information into pool/candidate set")
+        log.info("Added information to all instances => now load new information into pool/candidate set")
+
         self.candidate_set.update_instances(xs, candidate_information)
 
-        logging.info("updated whole candidate pool")
+        log.info("Updated whole candidate pool")
