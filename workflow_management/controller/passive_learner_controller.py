@@ -1,6 +1,7 @@
 import logging
 import time
-from multiprocessing.managers import ValueProxy
+from multiprocessing import synchronize
+from multiprocessing.managers import ValueProxy, AcquirerProxy
 from typing import List
 
 from additional_component_interfaces import PassiveLearner
@@ -56,7 +57,7 @@ class PassiveLearnerController:
         self.pl.initial_training(x_train, y_train, batch_size=batch_size, epochs=epochs)
         self.save_sl_model()
 
-    def training_job(self, system_state: ValueProxy):
+    def training_job(self, system_state: ValueProxy, sl_model_gets_stored: synchronize.Lock):
         """
         The actual training job for the PL components => should run in separate process
         Also including the soft training end job
@@ -72,6 +73,7 @@ class PassiveLearnerController:
                     2. restart job
 
         :param system_state: The current system state (shared over all controllers, values align with enum SystemStates)
+        :param sl_model_gets_stored: Set, if SL model storage is currently in process
         :return: if the process should end => indicated by system_state
         """
         try:
@@ -92,25 +94,30 @@ class PassiveLearnerController:
                     log.info("Wait for new training data")
                     time.sleep(5)
 
-                    self.training_job(system_state)
+                    self.training_job(system_state, sl_model_gets_stored)
                     return
 
             log.info(f"Train PL with (x, y): x = `{x_train}`, y = `{y_train}`")
 
+            sl_model_gets_stored.acquire()
             try:
                 log.debug("Load the read only SL model")
                 self.pl.load_model()
             except Exception as e:
+                sl_model_gets_stored.release()
                 log.error("During loading of model, an error occurred", e)
                 raise LoadingModelException("Passive Learner (withing pl controller)")
+            sl_model_gets_stored.release()
 
             self.pl.train(x_train, y_train)
+            sl_model_gets_stored.acquire()
             self.save_sl_model()
+            sl_model_gets_stored.release()
 
             self.training_set.remove_labelled_instance(x_train)
             log.info(f"Removed (x, y) from the training set => PL already trained with it: x = `{x_train}`, y = `{y_train}`")
 
-            self.training_job(system_state)
+            self.training_job(system_state, sl_model_gets_stored)
             return
         except Exception as e:
             log.error("An error occurred during the execution of pl training job => terminate system", e)

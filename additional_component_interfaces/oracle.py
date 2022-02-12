@@ -12,5 +12,6 @@ class Oracle:
 
         :param x: unlabelled instance (input values)
         :return: label y
+        :raises CantResolveQueryException: if oracle is unable to add label to provided input x
         """
         raise NotImplementedError

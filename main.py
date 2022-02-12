@@ -1,5 +1,5 @@
 import logging
-from multiprocessing import Process, Manager
+from multiprocessing import Process, Manager, Lock, synchronize
 from multiprocessing.managers import ValueProxy
 from typing import Callable
 
@@ -11,11 +11,12 @@ from helpers.exceptions import IncorrectScenarioImplementation, ALSystemError
 from helpers.system_initiator import InitiationHelper
 from workflow_management.controller import PassiveLearnerController, OracleController, CandidateUpdaterController, QuerySelectionController
 
-logging.basicConfig(format='LOGGING: %(name)s, %(levelname)s: %(message)s :END LOGGING', level=logging.INFO)
+logging.basicConfig(format='\nLOGGING: %(name)s, %(levelname)s: %(message)s :END LOGGING', level=logging.INFO)
 log = logging.getLogger("Main logger")
 
 if __name__ == '__main__':
     system_state: ValueProxy = None  # noqa
+    sl_model_gets_stored: synchronize.Lock = None  # noqa
     cand_up: CandidateUpdaterController = None  # noqa
     query_select: QuerySelectionController = None  # noqa
     o: OracleController = None  # noqa
@@ -31,6 +32,7 @@ if __name__ == '__main__':
 
         # WORKFLOW: Initialization
         state_manager = Manager()
+        sl_model_gets_stored = Lock()
         system_state = state_manager.Value('i', int(SystemStates.INITIALIZATION))
 
         log.info(f"------ Initialize AL framework ------  => system_state={SystemStates(system_state.value).name}")
@@ -90,10 +92,10 @@ if __name__ == '__main__':
     log.info(f"------ Active Training ------ => system_state={SystemStates(system_state.value).name}")
 
     # create processes
-    cand_updater_process = Process(target=cand_up.training_job, args=(system_state,), name="Process-AL-candidate-update")
+    cand_updater_process = Process(target=cand_up.training_job, args=(system_state, sl_model_gets_stored), name="Process-AL-candidate-update")
     query_selection_process = Process(target=query_select.training_job, args=(system_state,), name="Process-AL-query-selection")
     o_process = Process(target=o.training_job, args=(system_state,), name="Process-Oracle")
-    pl_process = Process(target=pl.training_job, args=(system_state,), name="Process-PL")
+    pl_process = Process(target=pl.training_job, args=(system_state, sl_model_gets_stored), name="Process-PL")
 
     log.info(f"Start every controller process: al candidate update - {cand_updater_process.name}, al query selection - {query_selection_process.name}, oracle - {o_process.name}, pl - {pl_process.name}")
     # actually start the processes

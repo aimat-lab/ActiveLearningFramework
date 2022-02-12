@@ -36,11 +36,13 @@ class PbS_QuerySelector(QuerySelector):
 
         log.debug("Evaluate informativeness for all instances => find maximizing instance")
         max_x, max_info = None, -1
-        for x in tqdm(xs, desc="Evaluation of candidate pool"):
-            info = self.info_analyser.get_informativeness(x)
-            if max_info < info:
-                max_x = x
-                max_info = info
+        with tqdm(total=len(xs), position=1, desc="Evaluation of candidate pool", ascii=True) as progress:
+            for x in xs:
+                info = self.info_analyser.get_informativeness(x)
+                if max_info < info:
+                    max_x = x
+                    max_info = info
+                progress.update(1)
 
         log.debug(f"Found maximizing instance: max_info={max_info}, max_x={max_x}")
         return max_x, max_info, True

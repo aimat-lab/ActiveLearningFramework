@@ -1,5 +1,6 @@
 import logging
-from multiprocessing.managers import ValueProxy
+from multiprocessing import Lock, synchronize
+from multiprocessing.managers import ValueProxy, AcquirerProxy
 from typing import Callable
 
 from additional_component_interfaces import ReadOnlyPassiveLearner
@@ -65,7 +66,7 @@ class CandidateUpdaterController:
         self.candidate_updater.update_candidate_set()
         self.close_sl_connection()
 
-    def training_job(self, system_state: ValueProxy):
+    def training_job(self, system_state: ValueProxy, sl_model_gets_stored: synchronize.Lock):
         """
         The actual training job for candidate update and performance evaluation => should run in separate process
         Also including the soft training end job
@@ -79,6 +80,7 @@ class CandidateUpdaterController:
                     1. keep training
 
         :param system_state: The current system state (shared over all controllers, values align with enum SystemStates)
+        :param sl_model_gets_stored: Check if SL model storage is currently in process => then not loading
         :return: if the process should end => indicated by system_state
         """
         try:
@@ -86,12 +88,16 @@ class CandidateUpdaterController:
             if system_state.value >= int(SystemStates.FINISH_TRAINING__INFO):
                 log.warning(f"Training process was terminated => end training job (system_state: {SystemStates(system_state.value).name})")
                 return
+
+            sl_model_gets_stored.acquire()
             try:
                 log.debug("Load the read only SL model")
                 self.ro_pl.load_model()
             except Exception as e:
+                sl_model_gets_stored.release()
                 log.error("During loading of model, an error occurred", e)
                 raise LoadingModelException("Read Only Passive Learner (withing candidate updater)")
+            sl_model_gets_stored.release()
 
             try:
                 self.candidate_updater.update_candidate_set()
@@ -101,6 +107,18 @@ class CandidateUpdaterController:
                 self.close_sl_connection()
                 return
 
+            if self.scenario == Scenarios.PbS:  # reload model, because candidate update can take a long time => maybe SL model updated meanwhile
+                sl_model_gets_stored.acquire()
+                self.close_sl_connection()
+                try:
+                    log.debug("Load the read only SL model")
+                    self.ro_pl.load_model()
+                except Exception as e:
+                    sl_model_gets_stored.release()
+                    log.error("During loading of model, an error occurred", e)
+                    raise LoadingModelException("Read Only Passive Learner (withing candidate updater)")
+                sl_model_gets_stored.release()
+
             if self.ro_pl.pl_satisfies_evaluation():
                 log.warning("PL is trained well enough => terminate training process")
                 system_state.set(int(SystemStates.TERMINATE_TRAINING))
@@ -108,7 +126,7 @@ class CandidateUpdaterController:
                 return
 
             self.close_sl_connection()
-            self.training_job(system_state)
+            self.training_job(system_state, sl_model_gets_stored)
             return
 
         except Exception as e:

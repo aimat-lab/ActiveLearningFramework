@@ -3,8 +3,8 @@ import time
 from multiprocessing.managers import ValueProxy
 
 from additional_component_interfaces import Oracle
-from helpers import SystemStates
-from helpers.exceptions import NoNewElementException
+from helpers import SystemStates, Y
+from helpers.exceptions import NoNewElementException, CantResolveQueryException
 from workflow_management.database_interfaces import TrainingSet, QuerySet, StoredLabelledSetDB
 
 log = logging.getLogger("Oracle controller")
@@ -77,7 +77,17 @@ class OracleController:
 
             log.info("Retrieve unresolved query => will add label")
 
-            label = self.o.query(query_instance)
+            # noinspection PyUnusedLocal
+            label: Y = None
+            try:
+                label = self.o.query(query_instance)
+            except CantResolveQueryException:
+                log.info(f"Can't resolve query => discard the input x={query_instance}")
+                self.query_set.remove_instance(query_instance)
+
+                self.training_job(system_state)
+                return
+
             self.query_set.remove_instance(query_instance)
             self.training_set.append_labelled_instance(query_instance, label)
             self.stored_labelled_set.add_labelled_instance(query_instance, label)

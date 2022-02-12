@@ -1,4 +1,6 @@
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List
+
+from nparray import ndarray
 
 from helpers import X, Y, AddInfo_Y
 
@@ -11,6 +13,15 @@ class ReadOnlyPassiveLearner:
 
         :param x: input values
         :return: prediction y (usually one numerical value, but can alter), optionally additional information (e.g. uncertainty)
+        """
+        raise NotImplementedError
+
+    def predict_set(self, xs: List[X] or ndarray) -> Tuple[List[Y] or ndarray, Optional[List[AddInfo_Y] or ndarray]]:
+        """
+        Get predicted output for a list of input instances
+
+        :param xs: list of input values
+        :return: predictions ys (usually one numerical value, but can alter), optionally additional information (e.g. uncertainty)
         """
         raise NotImplementedError
 

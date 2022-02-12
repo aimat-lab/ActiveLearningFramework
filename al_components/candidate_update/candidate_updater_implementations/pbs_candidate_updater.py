@@ -106,9 +106,11 @@ class PbS_CandidateUpdater(CandidateUpdater):
 
         log.info("Retrieved all instances from pool => now add information")
         candidate_information = []
-        for x in tqdm(xs, desc="Evaluation of candidate pool"):
-            prediction, additional_information = self.ro_pl.predict(x)
-            candidate_information.append(self.cand_info_mapping(x, prediction, additional_information))
+        with tqdm(total=len(xs), position=0, desc="Update of candidate pool", ascii=True) as progress:
+            predictions, additional_info = self.ro_pl.predict_set(xs)
+            for i in range(len(xs)):
+                candidate_information.append(self.cand_info_mapping(xs[i], predictions[i], additional_info[i]))
+                progress.update(1)
 
         log.info("Added information to all instances => now load new information into pool/candidate set")
 
