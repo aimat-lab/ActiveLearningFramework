@@ -53,7 +53,7 @@ class OracleController:
         """
         try:
             if system_state.value >= int(SystemStates.TERMINATE_TRAINING):
-                log.warning("Training process was terminated => end training job (system_state: {SystemStates(system_state.value).name})")
+                log.warning(f"Training process was terminated => end training job (system_state: {SystemStates(system_state.value).name})")
                 return
 
             # noinspection PyUnusedLocal
