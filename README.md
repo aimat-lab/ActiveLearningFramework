@@ -1,6 +1,6 @@
 # ActiveLearningFramework
 
-Bachelor Thesis of Meret Unbehaun, Topic: Active Learning strategies for Machine Learned potentials
+Bachelor Thesis: Active Learning strategies for Machine Learned potentials
 
 Project for the **active learning framework** (including example for boston house pricing regression)
 
