@@ -16,7 +16,7 @@ class CandidateSet:
     **Communication** between PL (provides information for informativeness analyser) and AL (selects query instance from candidates)
     """
 
-    def add_instance(self, x: X, additional_info: CandInfo = None) -> None:
+    def add_instance(self, x: X, additional_info: CandInfo) -> None:
         """
         adds new instance (new last entry) into the candidate database (can be selected for query)
 

@@ -5,7 +5,7 @@ from al_components.candidate_update.candidate_updater_implementations import Poo
 from al_components.query_selection.informativeness_analyser import InformativenessAnalyser
 from helpers import Scenarios, X, Y, AddInfo_Y, CandInfo
 from helpers.database_helper.default_database_initiator import get_default_databases
-from workflow_management.database_interfaces import CandidateSet, QuerySet, TrainingSet, StoredLabelledSetDB, LogQueryDecisionDB
+from workflow_management.database_interfaces import CandidateSet, QuerySet, TrainingSet, LogQueryDecisionDB
 
 
 class InitiationHelper:
@@ -28,7 +28,7 @@ class InitiationHelper:
         # case implementation: implement concrete candidate source => initialize accordingly
         raise NotImplementedError
 
-    def get_datasets(self) -> Tuple[TrainingSet, StoredLabelledSetDB, CandidateSet, LogQueryDecisionDB, QuerySet]:
+    def get_datasets(self) -> Tuple[TrainingSet, CandidateSet, LogQueryDecisionDB, QuerySet]:
         """
         Returns all implemented datasets => can use the default implementation
 

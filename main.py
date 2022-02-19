@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
         # init databases (usually empty)
         log.info("Initialize datasets")
-        (training_set, stored_labelled_set_db, candidate_set, log_query_decision_db, query_set) = init_helper.get_datasets()
+        (training_set, candidate_set, log_query_decision_db, query_set) = init_helper.get_datasets()
 
         # init components (workflow controller)
         log.info("Initialize components")
@@ -58,7 +58,7 @@ if __name__ == '__main__':
         # init oracle
         oracle: Oracle = init_helper.get_oracle()
         # set the oracle controller
-        o = OracleController(o=oracle, training_set=training_set, stored_labelled_set=stored_labelled_set_db, query_set=query_set)
+        o = OracleController(o=oracle, training_set=training_set, query_set=query_set)
 
         # init candidate updater
         cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo] = init_helper.get_mapper_function_prediction_to_candidate_info()
@@ -75,7 +75,8 @@ if __name__ == '__main__':
         pl.init_pl(x_train, y_train, batch_size=batch_size, epochs=epochs)  # training with initial training data
         cand_up.init_candidates()
         for i in range(len(x_train)):
-            stored_labelled_set_db.add_labelled_instance(x_train[i], y_train[i])  # add initial training data to stored labelled set # TODO: correct to do this?
+            training_set.append_labelled_instance(x_train[i], y_train[i])  # add initial training data to stored labelled set # TODO: correct to do this?
+            training_set.set_instance_not_use_for_training(x_train[i])
 
     except Exception as e:
         log.error("During initialization, an unexpected error occurred", e)

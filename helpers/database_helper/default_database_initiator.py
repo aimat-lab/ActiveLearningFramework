@@ -8,9 +8,9 @@ from additional_component_interfaces import PassiveLearner
 from al_components.candidate_update.candidate_updater_implementations import Generator, Stream, Pool
 from helpers import Scenarios, X, Y, AddInfo_Y, CandInfo
 from helpers.database_helper.database_info_store import DefaultDatabaseHelper
-from helpers.database_helper.default_datasets import DefaultTrainingSet, DefaultStoredLabelledSet, DefaultCandidateSet, DefaultLogQueryDecision, DefaultQuerySet
+from helpers.database_helper.default_datasets import DefaultTrainingSet, DefaultCandidateSet, DefaultLogQueryDecision, DefaultQuerySet
 from helpers.exceptions import InvalidTyping
-from workflow_management.database_interfaces import TrainingSet, StoredLabelledSetDB, CandidateSet, LogQueryDecisionDB, QuerySet
+from workflow_management.database_interfaces import TrainingSet, CandidateSet, LogQueryDecisionDB, QuerySet
 
 
 def connect_to_house_pricing_example_db(host: string, user: string, password: string, database: string):
@@ -23,7 +23,7 @@ def get_default_databases(
         pl: PassiveLearner,
         mapper_function_prediction_to_candidate_info: Callable[[X, Y, AddInfo_Y], CandInfo],
         host: string, user: string, password: string, database: string
-) -> Tuple[TrainingSet, StoredLabelledSetDB, CandidateSet, LogQueryDecisionDB, QuerySet]:
+) -> Tuple[TrainingSet, CandidateSet, LogQueryDecisionDB, QuerySet]:
     # TODO: documentation
     """
     The default databases assume, that the input, additional information about the prediction and the candidate information are Sequences of numbers and the output is a single number
@@ -39,7 +39,6 @@ def get_default_databases(
     :return:
     """
     training_set: TrainingSet
-    stored_labelled_set: StoredLabelledSetDB
     candidate_set: CandidateSet
     log_query_decision_db: LogQueryDecisionDB
     query_set: QuerySet
@@ -75,7 +74,6 @@ def get_default_databases(
                                                     input_definition=x_sql_definition, additional_candidate_information_definition=cand_info_sql_definition)
 
     training_set = DefaultTrainingSet(default_database_helper)
-    stored_labelled_set = DefaultStoredLabelledSet(default_database_helper)
 
     if scenario == Scenarios.PbS:
         candidate_set = candidate_source
@@ -85,4 +83,4 @@ def get_default_databases(
     log_query_decision_db = DefaultLogQueryDecision(default_database_helper)
     query_set = DefaultQuerySet(default_database_helper)
 
-    return training_set, stored_labelled_set, candidate_set, log_query_decision_db, query_set
+    return training_set, candidate_set, log_query_decision_db, query_set

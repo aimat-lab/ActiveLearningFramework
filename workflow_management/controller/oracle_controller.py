@@ -5,7 +5,7 @@ from multiprocessing.managers import ValueProxy
 from additional_component_interfaces import Oracle
 from helpers import SystemStates, Y
 from helpers.exceptions import NoNewElementException, CantResolveQueryException
-from workflow_management.database_interfaces import TrainingSet, QuerySet, StoredLabelledSetDB
+from workflow_management.database_interfaces import TrainingSet, QuerySet
 
 log = logging.getLogger("Oracle controller")
 
@@ -15,13 +15,12 @@ class OracleController:
     Controls the oracle workflow (manages query process)
     """
 
-    def __init__(self, o: Oracle, training_set: TrainingSet, stored_labelled_set: StoredLabelledSetDB, query_set: QuerySet):
+    def __init__(self, o: Oracle, training_set: TrainingSet, query_set: QuerySet):
         """
         Set the arguments for the oracle workflow
 
         :param o: the actual oracle
         :param training_set: dataset for communication between oracle and PL
-        :param stored_labelled_set: dataset where resolved query gets inserted to
         :param query_set: dataset providing outstanding queries
         """
 
@@ -30,7 +29,6 @@ class OracleController:
         log.debug("Set oracle, training set, stored labelled set, and query set")
         self.o = o
         self.training_set = training_set
-        self.stored_labelled_set = stored_labelled_set
         self.query_set = query_set
 
     def training_job(self, system_state: ValueProxy):
@@ -90,7 +88,6 @@ class OracleController:
 
             self.query_set.remove_instance(query_instance)
             self.training_set.append_labelled_instance(query_instance, label)
-            self.stored_labelled_set.add_labelled_instance(query_instance, label)
 
             log.info(f"Query for instance x resolved with label y, added to training set and stored labelled set for PL; x = `{query_instance}`, y = `{label}`")
 

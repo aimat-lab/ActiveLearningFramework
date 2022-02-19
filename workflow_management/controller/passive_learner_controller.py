@@ -84,7 +84,7 @@ class PassiveLearnerController:
             # noinspection PyUnusedLocal
             x_train, y_train = None, None
             try:
-                (x_train, y_train) = self.training_set.retrieve_labelled_instance()
+                (x_train, y_train) = self.training_set.retrieve_labelled_training_instance()
             except NoNewElementException:
                 if system_state.value == int(SystemStates.FINISH_TRAINING__PL):
                     log.info("Training database empty, slow end of training finished")
@@ -114,8 +114,8 @@ class PassiveLearnerController:
             self.save_sl_model()
             sl_model_gets_stored.release()
 
-            self.training_set.remove_labelled_instance(x_train)
-            log.info(f"Removed (x, y) from the training set => PL already trained with it: x = `{x_train}`, y = `{y_train}`")
+            self.training_set.set_instance_not_use_for_training(x_train)
+            log.info(f"Set (x, y) to not be part of active training any more => PL already trained with it: x = `{x_train}`, y = `{y_train}`")
 
             self.training_job(system_state, sl_model_gets_stored)
             return

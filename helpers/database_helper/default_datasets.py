@@ -6,7 +6,7 @@ import numpy as np
 from helpers import X, Y, CandInfo
 from helpers.database_helper.database_info_store import DefaultDatabaseHelper
 from helpers.exceptions import NoNewElementException, NoSuchElementException
-from workflow_management.database_interfaces import TrainingSet, StoredLabelledSetDB, CandidateSet, LogQueryDecisionDB, QuerySet
+from workflow_management.database_interfaces import TrainingSet, CandidateSet, LogQueryDecisionDB, QuerySet
 
 log = logging.getLogger("Database information")
 
@@ -27,7 +27,7 @@ class DefaultTrainingSet(TrainingSet):
         sql = f"DROP TABLE IF EXISTS {training_set_name}"
         cursor.execute(sql)
 
-        sql = f"CREATE TABLE {training_set_name} (id int AUTO_INCREMENT PRIMARY KEY, {input_definition}, {output_definition})"
+        sql = f"CREATE TABLE {training_set_name} (id int AUTO_INCREMENT PRIMARY KEY, use_for_training double, {input_definition}, {output_definition})"
         cursor.execute(sql)
 
         db.close()
@@ -44,35 +44,13 @@ class DefaultTrainingSet(TrainingSet):
         db = self.database_info.connect_to_house_pricing_example_db()
         cursor = db.cursor()
 
-        sql = f"""INSERT INTO {training_set_name} ({input_reference}, {output_reference}) VALUES ({input_placeholders}, {output_placeholders})"""
+        sql = f"""INSERT INTO {training_set_name} (use_for_training, {input_reference}, {output_reference}) VALUES (1, {input_placeholders}, {output_placeholders})"""
         val = self.database_info.x_to_str_tuple(x) + self.database_info.y_to_str_tuple(y)
 
         cursor.execute(sql, val)
         db.commit()
 
         db.close()
-
-    def retrieve_labelled_instance(self) -> Tuple[X, Y]:
-        training_set_name = self.database_info.training_set_name
-        input_reference = self.database_info.create_reference_from_sql_definition(self.database_info.input_definition)
-        output_reference = self.database_info.create_reference_from_sql_definition(self.database_info.output_definition)
-        schema_name = self.database_info.database
-        x_size = len(self.database_info.input_definition.split(", "))
-
-        db = self.database_info.connect_to_house_pricing_example_db()
-        cursor = db.cursor()
-
-        cursor.execute(f"SELECT MIN(id), {input_reference}, {output_reference} FROM {training_set_name}")
-        result = cursor.fetchall()
-        db.close()
-
-        if (len(result) == 0) or (result[0][0] is None):
-            raise NoNewElementException(f"{schema_name}.{training_set_name}")
-
-        x = np.array(result[0][1:x_size + 1])
-        y = result[0][-1]
-
-        return x, y
 
     def retrieve_all_labelled_instances(self) -> Tuple[Sequence[X], Sequence[Y]]:
         training_set_name = self.database_info.training_set_name
@@ -91,7 +69,7 @@ class DefaultTrainingSet(TrainingSet):
 
         xs, ys = np.array([]), np.array([])
         for item in res:
-            x = np.array(item[1:x_size + 1])
+            x = np.array(item[2:x_size + 2])
             y = np.array(item[-1])
             if len(xs) == 0:  # and len(ys) == 0
                 xs = np.array([x])
@@ -126,67 +104,46 @@ class DefaultTrainingSet(TrainingSet):
         db.commit()
         db.close()
 
-
-class DefaultStoredLabelledSet(StoredLabelledSetDB):
-
-    def __init__(self, database_info: DefaultDatabaseHelper):
-        self.database_info = database_info
-
-        stored_labelled_set_name = self.database_info.stored_labelled_set_name
-        input_definition = self.database_info.input_definition
-        output_definition = self.database_info.output_definition
-        schema_name = self.database_info.database
-
-        db = self.database_info.connect_to_house_pricing_example_db()
-        cursor = db.cursor()
-
-        sql = f"DROP TABLE IF EXISTS {stored_labelled_set_name}"
-        cursor.execute(sql)
-
-        sql = f"CREATE TABLE {stored_labelled_set_name} (id int AUTO_INCREMENT PRIMARY KEY, {input_definition}, {output_definition})"
-        cursor.execute(sql)
-
-        db.close()
-
-        logging.info(f"finished initializing the Training set, database name: '{schema_name}.{stored_labelled_set_name}'")
-
-    def add_labelled_instance(self, x: X, y: Y) -> None:
-        stored_labelled_set_name = self.database_info.stored_labelled_set_name
+    def retrieve_labelled_training_instance(self) -> Tuple[X, Y]:
+        training_set_name = self.database_info.training_set_name
         input_reference = self.database_info.create_reference_from_sql_definition(self.database_info.input_definition)
         output_reference = self.database_info.create_reference_from_sql_definition(self.database_info.output_definition)
-        input_placeholders = self.database_info.create_placeholders_from_sql_definition(self.database_info.input_definition)
-        output_placeholders = self.database_info.create_placeholders_from_sql_definition(self.database_info.output_definition)
-
-        db = self.database_info.connect_to_house_pricing_example_db()
-        cursor = db.cursor()
-
-        sql = f"""INSERT INTO {stored_labelled_set_name} ({input_reference}, {output_reference}) VALUES ({input_placeholders}, {output_placeholders})"""
-        val = self.database_info.x_to_str_tuple(x) + self.database_info.y_to_str_tuple(y)
-
-        cursor.execute(sql, val)
-        db.commit()
-
-        db.close()
-
-    def retrieve_all_labelled_instances(self) -> Tuple[Sequence[X], Sequence[Y]]:
-        stored_labelled_set_name = self.database_info.stored_labelled_set_name
         schema_name = self.database_info.database
         x_size = len(self.database_info.input_definition.split(", "))
 
         db = self.database_info.connect_to_house_pricing_example_db()
         cursor = db.cursor()
 
-        cursor.execute(f"SELECT * FROM {stored_labelled_set_name}")
-        res = cursor.fetchall()
+        cursor.execute(f"SELECT MIN(id), {input_reference}, {output_reference} FROM {training_set_name} WHERE use_for_training = 1")
+        result = cursor.fetchall()
+        db.close()
 
+        if (len(result) == 0) or (result[0][0] is None):
+            raise NoNewElementException(f"{schema_name}.{training_set_name}")
+
+        x = np.array(result[0][1:x_size + 1])
+        y = result[0][-1]
+
+        return x, y
+
+    def retrieve_all_training_instances(self) -> Tuple[Sequence[X], Sequence[Y]]:
+        training_set_name = self.database_info.training_set_name
+        schema_name = self.database_info.database
+        x_size = len(self.database_info.input_definition.split(", "))
+
+        db = self.database_info.connect_to_house_pricing_example_db()
+        cursor = db.cursor()
+
+        cursor.execute(f"SELECT * FROM {training_set_name} WHERE use_for_training = 1")
+        res = cursor.fetchall()
         db.close()
 
         if (len(res) == 0) or (res[0][0] is None):
-            raise NoNewElementException(f"{schema_name}.{stored_labelled_set_name}")
+            raise NoNewElementException(f"{schema_name}.{training_set_name}")
 
         xs, ys = np.array([]), np.array([])
         for item in res:
-            x = np.array(item[1:x_size + 1])
+            x = np.array(item[2:x_size + 2])
             y = np.array(item[-1])
             if len(xs) == 0:  # and len(ys) == 0
                 xs = np.array([x])
@@ -196,6 +153,31 @@ class DefaultStoredLabelledSet(StoredLabelledSetDB):
                 ys = np.append(ys, y)
 
         return xs, ys
+
+    def set_instance_not_use_for_training(self, x: X) -> None:
+        training_set_name = self.database_info.training_set_name
+        input_equal_check = self.database_info.create_equal_check_from_sql_definition(self.database_info.input_definition)
+        schema_name = self.database_info.database
+
+        db = self.database_info.connect_to_house_pricing_example_db()
+        cursor = db.cursor()
+
+        sql = f"SELECT * FROM {training_set_name} WHERE {input_equal_check}"
+        val = self.database_info.x_to_str_tuple(x)
+
+        cursor.execute(sql, val)
+        res = cursor.fetchall()
+
+        if (len(res) == 0) or (res[0][0] is None):
+            db.close()
+            raise NoSuchElementException(f"{schema_name}.{training_set_name}", x)
+
+        sql = f"UPDATE {training_set_name} SET use_for_training = 0 WHERE {input_equal_check}"
+        val = self.database_info.x_to_str_tuple(x)
+
+        cursor.execute(sql, val)
+        db.commit()
+        db.close()
 
 
 class DefaultCandidateSet(CandidateSet):
@@ -284,7 +266,7 @@ class DefaultCandidateSet(CandidateSet):
 
         db.close()
 
-    def add_instance(self, x: X, additional_info: CandInfo = None) -> None:
+    def add_instance(self, x: X, additional_info: CandInfo) -> None:
         candidate_set_name = self.database_info.candidate_set_name
         input_reference = self.database_info.create_reference_from_sql_definition(self.database_info.input_definition)
         input_placeholders = self.database_info.create_placeholders_from_sql_definition(self.database_info.input_definition)
