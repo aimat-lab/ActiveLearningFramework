@@ -1,5 +1,5 @@
 import logging
-from typing import Tuple, Callable, Iterable, Sequence
+from typing import Tuple, Callable, Sequence
 
 from tqdm import tqdm
 
@@ -39,7 +39,7 @@ class Pool(CandidateSet):
         """
         raise NotImplementedError
 
-    def update_instances(self, xs: Iterable[X], new_additional_infos: Sequence[CandInfo] = None) -> None:
+    def update_instances(self, xs: Sequence[X], new_additional_infos: Sequence[CandInfo] = None) -> None:
         """
         alter the prediction and uncertainty for the provided candidates (identified by provided input)
 

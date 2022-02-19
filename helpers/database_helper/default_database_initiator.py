@@ -26,7 +26,7 @@ def get_default_databases(
 ) -> Tuple[TrainingSet, StoredLabelledSetDB, CandidateSet, LogQueryDecisionDB, QuerySet]:
     # TODO: documentation
     """
-    The default databases assume, that the input, additional information about the prediction and the candidate information are Iterables of numbers and the output is a single number
+    The default databases assume, that the input, additional information about the prediction and the candidate information are Sequences of numbers and the output is a single number
 
     :param scenario:
     :param candidate_source:

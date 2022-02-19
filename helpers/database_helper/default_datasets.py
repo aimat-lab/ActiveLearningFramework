@@ -1,5 +1,5 @@
 import logging
-from typing import Tuple, Iterable
+from typing import Tuple, Sequence
 
 import numpy as np
 
@@ -74,7 +74,7 @@ class DefaultTrainingSet(TrainingSet):
 
         return x, y
 
-    def retrieve_all_labelled_instances(self) -> Tuple[Iterable[X], Iterable[Y]]:
+    def retrieve_all_labelled_instances(self) -> Tuple[Sequence[X], Sequence[Y]]:
         training_set_name = self.database_info.training_set_name
         schema_name = self.database_info.database
         x_size = len(self.database_info.input_definition.split(", "))
@@ -168,7 +168,7 @@ class DefaultStoredLabelledSet(StoredLabelledSetDB):
 
         db.close()
 
-    def retrieve_all_labelled_instances(self) -> Tuple[Iterable[X], Iterable[Y]]:
+    def retrieve_all_labelled_instances(self) -> Tuple[Sequence[X], Sequence[Y]]:
         stored_labelled_set_name = self.database_info.stored_labelled_set_name
         schema_name = self.database_info.database
         x_size = len(self.database_info.input_definition.split(", "))

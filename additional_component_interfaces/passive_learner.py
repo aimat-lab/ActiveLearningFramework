@@ -1,4 +1,4 @@
-from typing import Tuple, Optional, Iterable, Sequence
+from typing import Tuple, Optional, Sequence
 
 from additional_component_interfaces import ReadOnlyPassiveLearner
 from helpers import X, Y, AddInfo_Y

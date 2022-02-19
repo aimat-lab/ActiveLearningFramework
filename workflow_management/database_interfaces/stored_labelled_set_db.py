@@ -1,4 +1,4 @@
-from typing import Tuple, Iterable
+from typing import Tuple, Sequence
 
 from helpers import X, Y
 
@@ -24,7 +24,7 @@ class StoredLabelledSetDB:
         """
         raise NotImplementedError
 
-    def retrieve_all_labelled_instances(self) -> Tuple[Iterable[X], Iterable[Y]]:
+    def retrieve_all_labelled_instances(self) -> Tuple[Sequence[X], Sequence[Y]]:
         """
         Get all instances from database
 
