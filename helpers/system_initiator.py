@@ -50,7 +50,7 @@ class InitiationHelper:
         """
         Returns the extended sl/pl model (need to implement the PassiveLearner interface)
 
-        should be an extension to the read only view
+        should be an extension to the read only view (ensure the objects are separate object, otherwise conflicts can arise due to parallelization)
 
         :return: the model
         """
