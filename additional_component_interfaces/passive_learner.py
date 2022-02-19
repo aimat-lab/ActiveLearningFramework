@@ -9,7 +9,7 @@ class PassiveLearner(ReadOnlyPassiveLearner):
     Interface for the PL (to be extended SL model) => with the ability to write/change the SL model
     """
 
-    def predict_set(self, xs: Iterable[X]) -> Sequence[Iterable[Y], Sequence[AddInfo_Y]]:
+    def predict_set(self, xs: Sequence[X]) -> Tuple[Sequence[Y], Sequence[AddInfo_Y]]:
         raise NotImplementedError
 
     def load_model(self) -> None:
