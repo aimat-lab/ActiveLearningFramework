@@ -1,6 +1,4 @@
-from typing import Tuple, List
-
-from nparray import ndarray
+from typing import Tuple, Iterable
 
 from helpers import X, Y
 
@@ -26,7 +24,7 @@ class StoredLabelledSetDB:
         """
         raise NotImplementedError
 
-    def retrieve_all_labelled_instances(self) -> Tuple[List[X] or ndarray, List[Y] or ndarray]:
+    def retrieve_all_labelled_instances(self) -> Tuple[Iterable[X], Iterable[Y]]:
         """
         Get all instances from database
 

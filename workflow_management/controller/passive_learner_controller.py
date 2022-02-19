@@ -1,8 +1,8 @@
 import logging
 import time
 from multiprocessing import synchronize
-from multiprocessing.managers import ValueProxy, AcquirerProxy
-from typing import List
+from multiprocessing.managers import ValueProxy
+from typing import Sequence
 
 from additional_component_interfaces import PassiveLearner
 from helpers import SystemStates, X, Y
@@ -38,7 +38,7 @@ class PassiveLearnerController:
             log.error("During saving of model, an error occurred", e)
             raise StoringModelException("Passive learner (within pl controller)")
 
-    def init_pl(self, x_train: List[X], y_train: List[Y], **kwargs):
+    def init_pl(self, x_train: Sequence[X], y_train: Sequence[Y], **kwargs):
         """
         Initialize the sl model
 

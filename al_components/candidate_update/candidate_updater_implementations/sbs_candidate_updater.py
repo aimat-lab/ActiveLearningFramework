@@ -13,7 +13,7 @@ class Stream:
     Datasource for the candidate updater in a SbS scenario => fetch candidates (unlabelled instance) one at a time
     """
 
-    def get_element(self):
+    def get_element(self) -> X:
         """
         Get one (next) element from the stream/natural distribution/input space
 

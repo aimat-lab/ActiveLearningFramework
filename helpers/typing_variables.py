@@ -4,20 +4,20 @@ X = TypeVar("X")
 """
 Type of the input of instances
 
-- most likely a numpy array
-- typing of equality trying to be taught to SL model:   X -> Y
+- most likely numpy array
+- input of the function taught to SL model:   X -> Y
 """
 
 Y = TypeVar("Y")
 """
 Type of the output of labelled instances
 
-- typing of equality trying to be taught to SL model:   X -> Y
+- output of the function taught to SL model:   X -> Y
 """
 
 AddInfo_Y = TypeVar("AddInfo_Y")
 """
-Additional information about the prediction the current PL can perform => e.g. uncertainty
+Additional information about the prediction the current PL can perform => e.g. (uncertainty, )
 """
 
 CandInfo = TypeVar("CandInfo")

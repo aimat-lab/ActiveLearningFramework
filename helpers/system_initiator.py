@@ -1,12 +1,10 @@
-# noinspection PyUnusedLocal
-from typing import Tuple, List, Optional, Callable
-
-from nparray import ndarray
+from typing import Tuple, Optional, Callable, Sequence
 
 from additional_component_interfaces import PassiveLearner, Oracle, ReadOnlyPassiveLearner
 from al_components.candidate_update.candidate_updater_implementations import Pool, Stream, Generator
 from al_components.query_selection.informativeness_analyser import InformativenessAnalyser
 from helpers import Scenarios, X, Y, AddInfo_Y, CandInfo
+from helpers.database_helper.default_database_initiator import get_default_databases
 from workflow_management.database_interfaces import CandidateSet, QuerySet, TrainingSet, StoredLabelledSetDB, LogQueryDecisionDB
 
 
@@ -32,25 +30,43 @@ class InitiationHelper:
 
     def get_datasets(self) -> Tuple[TrainingSet, StoredLabelledSetDB, CandidateSet, LogQueryDecisionDB, QuerySet]:
         """
-        Returns all implemented datasets
+        Returns all implemented datasets => can use the default implementation
 
         - if PbS: candidate set must match candidate source
 
         :return: the datasets needed for the workflow and for additional information storage
         """
-        # case implementation: implement concrete datasets
-        raise NotImplementedError
+        # case implementation: implement concrete datasets or use default datasets and only insert host, ...
+        # IMPORTANT: first call of function if using the default dataset after the initialization of scenario, candidate source, passive learner and mapper function (prediction to candidate info)
 
-    def get_sl_model(self) -> PassiveLearner:
+        # access to database => MySQL
+        host, user, password, database = None, None, None, None
+        if (host is None) or (user is None) or (password is None) or (database is None):
+            raise NotImplementedError
+
+        return get_default_databases(self.get_scenario(), self.get_candidate_source(), self.get_pl(), self.get_mapper_function_prediction_to_candidate_info(), host, user, password, database)
+
+    def get_pl(self) -> PassiveLearner:
         """
         Returns the extended sl/pl model (need to implement the PassiveLearner interface)
+
+        should be an extension to the read only view
 
         :return: the model
         """
         # case implementation: implement concrete sl model (passive learner)
         raise NotImplementedError
 
-    def get_initial_training_data(self) -> Tuple[List[X] or ndarray, List[Y] or ndarray, Optional[int], Optional[int]]:
+    def get_ro_pl(self) -> ReadOnlyPassiveLearner:
+        """
+        Return the read only version/view of the sl model
+
+        :return: the RO passive learner
+        """
+        # case implementation: implement concrete read only sl model
+        raise NotImplementedError
+
+    def get_initial_training_data(self) -> Tuple[Sequence[X], Sequence[Y], Optional[int], Optional[int]]:
         """
         Returns labelled data for the initial training episode of the pl
 
@@ -81,14 +97,6 @@ class InitiationHelper:
         :return: the oracle instance
         """
         # case implementation: implement concrete oracle (with knowledge about ground truth)
-        raise NotImplementedError
-
-    def get_ro_sl_model(self) -> ReadOnlyPassiveLearner:
-        """
-        Return the read only version/view of the sl model (assure through load function, that PassiveLearner and ReadOnlyPassiveLearner work on the same models)
-        :return: the RO passive learner
-        """
-        # case implementation: implement concrete read only sl model
         raise NotImplementedError
 
     def get_informativeness_analyser(self) -> InformativenessAnalyser:

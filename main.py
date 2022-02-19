@@ -54,7 +54,7 @@ if __name__ == '__main__':
         log.info("Initialize components")
 
         # init passive learner
-        sl_model: PassiveLearner = init_helper.get_sl_model()
+        sl_model: PassiveLearner = init_helper.get_pl()
         pl = PassiveLearnerController(pl=sl_model, training_set=training_set)
 
         # init oracle
@@ -64,7 +64,7 @@ if __name__ == '__main__':
 
         # init candidate updater
         cand_info_mapping: Callable[[X, Y, AddInfo_Y], CandInfo] = init_helper.get_mapper_function_prediction_to_candidate_info()
-        ro_pl: ReadOnlyPassiveLearner = init_helper.get_ro_sl_model()
+        ro_pl: ReadOnlyPassiveLearner = init_helper.get_ro_pl()
         cand_up = CandidateUpdaterController(ro_pl=ro_pl, candidate_set=candidate_set, cand_info_mapping=cand_info_mapping, scenario=scenario, candidate_source=candidate_source)
 
         # init info analyser (query selection)

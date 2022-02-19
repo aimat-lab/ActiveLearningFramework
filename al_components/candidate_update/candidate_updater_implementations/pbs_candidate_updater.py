@@ -1,7 +1,6 @@
 import logging
-from typing import Tuple, List, Optional, Callable
+from typing import Tuple, Callable, Iterable, Sequence
 
-from numpy import ndarray
 from tqdm import tqdm
 
 from additional_component_interfaces import ReadOnlyPassiveLearner
@@ -32,7 +31,7 @@ class Pool(CandidateSet):
     def is_empty(self) -> bool:
         raise NotImplementedError
 
-    def initiate_pool(self, x_initial: List[X] or ndarray) -> None:
+    def initiate_pool(self, x_initial: Sequence[X]) -> None:
         """
         Pool needs to be initialized with a list of input instances
 
@@ -40,7 +39,7 @@ class Pool(CandidateSet):
         """
         raise NotImplementedError
 
-    def update_instances(self, xs: List[X] or ndarray, new_additional_infos: List[CandInfo] or ndarray = None) -> None:
+    def update_instances(self, xs: Iterable[X], new_additional_infos: Sequence[CandInfo] = None) -> None:
         """
         alter the prediction and uncertainty for the provided candidates (identified by provided input)
 
@@ -51,7 +50,7 @@ class Pool(CandidateSet):
         """
         raise NotImplementedError
 
-    def retrieve_all_instances(self) -> Tuple[List[X] or ndarray, Optional[List[CandInfo] or ndarray]]:
+    def retrieve_all_instances(self) -> Tuple[Sequence[X], Sequence[CandInfo]]:
         """
         retrieves all candidates from database (database is left unchanged)
 

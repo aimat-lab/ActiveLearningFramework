@@ -1,12 +1,25 @@
-from typing import List, Tuple, Optional
+from typing import Tuple, Optional, Iterable, Sequence
 
+from additional_component_interfaces import ReadOnlyPassiveLearner
 from helpers import X, Y, AddInfo_Y
 
 
-class PassiveLearner:
+class PassiveLearner(ReadOnlyPassiveLearner):
     """
-    Interface for the PL (to be extended SL model)
+    Interface for the PL (to be extended SL model) => with the ability to write/change the SL model
     """
+
+    def predict_set(self, xs: Iterable[X]) -> Sequence[Iterable[Y], Sequence[AddInfo_Y]]:
+        raise NotImplementedError
+
+    def load_model(self) -> None:
+        raise NotImplementedError
+
+    def close_model(self) -> None:
+        raise NotImplementedError
+
+    def pl_satisfies_evaluation(self) -> bool:
+        raise NotImplementedError
 
     def save_model(self) -> None:
         """
@@ -14,26 +27,13 @@ class PassiveLearner:
 
         => necessary for multiprocessing compatibility: will be called after every other function of this class, except load_model
 
-        e.g.:
-            - model.save('my_model')
-            - del model
+        e.g.: model.save('my_model'); del model
         """
         raise NotImplementedError
 
-    def load_model(self) -> None:
+    def initial_training(self, x_train: Sequence[X], y_train: Sequence[Y], **kwargs) -> None:
         """
-        Load the model form the separate file (see save_model)
-
-        => necessary for multiprocessing compatibility: will be called before every other function of this class, except save_model
-
-        e.g.:
-            - model = tensorflow.keras.models.load_model('my_model')
-        """
-        raise NotImplementedError
-
-    def initial_training(self, x_train: List[X], y_train: List[Y], **kwargs) -> None:
-        """
-        Initial batch training => for determination of initial weights and potentially for setting the scaler for the input data
+        Initial batch training => for determination of initial weights
 
         :param x_train: training input (array of input data)
         :param y_train: training labels (array of correct output data)

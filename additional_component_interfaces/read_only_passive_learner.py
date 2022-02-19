@@ -1,13 +1,11 @@
-from typing import Tuple, Optional, List
-
-from nparray import ndarray
+from typing import Tuple, Sequence
 
 from helpers import X, Y, AddInfo_Y
 
 
 class ReadOnlyPassiveLearner:
 
-    def predict(self, x: X) -> Tuple[Y, Optional[AddInfo_Y]]:
+    def predict(self, x: X) -> Tuple[Y, AddInfo_Y]:
         """
         Get the predicted output based on the current training state of the ML model
 
@@ -16,7 +14,7 @@ class ReadOnlyPassiveLearner:
         """
         raise NotImplementedError
 
-    def predict_set(self, xs: List[X] or ndarray) -> Tuple[List[Y] or ndarray, Optional[List[AddInfo_Y] or ndarray]]:
+    def predict_set(self, xs: Sequence[X]) -> Tuple[Sequence[Y], Sequence[AddInfo_Y]]:
         """
         Get predicted output for a list of input instances
 
@@ -29,8 +27,9 @@ class ReadOnlyPassiveLearner:
         """
         Load the model form the separate file (see save_model)
         => necessary for multiprocessing compatibility: will be called before every other function of this class, except save_model
-        e.g.:
-            - model = tensorflow.keras.models.load_model('my_model')
+
+
+        e.g.: model = tensorflow.keras.models.load_model('my_model')
         """
         raise NotImplementedError
 

@@ -1,6 +1,6 @@
 import logging
-from multiprocessing import Lock, synchronize
-from multiprocessing.managers import ValueProxy, AcquirerProxy
+from multiprocessing import synchronize
+from multiprocessing.managers import ValueProxy
 from typing import Callable
 
 from additional_component_interfaces import ReadOnlyPassiveLearner
