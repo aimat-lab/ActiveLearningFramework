@@ -15,13 +15,13 @@ logging.basicConfig(format='\nLOGGING: %(name)s, %(levelname)s: %(message)s :END
 log = logging.getLogger("Main logger")
 
 if __name__ == '__main__':
-    system_state: ValueProxy = None  # noqa
-    sl_model_gets_stored: synchronize.Lock = None  # noqa
-    cand_up: CandidateUpdaterController = None  # noqa
-    query_select: QuerySelectionController = None  # noqa
-    o: OracleController = None  # noqa
-    pl: PassiveLearnerController = None  # noqa
-
+    state_manager = Manager()
+    system_state: ValueProxy = state_manager.Value('i', int(SystemStates.INITIALIZATION))
+    sl_model_gets_stored: synchronize.Lock
+    cand_up: CandidateUpdaterController
+    query_select: QuerySelectionController
+    o: OracleController
+    pl: PassiveLearnerController
     try:
 
         init_helper: InitiationHelper = InitiationHelper()  # case implementation: implement initiation helper => rest of training/workflow management/... is done by the framework
@@ -31,9 +31,7 @@ if __name__ == '__main__':
         log.info(f"Start of AL framework, chosen scenario: {scenario.name}")
 
         # WORKFLOW: Initialization
-        state_manager = Manager()
         sl_model_gets_stored = Lock()
-        system_state = state_manager.Value('i', int(SystemStates.INITIALIZATION))
 
         log.info(f"------ Initialize AL framework ------  => system_state={SystemStates(system_state.value).name}")
 

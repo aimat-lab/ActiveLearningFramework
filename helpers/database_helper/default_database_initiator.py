@@ -46,7 +46,8 @@ def get_default_databases(
 
     example_x: X
     if scenario == Scenarios.PbS:
-        example_x, _ = candidate_source.get_fist_instance()
+        assert isinstance(candidate_source, Pool)
+        example_x, _ = candidate_source.get_first_instance()
     elif scenario == Scenarios.SbS:
         example_x = candidate_source.get_element()
     else:  # scenario == Scenarios.MQS
