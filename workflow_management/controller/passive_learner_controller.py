@@ -115,6 +115,7 @@ class PassiveLearnerController:
             sl_model_gets_stored.release()
 
             self.pl.train(x_train, y_train)
+
             sl_model_gets_stored.acquire()
             self.save_sl_model()
             sl_model_gets_stored.release()
@@ -122,10 +123,12 @@ class PassiveLearnerController:
             self.training_set.set_instance_not_use_for_training(x_train)
             log.info(f"Set (x, y) to not be part of active training any more => PL already trained with it: x = `{x_train}`, y = `{y_train}`")
 
+            self.pl.load_model()
             if self.pl.sl_model_satisfies_evaluation():
                 log.warning("PL is trained well enough => terminate training process")
                 system_state.set(int(SystemStates.TERMINATE_TRAINING))
                 return
+            self.pl.close_model()
 
             self.training_job(system_state, sl_model_gets_stored)
             return
