@@ -1,9 +1,9 @@
 import logging
 from tqdm import tqdm
 
-from al_components.candidate_update.candidate_updater_implementations import Pool
-from al_components.query_selection import QuerySelector
-from al_components.query_selection.informativeness_analyser import InformativenessAnalyser
+from al_specific_components.candidate_update.candidate_updater_implementations import Pool
+from al_specific_components.query_selection import QuerySelector
+from al_specific_components.query_selection.informativeness_analyser import InformativenessAnalyser
 from helpers import X
 
 from helpers.exceptions import IncorrectParameters

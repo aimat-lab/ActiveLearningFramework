@@ -4,7 +4,7 @@ from multiprocessing import synchronize
 from multiprocessing.managers import ValueProxy
 from typing import Sequence
 
-from additional_component_interfaces import PassiveLearner
+from basic_sl_component_interfaces import PassiveLearner
 from helpers import SystemStates, X, Y
 from helpers.exceptions import NoNewElementException, StoringModelException, LoadingModelException
 from workflow_management.database_interfaces import TrainingSet

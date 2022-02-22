@@ -1,8 +1,8 @@
 from typing import Tuple, Optional, Callable, Sequence
 
-from additional_component_interfaces import PassiveLearner, Oracle, ReadOnlyPassiveLearner
-from al_components.candidate_update.candidate_updater_implementations import Pool, Stream, Generator
-from al_components.query_selection.informativeness_analyser import InformativenessAnalyser
+from basic_sl_component_interfaces import PassiveLearner, Oracle, ReadOnlyPassiveLearner
+from al_specific_components.candidate_update.candidate_updater_implementations import Pool, Stream, Generator
+from al_specific_components.query_selection.informativeness_analyser import InformativenessAnalyser
 from helpers import Scenarios, X, Y, AddInfo_Y, CandInfo
 from helpers.database_helper.default_database_initiator import get_default_databases
 from workflow_management.database_interfaces import CandidateSet, QuerySet, TrainingSet, LogQueryDecisionDB
@@ -82,7 +82,7 @@ class InitiationHelper:
     # noinspection PyUnreachableCode,PyTypeChecker
     def get_mapper_function_prediction_to_candidate_info(self) -> Callable[[X, Y, AddInfo_Y], CandInfo]:
         """
-        Return a function => see *al_components.candidate_update.get_candidate_additional_information* for more information
+        Return a function => see *al_specific_components.candidate_update.get_candidate_additional_information* for more information
 
         :return: the mapper function
         """

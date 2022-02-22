@@ -4,8 +4,8 @@ from typing import Callable, Tuple
 
 import mysql.connector
 
-from additional_component_interfaces import PassiveLearner
-from al_components.candidate_update.candidate_updater_implementations import Generator, Stream, Pool
+from basic_sl_component_interfaces import PassiveLearner
+from al_specific_components.candidate_update.candidate_updater_implementations import Generator, Stream, Pool
 from helpers import Scenarios, X, Y, AddInfo_Y, CandInfo
 from helpers.database_helper.database_info_store import DefaultDatabaseHelper
 from helpers.database_helper.default_datasets import DefaultTrainingSet, DefaultCandidateSet, DefaultLogQueryDecision, DefaultQuerySet

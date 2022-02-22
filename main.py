@@ -3,9 +3,9 @@ from multiprocessing import Process, Manager, Lock, synchronize
 from multiprocessing.managers import ValueProxy
 from typing import Callable
 
-from additional_component_interfaces import PassiveLearner, Oracle, ReadOnlyPassiveLearner
-from al_components.candidate_update import get_candidate_source_type
-from al_components.query_selection.informativeness_analyser import InformativenessAnalyser
+from basic_sl_component_interfaces import PassiveLearner, Oracle, ReadOnlyPassiveLearner
+from al_specific_components.candidate_update import get_candidate_source_type
+from al_specific_components.query_selection.informativeness_analyser import InformativenessAnalyser
 from helpers import SystemStates, CandInfo, AddInfo_Y, Y, X, Scenarios
 from helpers.exceptions import IncorrectScenarioImplementation, ALSystemError
 from helpers.system_initiator import InitiationHelper
@@ -17,7 +17,7 @@ log = logging.getLogger("Main logger")
 if __name__ == '__main__':
     state_manager = Manager()
     system_state: ValueProxy = state_manager.Value('i', int(SystemStates.INITIALIZATION))
-    sl_model_gets_stored: synchronize.Lock
+    sl_model_gets_stored: synchronize.Lock = Lock()
     cand_up: CandidateUpdaterController
     query_select: QuerySelectionController
     o: OracleController
@@ -31,8 +31,6 @@ if __name__ == '__main__':
         log.info(f"Start of AL framework, chosen scenario: {scenario.name}")
 
         # WORKFLOW: Initialization
-        sl_model_gets_stored = Lock()
-
         log.info(f"------ Initialize AL framework ------  => system_state={SystemStates(system_state.value).name}")
 
         # initialize candidate source

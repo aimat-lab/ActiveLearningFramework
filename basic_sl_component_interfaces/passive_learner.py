@@ -1,6 +1,6 @@
 from typing import Tuple, Optional, Sequence
 
-from additional_component_interfaces import ReadOnlyPassiveLearner
+from basic_sl_component_interfaces import ReadOnlyPassiveLearner
 from helpers import X, Y, AddInfo_Y
 
 

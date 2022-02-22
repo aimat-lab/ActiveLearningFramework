@@ -2,8 +2,8 @@ import logging
 import time
 from multiprocessing.managers import ValueProxy
 
-from al_components.query_selection import QuerySelector, init_query_selector
-from al_components.query_selection.informativeness_analyser import InformativenessAnalyser
+from al_specific_components.query_selection import QuerySelector, init_query_selector
+from al_specific_components.query_selection.informativeness_analyser import InformativenessAnalyser
 from helpers import Scenarios, SystemStates
 from helpers.exceptions import NoNewElementException
 from workflow_management.database_interfaces import QuerySet, CandidateSet, LogQueryDecisionDB

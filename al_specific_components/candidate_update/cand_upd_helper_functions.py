@@ -1,8 +1,8 @@
 import logging
 from typing import Callable
 
-from al_components.candidate_update import CandidateUpdater
-from al_components.candidate_update.candidate_updater_implementations import MQS_CandidateUpdater, PbS_CandidateUpdater, SbS_CandidateUpdater, Generator, Stream, Pool
+from al_specific_components.candidate_update import CandidateUpdater
+from al_specific_components.candidate_update.candidate_updater_implementations import MQS_CandidateUpdater, PbS_CandidateUpdater, SbS_CandidateUpdater, Generator, Stream, Pool
 from helpers import Scenarios, X, Y, AddInfo_Y, CandInfo
 
 

@@ -1,8 +1,8 @@
 import logging
 
-from al_components.candidate_update.candidate_updater_implementations import Pool
-from al_components.query_selection.informativeness_analyser import InformativenessAnalyser
-from al_components.query_selection.query_selector_implementations import MQS_QuerySelector, PbS_QuerySelector, SbS_QuerySelector
+from al_specific_components.candidate_update.candidate_updater_implementations import Pool
+from al_specific_components.query_selection.informativeness_analyser import InformativenessAnalyser
+from al_specific_components.query_selection.query_selector_implementations import MQS_QuerySelector, PbS_QuerySelector, SbS_QuerySelector
 from helpers import Scenarios
 from workflow_management.database_interfaces import CandidateSet
 

@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from typing import Callable
 
-from al_components.candidate_update import CandidateUpdater
+from al_specific_components.candidate_update import CandidateUpdater
 from helpers import X, CandInfo, AddInfo_Y, Y
 
 

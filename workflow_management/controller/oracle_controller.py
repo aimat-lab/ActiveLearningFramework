@@ -2,7 +2,7 @@ import logging
 import time
 from multiprocessing.managers import ValueProxy
 
-from additional_component_interfaces import Oracle
+from basic_sl_component_interfaces import Oracle
 from helpers import SystemStates, Y
 from helpers.exceptions import NoNewElementException, CantResolveQueryException
 from workflow_management.database_interfaces import TrainingSet, QuerySet

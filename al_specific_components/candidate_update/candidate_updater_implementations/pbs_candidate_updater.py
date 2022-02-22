@@ -3,8 +3,8 @@ from typing import Tuple, Callable, Sequence
 
 from tqdm import tqdm
 
-from additional_component_interfaces import ReadOnlyPassiveLearner
-from al_components.candidate_update import CandidateUpdater
+from basic_sl_component_interfaces import ReadOnlyPassiveLearner
+from al_specific_components.candidate_update import CandidateUpdater
 from helpers import CandInfo, X, Y, AddInfo_Y
 from helpers.exceptions import IncorrectParameters, NoMoreCandidatesException, NoNewElementException
 from workflow_management.database_interfaces import CandidateSet
