@@ -18,9 +18,6 @@ class PassiveLearner(ReadOnlyPassiveLearner):
     def close_model(self) -> None:
         raise NotImplementedError
 
-    def pl_satisfies_evaluation(self) -> bool:
-        raise NotImplementedError
-
     def save_model(self) -> None:
         """
         Save the model in separate file
@@ -56,5 +53,15 @@ class PassiveLearner(ReadOnlyPassiveLearner):
 
         :param x: input values
         :param y: label (correct output)
+        """
+        raise NotImplementedError
+
+    def sl_model_satisfies_evaluation(self) -> bool:
+        """
+        Evaluates the performance of the current SL model (pl) => decides if pl is trained enough (satisfies performance acceptance criterion)
+            - can be based on history (performance of pl doesn't get significantly better/gets worse)
+            - can be based on threshold => predictions are accurate enough
+
+        :return: whether pl is trained well enough
         """
         raise NotImplementedError

@@ -71,6 +71,11 @@ class PassiveLearnerController:
                 1. else:
                     1. sleep (or return if system state is FINISH_TRAINING__PL)
                     2. restart job
+            2. evaluate performance of pl
+                1. if performance satisfies evaluation criterion:
+                    1. set system state to terminate training, return
+                2. else:
+                    1. keep training
 
         :param system_state: The current system state (shared over all controllers, values align with enum SystemStates)
         :param sl_model_gets_stored: Set, if SL model storage is currently in process
@@ -116,6 +121,11 @@ class PassiveLearnerController:
 
             self.training_set.set_instance_not_use_for_training(x_train)
             log.info(f"Set (x, y) to not be part of active training any more => PL already trained with it: x = `{x_train}`, y = `{y_train}`")
+
+            if self.pl.sl_model_satisfies_evaluation():
+                log.warning("PL is trained well enough => terminate training process")
+                system_state.set(int(SystemStates.TERMINATE_TRAINING))
+                return
 
             self.training_job(system_state, sl_model_gets_stored)
             return

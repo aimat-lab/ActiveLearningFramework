@@ -39,12 +39,3 @@ class ReadOnlyPassiveLearner:
         """
         raise NotImplementedError
 
-    def pl_satisfies_evaluation(self) -> bool:
-        """
-        Evaluates the performance of the current SL model (pl) => decides if pl is trained enough (satisfies performance acceptance criterion)
-            - can be based on history (performance of pl doesn't get significantly better/gets worse)
-            - can be based on threshold => predictions are accurate enough
-
-        :return: whether pl is trained well enough
-        """
-        raise NotImplementedError
