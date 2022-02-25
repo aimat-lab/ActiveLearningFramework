@@ -18,7 +18,7 @@ class DefaultDatabaseHelper:
     # TODO: ensure unique identification by input
     input_definition: string
     additional_candidate_information_definition: string
-    output_definition: string = "y double"
+    output_definition: string
     log_query_decision_information_definition: string = "info_value double, queried double"
 
     candidate_set_name: string = "candidate_set"

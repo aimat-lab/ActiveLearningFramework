@@ -62,16 +62,18 @@ def get_default_databases(
     try:
         x_part = example_x[0]
         assert isinstance(x_part, Number)
-        assert isinstance(example_y, Number)
+        y_part = example_y[0]
+        assert isinstance(y_part, Number)
         assert isinstance(example_cand_info, Tuple)
         assert all([isinstance(example_cand_info[i], Number) for i in range(len(example_cand_info))])
     except Exception:
         raise InvalidTyping("Default database implementation assumes the following types: X (input) - array of numbers (e.g., numpy array); Y (output) - single number; CandInfo (additional information about candidate) - tuple of numbers")
 
     x_sql_definition = ", ".join(["x_" + str(i) + " double" for i in range(len(example_x))])
+    y_sql_definition = ", ".join(["y_" + str(i) + " double" for i in range(len(example_y))])
     cand_info_sql_definition = ", ".join(["cand_info_" + str(i) + " double" for i in range(len(example_cand_info))])
     default_database_helper = DefaultDatabaseHelper(host=host, user=user, password=password, database=database,
-                                                    input_definition=x_sql_definition, additional_candidate_information_definition=cand_info_sql_definition)
+                                                    input_definition=x_sql_definition, output_definition=y_sql_definition, additional_candidate_information_definition=cand_info_sql_definition)
 
     training_set = DefaultTrainingSet(default_database_helper)
 
