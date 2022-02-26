@@ -67,7 +67,7 @@ def get_default_databases(
         assert isinstance(example_cand_info, Tuple)
         assert all([isinstance(example_cand_info[i], Number) for i in range(len(example_cand_info))])
     except Exception:
-        raise InvalidTyping("Default database implementation assumes the following types: X (input) - array of numbers (e.g., numpy array); Y (output) - single number; CandInfo (additional information about candidate) - tuple of numbers")
+        raise InvalidTyping("Default database implementation assumes the following types: X (input) - array of numbers (e.g., numpy array); Y (output) - array of numbers (e.g., numpy array); CandInfo (additional information about candidate) - tuple of numbers")
 
     x_sql_definition = ", ".join(["x_" + str(i) + " double" for i in range(len(example_x))])
     y_sql_definition = ", ".join(["y_" + str(i) + " double" for i in range(len(example_y))])

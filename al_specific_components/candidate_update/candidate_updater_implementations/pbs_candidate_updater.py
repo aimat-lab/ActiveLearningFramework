@@ -25,7 +25,7 @@ class Pool(CandidateSet):
     def remove_instance(self, x: X) -> None:
         raise NotImplementedError
 
-    def add_instance(self, x: X, additional_info: CandInfo = None) -> None:
+    def add_instance(self, x: X, additional_info: CandInfo) -> None:
         raise NotImplementedError
 
     def is_empty(self) -> bool:

@@ -6,6 +6,7 @@ from typing import Callable
 from basic_sl_component_interfaces import PassiveLearner, Oracle, ReadOnlyPassiveLearner
 from al_specific_components.candidate_update import get_candidate_source_type
 from al_specific_components.query_selection.informativeness_analyser import InformativenessAnalyser
+from example_implementations.initiator import ButeneEnergyForceInitiator
 from helpers import SystemStates, CandInfo, AddInfo_Y, Y, X, Scenarios
 from helpers.exceptions import IncorrectScenarioImplementation, ALSystemError
 from helpers.system_initiator import InitiationHelper
@@ -24,7 +25,7 @@ if __name__ == '__main__':
     pl: PassiveLearnerController
     try:
 
-        init_helper: InitiationHelper = InitiationHelper()  # case implementation: implement initiation helper => rest of training/workflow management/... is done by the framework
+        init_helper: InitiationHelper = ButeneEnergyForceInitiator()  # case implementation: implement initiation helper => rest of training/workflow management/... is done by the framework
 
         # set scenario
         scenario: Scenarios = init_helper.get_scenario()

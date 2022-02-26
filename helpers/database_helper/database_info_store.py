@@ -35,7 +35,7 @@ class DefaultDatabaseHelper:
         return tuple([str(x_part) for x_part in x])
 
     def y_to_str_tuple(self, y: Y) -> Tuple[str, ...]:
-        return str(y),
+        return tuple([str(y_part) for y_part in y])
 
     def additional_candidate_information_to_str_tuple(self, additional_candidate_information: CandInfo) -> Tuple[str, ...]:
         return tuple([str(info_part) for info_part in additional_candidate_information])
