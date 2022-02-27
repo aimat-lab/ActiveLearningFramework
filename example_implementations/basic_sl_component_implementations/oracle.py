@@ -36,6 +36,10 @@ class ButeneOracle(Oracle):
         val = []
         for i in range(len(xs)):
             val.append(self.database_info.x_to_str_tuple(xs[i]) + self.database_info.y_to_str_tuple(ys[i]))
+            if len(val) > 100:
+                cursor.executemany(sql, val)
+                db.commit()
+                val = []
 
         cursor.executemany(sql, val)
         db.commit()

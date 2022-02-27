@@ -36,13 +36,13 @@ class ButenePassiveLearner(PassiveLearner):
         self.x_train, self.y_train = np.array([]), np.array([])
 
     def initial_training(self, x_train: Sequence[X], y_train: Sequence[Y], **kwargs) -> None:
-        eng, grads = y_train[:, 0], y_train[:, 1]
+        eng, grads = y_train[:, 0:2], np.array(y_train[:, 2:]).reshape((len(y_train), 2, 12, 3))
 
-        x_scaled, y_scaled = self.scaler.fit_transform(x=x_train, y=[eng, grads])
+        x_scaled, y_scaled = self.scaler.fit_transform(x=np.array(x_train).reshape((len(x_train), 12, 3)), y=[eng, grads])
         self.model.precomputed_features = True
         feat_x, feat_grad = self.model.precompute_feature_in_chunks(x_scaled, batch_size=4)
-
         self.model.set_const_normalization_from_features(feat_x)
+
         self.model.fit(x=[feat_x, feat_grad], y=[y_scaled[0], y_scaled[1]], batch_size=4, epochs=10, verbose=2)
 
         self.model.precomputed_features = False

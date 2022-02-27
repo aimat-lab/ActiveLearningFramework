@@ -45,6 +45,10 @@ class ButenePool(Pool):
         val = []
         for i in range(len(x_initial)):
             val.append(self.database_info.x_to_str_tuple(x_initial[i]))
+            if len(val) > 100:
+                cursor.executemany(sql, val)
+                db.commit()
+                val = []
 
         cursor.executemany(sql, val)
         db.commit()
