@@ -75,8 +75,8 @@ class ButenePool(Pool):
 
     def retrieve_all_instances(self) -> Tuple[Sequence[X], Sequence[CandInfo]]:
         candidate_set_name = self.database_info.candidate_set_name
-        input_reference = self.database_info.create_set_reference_from_sql_definition(self.database_info.input_definition)
-        additional_candidate_information_reference = self.database_info.create_set_reference_from_sql_definition(self.database_info.additional_candidate_information_definition)
+        input_reference = self.database_info.create_reference_from_sql_definition(self.database_info.input_definition)
+        additional_candidate_information_reference = self.database_info.create_reference_from_sql_definition(self.database_info.additional_candidate_information_definition)
         schema_name = self.database_info.database
         x_size = len(self.database_info.input_definition.split(", "))
         cand_info_size = len(self.database_info.additional_candidate_information_definition.split(", "))
@@ -95,7 +95,7 @@ class ButenePool(Pool):
 
         xs, add_infos = np.array([]), None
         for item in res:
-            x = np.array(item[1:x_size + 1])
+            x = np.array(item[0:x_size])
             add_info = tuple(item[-cand_info_size:])
             if len(xs) == 0:
                 xs = np.array([x])

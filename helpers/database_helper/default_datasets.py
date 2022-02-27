@@ -56,6 +56,7 @@ class DefaultTrainingSet(TrainingSet):
         training_set_name = self.database_info.training_set_name
         schema_name = self.database_info.database
         x_size = len(self.database_info.input_definition.split(", "))
+        y_size = len(self.database_info.output_definition.split(", "))
 
         db = self.database_info.connect_to_house_pricing_example_db()
         cursor = db.cursor()
@@ -70,13 +71,13 @@ class DefaultTrainingSet(TrainingSet):
         xs, ys = np.array([]), np.array([])
         for item in res:
             x = np.array(item[2:x_size + 2])
-            y = np.array(item[-1])
+            y = np.array(item[-y_size:])
             if len(xs) == 0:  # and len(ys) == 0
                 xs = np.array([x])
-                ys = np.array(y)
+                ys = np.array([y])
             else:
                 xs = np.append(xs, [x], axis=0)
-                ys = np.append(ys, y)
+                ys = np.append(ys, [y], axis=0)
 
         return xs, ys
 
@@ -110,6 +111,7 @@ class DefaultTrainingSet(TrainingSet):
         output_reference = self.database_info.create_reference_from_sql_definition(self.database_info.output_definition)
         schema_name = self.database_info.database
         x_size = len(self.database_info.input_definition.split(", "))
+        y_size = len(self.database_info.output_definition.split(", "))
 
         db = self.database_info.connect_to_house_pricing_example_db()
         cursor = db.cursor()
@@ -122,7 +124,7 @@ class DefaultTrainingSet(TrainingSet):
             raise NoNewElementException(f"{schema_name}.{training_set_name}")
 
         x = np.array(result[0][1:x_size + 1])
-        y = result[0][-1]
+        y = result[0][-y_size:]
 
         return x, y
 
@@ -130,6 +132,7 @@ class DefaultTrainingSet(TrainingSet):
         training_set_name = self.database_info.training_set_name
         schema_name = self.database_info.database
         x_size = len(self.database_info.input_definition.split(", "))
+        y_size = len(self.database_info.output_definition.split(", "))
 
         db = self.database_info.connect_to_house_pricing_example_db()
         cursor = db.cursor()
@@ -144,13 +147,13 @@ class DefaultTrainingSet(TrainingSet):
         xs, ys = np.array([]), np.array([])
         for item in res:
             x = np.array(item[2:x_size + 2])
-            y = np.array(item[-1])
+            y = np.array(item[-y_size:])
             if len(xs) == 0:  # and len(ys) == 0
                 xs = np.array([x])
-                ys = np.array(y)
+                ys = np.array([y])
             else:
                 xs = np.append(xs, [x], axis=0)
-                ys = np.append(ys, y)
+                ys = np.append(ys, [y], axis=0)
 
         return xs, ys
 
@@ -316,7 +319,7 @@ class DefaultLogQueryDecision(LogQueryDecisionDB):
 
         log.info(f"finished initializing the Training set, database name: '{schema_name}.{log_query_decision_set_name}'")
 
-    def add_instance(self, x: X, info_value: float, queried: bool, additional_info: CandInfo = None) -> None:
+    def add_instance(self, x: X, info_value: float, queried: bool, additional_info: CandInfo) -> None:
         log_query_decision_set_name = self.database_info.log_query_decision_set_name
         input_reference = self.database_info.create_reference_from_sql_definition(self.database_info.input_definition)
         log_query_decision_information_reference = self.database_info.create_reference_from_sql_definition(self.database_info.log_query_decision_information_definition)
