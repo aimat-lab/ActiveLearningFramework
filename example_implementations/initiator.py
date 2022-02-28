@@ -23,17 +23,21 @@ class ButeneEnergyForceInitiator(InitiationHelper):
 
     def __init__(self):
         self.scenario = Scenarios.PbS
-
-        x = np.array([instance.flatten() for instance in np.load("example_implementations/butene_data/butene_x.npy")])
+        x_loaded = np.load("example_implementations/butene_data/butene_x.npy")
+        x = np.array([instance.flatten() for instance in x_loaded[50:]])
+        x_test = x_loaded[:50]
         eng = np.load("example_implementations/butene_data/butene_energy.npy")
         grads = np.load("example_implementations/butene_data/butene_force.npy")
+        eng_test, grads_test = eng[:50], grads[:50]
+        eng, grads = eng[50:], grads[50:]
+
         y = np.array([np.append(eng[i].flatten(), grads[i].flatten()) for i in range(len(eng))])
         host, user, password, database = "localhost", "root", "toor", "butene_energy_force"
 
         self.x_train_init, self.y_train_init, x, y = x[:20], y[:20], x[20:], y[20:]
 
-        self.pl: PassiveLearner = ButenePassiveLearner()
-        self.ro_pl: ReadOnlyPassiveLearner = ButenePassiveLearner()
+        self.pl: PassiveLearner = ButenePassiveLearner(x_test, eng_test, grads_test)
+        self.ro_pl: ReadOnlyPassiveLearner = ButenePassiveLearner(x_test, eng_test, grads_test)
 
         self.mapper_function_prediction_to_candidate_info = get_candidate_additional_information
         example_x = x[0]

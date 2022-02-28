@@ -1,3 +1,4 @@
+import logging
 import string
 from typing import Tuple, Sequence
 
@@ -164,8 +165,14 @@ class ButenePool(Pool):
         sql = f"DELETE FROM {candidate_set_name} WHERE {input_equal_check}"
         val = self.database_info.x_to_str_tuple(x)
 
-        cursor.execute(sql, val)
-        db.commit()
+        for i in range(10):
+            try:
+                cursor.execute(sql, val)
+                db.commit()
+            except Exception as e:
+                logging.error(e)
+                continue
+            break
 
         db.close()
 

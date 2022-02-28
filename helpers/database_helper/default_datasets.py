@@ -124,7 +124,7 @@ class DefaultTrainingSet(TrainingSet):
             raise NoNewElementException(f"{schema_name}.{training_set_name}")
 
         x = np.array(result[0][1:x_size + 1])
-        y = result[0][-y_size:]
+        y = np.array(result[0][-y_size:])
 
         return x, y
 
