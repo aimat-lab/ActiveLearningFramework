@@ -1,11 +1,9 @@
 import logging
-from tqdm import tqdm
 
 from al_specific_components.candidate_update.candidate_updater_implementations import Pool
 from al_specific_components.query_selection import QuerySelector
 from al_specific_components.query_selection.informativeness_analyser import InformativenessAnalyser
 from helpers import X
-
 from helpers.exceptions import IncorrectParameters
 
 log = logging.getLogger("PbS query selector")
@@ -35,14 +33,7 @@ class PbS_QuerySelector(QuerySelector):
         (xs, _) = self.candidate_set.retrieve_all_instances()
 
         log.debug("Evaluate informativeness for all instances => find maximizing instance")
-        max_x, max_info = None, -1
-        with tqdm(total=len(xs), position=1, desc="Evaluation of candidate pool", ascii=True) as progress:
-            for x in xs:
-                info = self.info_analyser.get_informativeness(x)
-                if max_info < info:
-                    max_x = x
-                    max_info = info
-                progress.update(1)
+        max_info, max_x = sorted([(self.info_analyser.get_informativeness(x), x) for x in xs], key=lambda x: x[0], reverse=True)[0]
 
         log.info(f"Found maximizing instance")
         return max_x, max_info, True

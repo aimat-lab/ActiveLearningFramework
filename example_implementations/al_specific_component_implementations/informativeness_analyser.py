@@ -19,13 +19,13 @@ class UncertaintyInfoAnalyser(InformativenessAnalyser):
         self.amount_instances = 0
 
     def get_informativeness(self, x):
-        _, (uncertainty, _) = self.candidate_set.get_instance(x)
-        self.mean = (self.mean * self.amount_instances + uncertainty) / (self.amount_instances + 1)
+        _, uncertainty = self.candidate_set.get_instance(x)
+        self.mean = (self.mean * self.amount_instances + uncertainty[0]) / (self.amount_instances + 1)
         if self.amount_instances > 3000:
             self.amount_instances = 50
         else:
             self.amount_instances += 1
         # normalization: if certainty equals the mean of the last uncertainties: informativeness = 0.5
-        normalized_uncertainty = uncertainty / (2 * self.mean)
+        normalized_uncertainty = uncertainty[0] / (2 * self.mean)
         return normalized_uncertainty
 

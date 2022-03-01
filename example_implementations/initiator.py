@@ -24,12 +24,12 @@ class ButeneEnergyForceInitiator(InitiationHelper):
     def __init__(self):
         self.scenario = Scenarios.PbS
         x_loaded = np.load("example_implementations/butene_data/butene_x.npy")
-        x = np.array([instance.flatten() for instance in x_loaded[50:]])
+        x = np.array([instance.flatten() for instance in x_loaded[50:150]])
         x_test = x_loaded[:50]
         eng = np.load("example_implementations/butene_data/butene_energy.npy")
         grads = np.load("example_implementations/butene_data/butene_force.npy")
         eng_test, grads_test = eng[:50], grads[:50]
-        eng, grads = eng[50:], grads[50:]
+        eng, grads = eng[50:150], grads[50:150]
 
         y = np.array([np.append(eng[i].flatten(), grads[i].flatten()) for i in range(len(eng))])
         host, user, password, database = "localhost", "root", "toor", "butene_energy_force"
@@ -72,8 +72,8 @@ class ButeneEnergyForceInitiator(InitiationHelper):
     def get_ro_pl(self) -> ReadOnlyPassiveLearner:
         return self.ro_pl
 
-    def get_initial_training_data(self) -> Tuple[Sequence[X], Sequence[Y], Optional[int], Optional[int]]:
-        return self.x_train_init, self.y_train_init, 0, 0
+    def get_initial_training_data(self) -> Tuple[Sequence[X], Sequence[Y]]:
+        return self.x_train_init, self.y_train_init
 
     def get_oracle(self) -> Oracle:
         return self.oracle
