@@ -68,11 +68,11 @@ class QuerySelectionController:
                     if gets_queried:
                         self.candidate_set.remove_instance(query_instance)
                         self.query_set.add_instance(query_instance)
-                        log.info(f"Selected new unlabelled query: x = `{query_instance}`")
+                        log.info(f"Selected new unlabelled query x")
                         break
                     else:
                         self.candidate_set.remove_instance(query_instance)
-                        log.info(f"Discarded the candidate: x = `{query_instance}`")
+                        log.info(f"Discarded the candidate")
 
             except NoNewElementException:
                 if system_state.value == int(SystemStates.FINISH_TRAINING__INFO):

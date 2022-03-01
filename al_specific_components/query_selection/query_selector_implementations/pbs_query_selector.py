@@ -44,5 +44,5 @@ class PbS_QuerySelector(QuerySelector):
                     max_info = info
                 progress.update(1)
 
-        log.debug(f"Found maximizing instance: max_info={max_info}, max_x={max_x}")
+        log.info(f"Found maximizing instance")
         return max_x, max_info, True

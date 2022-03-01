@@ -80,7 +80,7 @@ class OracleController:
             try:
                 label = self.o.query(query_instance)
             except CantResolveQueryException:
-                log.info(f"Can't resolve query => discard the input x={query_instance}")
+                log.info(f"Can't resolve query => discard input x")
                 self.query_set.remove_instance(query_instance)
 
                 self.training_job(system_state)
@@ -89,7 +89,7 @@ class OracleController:
             self.query_set.remove_instance(query_instance)
             self.training_set.append_labelled_instance(query_instance, label)
 
-            log.info(f"Query for instance x resolved with label y, added to training set and stored labelled set for PL; x = `{query_instance}`, y = `{label}`")
+            log.info(f"Query for instance x resolved with label y, added to training set and stored labelled set for PL")
 
             self.training_job(system_state)
             return

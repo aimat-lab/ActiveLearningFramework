@@ -102,7 +102,7 @@ class PassiveLearnerController:
                     self.training_job(system_state, sl_model_gets_stored)
                     return
 
-            log.info(f"Train PL with (x, y): x = `{x_train}`, y = `{y_train}`")
+            log.info(f"Train PL with (x, y)")
 
             sl_model_gets_stored.acquire()
             try:
@@ -121,7 +121,7 @@ class PassiveLearnerController:
             sl_model_gets_stored.release()
 
             self.training_set.set_instance_not_use_for_training(x_train)
-            log.info(f"Set (x, y) to not be part of active training any more => PL already trained with it: x = `{x_train}`, y = `{y_train}`")
+            log.info(f"Set (x, y) to not be part of active training any more => PL already trained with it")
 
             self.pl.load_model()
             if self.pl.sl_model_satisfies_evaluation():

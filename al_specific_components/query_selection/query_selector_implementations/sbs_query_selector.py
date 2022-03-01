@@ -33,12 +33,11 @@ class SbS_QuerySelector(QuerySelector):
         """
         log.debug("Retrieve candidate")
         (x, _) = self.candidate_set.get_first_instance()
-        log.debug(f"Evaluate informativeness of candidate x: {x}")
+        log.debug(f"Evaluate informativeness of candidate x")
         info = self.info_analyser.get_informativeness(x)
-        log.debug(f"Informativeness for x: info={info}, x={x}")
         if self.decide_discard(info):
-            log.debug(f"Decided to discard {x}")
+            log.debug(f"Decided to discard")
             return x, info, False
         else:
-            log.debug(f"Decided to query {x}")
+            log.debug(f"Decided to query")
             return x, info, True
