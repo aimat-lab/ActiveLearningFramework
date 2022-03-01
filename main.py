@@ -71,8 +71,8 @@ if __name__ == '__main__':
 
         # initial training, data source update
         log.info("Initial training and first candidate update")
-        x_train, y_train, epochs, batch_size = init_helper.get_initial_training_data()
-        pl.init_pl(x_train, y_train, batch_size=batch_size, epochs=epochs)  # training with initial training data
+        x_train, y_train = init_helper.get_initial_training_data()
+        pl.init_pl(x_train, y_train)  # training with initial training data
         cand_up.init_candidates()
         for i in range(len(x_train)):
             training_set.append_labelled_instance(x_train[i], y_train[i])  # add initial training data to stored labelled set # TODO: correct to do this?

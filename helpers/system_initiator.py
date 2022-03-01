@@ -66,15 +66,11 @@ class InitiationHelper:
         # case implementation: implement concrete read only sl model
         raise NotImplementedError
 
-    def get_initial_training_data(self) -> Tuple[Sequence[X], Sequence[Y], Optional[int], Optional[int]]:
+    def get_initial_training_data(self) -> Tuple[Sequence[X], Sequence[Y]]:
         """
         Returns labelled data for the initial training episode of the pl
 
-        can return additional properties for this training:
-            - epochs
-            - batch_size
-
-        :return: input data, correct output, optional epochs, optional batch_size
+        :return: input data, correct output
         """
         # case implementation: set the initial training data for the sl model
         raise NotImplementedError

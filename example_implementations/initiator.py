@@ -5,7 +5,7 @@ import numpy as np
 from al_specific_components.candidate_update.candidate_updater_implementations import Pool, Stream, Generator
 from al_specific_components.query_selection.informativeness_analyser import InformativenessAnalyser
 from basic_sl_component_interfaces import Oracle, ReadOnlyPassiveLearner, PassiveLearner
-from example_implementations.al_specific_component_implementations import EverythingIsInformativeAnalyser, ButenePool
+from example_implementations.al_specific_component_implementations import UncertaintyInfoAnalyser, ButenePool
 from example_implementations.basic_sl_component_implementations import ButenePassiveLearner, ButeneOracle
 from helpers import X, Y, Scenarios, AddInfo_Y, CandInfo
 from helpers.database_helper.default_database_initiator import get_default_databases
@@ -16,7 +16,7 @@ from workflow_management.database_interfaces import TrainingSet, CandidateSet, L
 
 # noinspection PyUnusedLocal
 def get_candidate_additional_information(x: X, prediction: Y, additional_prediction_info: AddInfo_Y) -> CandInfo:
-    return tuple(prediction)
+    return np.mean(np.var(additional_prediction_info[:2])) * 1 + np.mean(np.var(additional_prediction_info[2:])) * 5,
 
 
 class ButeneEnergyForceInitiator(InitiationHelper):
@@ -47,9 +47,9 @@ class ButeneEnergyForceInitiator(InitiationHelper):
         self.candidate_set = ButenePool(host, user, password, database, example_x, example_cand_info)
         self.candidate_set.initiate_pool(x)
 
-        self.info_analyser = EverythingIsInformativeAnalyser()
-
         self.training_set, self.candidate_set, self.log_qd_db, self.query_set = get_default_databases(self.scenario, self.candidate_set, self.pl, self.mapper_function_prediction_to_candidate_info, host, user, password, database)
+
+        self.info_analyser = UncertaintyInfoAnalyser(candidate_set=self.candidate_set)
 
         assert isinstance(self.training_set, DefaultTrainingSet)
         self.oracle: Oracle = ButeneOracle(host, user, password, database, self.training_set.database_info.input_definition, self.training_set.database_info.output_definition, xs=x, ys=y)

@@ -38,7 +38,7 @@ class PassiveLearnerController:
             log.error("During saving of model, an error occurred", e)
             raise StoringModelException("Passive learner (within pl controller)")
 
-    def init_pl(self, x_train: Sequence[X], y_train: Sequence[Y], **kwargs):
+    def init_pl(self, x_train: Sequence[X], y_train: Sequence[Y]):
         """
         Initialize the sl model
 
@@ -47,14 +47,11 @@ class PassiveLearnerController:
 
         :param x_train: Initial training data input (list of input data, most likely numpy array)
         :param y_train: Initial training data labels (list of assigned output to input data, most likely numpy array)
-        :param kwargs: can provide the `batch_size` and `epochs` for initial training
         """
 
         log.info("Initial training of pl")
 
-        batch_size = kwargs.get("batch_size")
-        epochs = kwargs.get("epochs")
-        self.pl.initial_training(x_train, y_train, batch_size=batch_size, epochs=epochs)
+        self.pl.initial_training(x_train, y_train)
         self.save_sl_model()
 
     def training_job(self, system_state: ValueProxy, sl_model_gets_stored: synchronize.Lock):

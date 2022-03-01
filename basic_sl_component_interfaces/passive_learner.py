@@ -28,13 +28,12 @@ class PassiveLearner(ReadOnlyPassiveLearner):
         """
         raise NotImplementedError
 
-    def initial_training(self, x_train: Sequence[X], y_train: Sequence[Y], **kwargs) -> None:
+    def initial_training(self, x_train: Sequence[X], y_train: Sequence[Y]) -> None:
         """
         Initial batch training => for determination of initial weights
 
         :param x_train: training input (array of input data)
         :param y_train: training labels (array of correct output data)
-        :param kwargs: can contain additional properties for the training
         """
         raise NotImplementedError
 
