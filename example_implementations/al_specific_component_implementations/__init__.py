@@ -1,2 +1,2 @@
-from .informativeness_analyser import EverythingIsInformativeAnalyser, UncertaintyInfoAnalyser
 from .butene_pool import ButenePool
+from .informativeness_analyser import EverythingIsInformativeAnalyser, UncertaintyInfoAnalyser

@@ -1,5 +1,3 @@
-import numpy as np
-
 from al_specific_components.query_selection.informativeness_analyser import InformativenessAnalyser
 from helpers import X
 from workflow_management.database_interfaces import CandidateSet
@@ -28,4 +26,3 @@ class UncertaintyInfoAnalyser(InformativenessAnalyser):
         # normalization: if certainty equals the mean of the last uncertainties: informativeness = 0.5
         normalized_uncertainty = uncertainty[0] / (2 * self.mean)
         return normalized_uncertainty
-

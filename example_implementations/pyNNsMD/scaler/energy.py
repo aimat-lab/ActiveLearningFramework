@@ -6,7 +6,6 @@ import json
 
 import numpy as np
 import tensorflow as tf
-import tensorflow.keras as ks
 from tensorflow.keras import backend as K
 
 
@@ -56,8 +55,8 @@ class EnergyStandardScaler:
         self._encountered_y_std = np.std(y, axis=0)
 
     def fit_transform(self, x=None, y=None, auto_scale=None):
-        self.fit(x=x,y=y,auto_scale=auto_scale)
-        return self.transform(x=x,y=y)
+        self.fit(x=x, y=y, auto_scale=auto_scale)
+        return self.transform(x=x, y=y)
 
     def save(self, filepath):
         outdict = {'x_mean': self.x_mean.tolist(),
@@ -159,8 +158,8 @@ class EnergyGradientStandardScaler:
         self._encountered_y_std = [np.std(y[0], axis=0), np.std(y[1], axis=(0, 2, 3))]
 
     def fit_transform(self, x=None, y=None, auto_scale=None):
-        self.fit(x=x,y=y,auto_scale=auto_scale)
-        return self.transform(x=x,y=y)
+        self.fit(x=x, y=y, auto_scale=auto_scale)
+        return self.transform(x=x, y=y)
 
     def save(self, filepath):
         outdict = {'x_mean': self.x_mean.tolist(),
@@ -211,6 +210,7 @@ class EnergyGradientStandardScaler:
         print("Info: Using gradient-mean", self.gradient_mean.shape, ":", self.gradient_mean[0, :, 0, 0])
         print("Info: Using x-scale", self.x_std.shape, ":", self.x_std)
         print("Info: Using x-offset", self.x_mean.shape, ":", self.x_mean)
+
 
 class MaskedEnergyGradientStandardScaler:
     def __init__(self):
@@ -255,7 +255,7 @@ class MaskedEnergyGradientStandardScaler:
     def fit(self, x=None, y=None, auto_scale=None):
         if auto_scale is None:
             auto_scale = {'x_mean': True, 'x_std': True, 'energy_std': True, 'energy_mean': True}
-        
+
         npeps = np.finfo(float).eps
         if auto_scale['x_mean']:
             self.x_mean = np.mean(x)
@@ -263,18 +263,18 @@ class MaskedEnergyGradientStandardScaler:
             self.x_std = np.std(x) + npeps
         if auto_scale['energy_mean']:
             y1 = y[0]
-            #self.energy_mean = np.zeros((1, y1.shape[1]))
+            # self.energy_mean = np.zeros((1, y1.shape[1]))
             if self.mask is None:
                 self.mask = K.cast(K.not_equal(y1, 0.0), tf.float64)
             self.energy_mean = np.sum(self.mask * y1, axis=0, keepdims=True) / np.sum(self.mask, axis=0, keepdims=True)
-            #self.energy_mean = np.mean(y1, axis=0, keepdims=True)
+            # self.energy_mean = np.mean(y1, axis=0, keepdims=True)
         if auto_scale['energy_std']:
             y1 = y[0]
-            #self.energy_std = np.zeros((1, y1.shape[1]))
+            # self.energy_std = np.zeros((1, y1.shape[1]))
             if self.mask is None:
                 self.mask = K.cast(K.not_equal(y1, 0.0), tf.float64)
-            self.energy_std = np.sqrt(np.sum(np.square((y1 - self.energy_mean) * self.mask), axis=0, keepdims=True)/np.sum(self.mask, axis=0, keepdims=True)) + npeps
-            #self.energy_std = np.std(y1, axis=0, keepdims=True) + npeps
+            self.energy_std = np.sqrt(np.sum(np.square((y1 - self.energy_mean) * self.mask), axis=0, keepdims=True) / np.sum(self.mask, axis=0, keepdims=True)) + npeps
+            # self.energy_std = np.std(y1, axis=0, keepdims=True) + npeps
         self.gradient_std = np.expand_dims(np.expand_dims(self.energy_std, axis=-1), axis=-1) / self.x_std + npeps
         self.gradient_mean = np.zeros_like(self.gradient_std, dtype=np.float64)  # no mean shift expected
 
@@ -282,8 +282,8 @@ class MaskedEnergyGradientStandardScaler:
         self._encountered_y_std = [np.std(y[0], axis=0), np.std(y[1], axis=(0, 2, 3))]
 
     def fit_transform(self, x=None, y=None, auto_scale=None):
-        self.fit(x=x,y=y,auto_scale=auto_scale)
-        return self.transform(x=x,y=y)
+        self.fit(x=x, y=y, auto_scale=auto_scale)
+        return self.transform(x=x, y=y)
 
     def save(self, filepath):
         outdict = {'x_mean': self.x_mean.tolist(),
@@ -338,6 +338,7 @@ class MaskedEnergyGradientStandardScaler:
         print("Info: Using gradient-mean", self.gradient_mean.shape, ":", self.gradient_mean[0, :, 0, 0])
         print("Info: Using x-scale", self.x_std.shape, ":", self.x_std)
         print("Info: Using x-offset", self.x_mean.shape, ":", self.x_mean)
+
 
 class GradientStandardScaler:
     def __init__(self):
@@ -384,8 +385,8 @@ class GradientStandardScaler:
         self._encountered_y_shape = np.array(y.shape)
 
     def fit_transform(self, x=None, y=None, auto_scale=None):
-        self.fit(x=x,y=y,auto_scale=auto_scale)
-        return self.transform(x=x,y=y)
+        self.fit(x=x, y=y, auto_scale=auto_scale)
+        return self.transform(x=x, y=y)
 
     def save(self, filepath):
         outdict = {'x_mean': self.x_mean.tolist(),

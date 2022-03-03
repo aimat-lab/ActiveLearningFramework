@@ -39,9 +39,9 @@ class EnergyGradientModel(ks.Model):
                  use_dropout=False,
                  dropout=0.01,
                  normalization_mode=1,
-                 energy_only = False,
-                 precomputed_features = False,
-                 output_as_dict = False,
+                 energy_only=False,
+                 precomputed_features=False,
+                 output_as_dict=False,
                  **kwargs):
         """
         Initialize Layer
@@ -269,15 +269,15 @@ class EnergyGradientModel(ks.Model):
         })
         return conf
 
-    def save(self,filepath,**kwargs):
+    def save(self, filepath, **kwargs):
         # copy to new model
         self_conf = self.get_config()
         self_conf['precomputed_features'] = False
         copy_model = EnergyGradientModel(**self_conf)
         copy_model.set_weights(self.get_weights())
         # Make graph and test with training data
-        copy_model.predict(np.ones((1,self.eg_atoms,3)))
-        tf.keras.models.save_model(copy_model,filepath,**kwargs)
+        copy_model.predict(np.ones((1, self.eg_atoms, 3)))
+        tf.keras.models.save_model(copy_model, filepath, **kwargs)
 
     @classmethod
     def from_config(cls, config):

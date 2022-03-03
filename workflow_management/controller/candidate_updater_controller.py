@@ -3,8 +3,8 @@ from multiprocessing import synchronize
 from multiprocessing.managers import ValueProxy
 from typing import Callable
 
-from basic_sl_component_interfaces import ReadOnlyPassiveLearner
 from al_specific_components.candidate_update import CandidateUpdater, init_candidate_updater
+from basic_sl_component_interfaces import ReadOnlyPassiveLearner
 from helpers import Scenarios, SystemStates, X, Y, AddInfo_Y, CandInfo
 from helpers.exceptions import NoMoreCandidatesException, LoadingModelException, ClosingModelException
 from workflow_management.database_interfaces import CandidateSet

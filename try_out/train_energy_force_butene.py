@@ -1,9 +1,9 @@
 import numpy as np
 import tensorflow as tf
-
-from example_implementations.pyNNsMD.models.mlp_eg import EnergyGradientModel
 from pyNNsMD.scaler.energy import EnergyGradientStandardScaler
 from pyNNsMD.utils.loss import ScaledMeanAbsoluteError
+
+from example_implementations.pyNNsMD.models.mlp_eg import EnergyGradientModel
 
 
 def store():

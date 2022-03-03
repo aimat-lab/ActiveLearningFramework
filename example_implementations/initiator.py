@@ -16,6 +16,8 @@ from workflow_management.database_interfaces import TrainingSet, CandidateSet, L
 
 # noinspection PyUnusedLocal
 def get_candidate_additional_information(x: X, prediction: Y, additional_prediction_info: AddInfo_Y) -> CandInfo:
+    if any([math.isnan(elem) for elem in prediction]) or any([math.isnan(elem) for elem in additional_prediction_info]):
+        raise Exception
     uncertainty = np.mean(np.var(additional_prediction_info[:2])) * 1 + np.mean(np.var(additional_prediction_info[2:])) * 5
     return uncertainty,
 

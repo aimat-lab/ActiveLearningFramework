@@ -1,10 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-
-from example_implementations.pyNNsMD.models.mlp_eg import EnergyGradientModel
 from pyNNsMD.plots.pred import plot_scatter_prediction
 from pyNNsMD.scaler.energy import EnergyGradientStandardScaler
+
+from example_implementations.pyNNsMD.models.mlp_eg import EnergyGradientModel
 
 
 def load():

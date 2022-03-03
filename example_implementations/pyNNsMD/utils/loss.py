@@ -12,7 +12,7 @@ from tensorflow.keras import backend as K
 
 def mask_MeanSquaredError(y_true, y_pred):
     mask = K.cast(K.not_equal(y_true, 0.0), K.floatx())
-    return K.sum(K.square(y_true*mask - y_pred*mask))/(K.sum(mask))
+    return K.sum(K.square(y_true * mask - y_pred * mask)) / (K.sum(mask))
 
 
 class ScaledMeanAbsoluteError(tf.keras.metrics.MeanAbsoluteError):
@@ -24,9 +24,9 @@ class ScaledMeanAbsoluteError(tf.keras.metrics.MeanAbsoluteError):
         self.scaling_shape = scaling_shape
 
     def reset_states(self):
-            # Super variables
-            ks.backend.set_value(self.total, 0)
-            ks.backend.set_value(self.count, 0)
+        # Super variables
+        ks.backend.set_value(self.total, 0)
+        ks.backend.set_value(self.count, 0)
 
     def update_state(self, y_true, y_pred, sample_weight=None):
         y_true = self.scale * y_true
@@ -39,7 +39,7 @@ class ScaledMeanAbsoluteError(tf.keras.metrics.MeanAbsoluteError):
         mae_conf.update({"scaling_shape": self.scaling_shape})
         return mae_conf
 
-    def set_scale(self,scale):
+    def set_scale(self, scale):
         ks.backend.set_value(self.scale, scale)
 
 
@@ -53,9 +53,9 @@ class MaskedScaledMeanAbsoluteError(tf.keras.metrics.Metric):
         self.count = self.add_weight(name='count', initializer='zeros')
 
     def reset_states(self):
-            # Super variables
-            ks.backend.set_value(self.total, 0)
-            ks.backend.set_value(self.count, 0)
+        # Super variables
+        ks.backend.set_value(self.total, 0)
+        ks.backend.set_value(self.count, 0)
 
     def update_state(self, y_true, y_pred, sample_weight=None):
         mask = K.cast(K.not_equal(y_true, 0.0), K.floatx())
@@ -63,10 +63,10 @@ class MaskedScaledMeanAbsoluteError(tf.keras.metrics.Metric):
         y_pred = self.scale * y_pred
         self.total.assign_add(K.sum(K.abs(y_true - y_pred) * mask))
         self.count.assign_add(K.sum(mask))
-        #return super(ScaledMeanAbsoluteError, self).update_state(y_true, y_pred, sample_weight=sample_weight)
+        # return super(ScaledMeanAbsoluteError, self).update_state(y_true, y_pred, sample_weight=sample_weight)
 
     def result(self):
-        return self.total/self.count
+        return self.total / self.count
 
     def get_config(self):
         """Returns the serializable config of the metric."""
@@ -74,7 +74,7 @@ class MaskedScaledMeanAbsoluteError(tf.keras.metrics.Metric):
         mae_conf.update({"scaling_shape": self.scaling_shape})
         return mae_conf
 
-    def set_scale(self,scale):
+    def set_scale(self, scale):
         ks.backend.set_value(self.scale, scale)
 
 
@@ -82,9 +82,10 @@ class ZeroEmptyLoss(tf.keras.losses.Loss):
     """
     Empty constant zero loss.
     """
-    def __init__(self,**kwargs):
+
+    def __init__(self, **kwargs):
         self.zero_empty = tf.constant(0)
-        super(ZeroEmptyLoss,self).__init__(**kwargs)
+        super(ZeroEmptyLoss, self).__init__(**kwargs)
 
     def call(self, y_true, y_pred):
         """
@@ -143,7 +144,7 @@ def masked_r2_metric(y_true, y_pred):
     """
     mask = K.cast(K.not_equal(y_true, 0.0), K.floatx())
     ss_res = ks.backend.sum(ks.backend.square(y_true * mask - y_pred * mask))
-    ss_tot = K.sum(K.square((y_true * mask - K.sum(y_true * mask)/K.sum(mask)) * mask))
+    ss_tot = K.sum(K.square((y_true * mask - K.sum(y_true * mask) / K.sum(mask)) * mask))
     return 1 - ss_res / (ss_tot + ks.backend.epsilon())
 
 
@@ -163,7 +164,6 @@ def merge_hist(hist1, hist2):
     for x, y in hist1.items():
         outhist.update({x: hist1[x] + hist2[x]})
     return outhist
-
 
 
 class NACphaselessLoss(ks.losses.Loss):
