@@ -116,8 +116,8 @@ class ButenePassiveLearner(PassiveLearner):
             self.x_train = np.append(self.x_train, [x], axis=0)
             self.y_train = np.append(self.y_train, [y], axis=0)
 
+        self.train_batch(self.x_train, self.y_train)
         if len(self.x_train) > 5:
-            self.train_batch(self.x_train, self.y_train)
             self.x_train, self.y_train = self.x_train[1:], self.y_train[1:]
 
     def train_batch(self, xs: Sequence[X], ys: Sequence[Y]):
@@ -128,13 +128,13 @@ class ButenePassiveLearner(PassiveLearner):
         self.model_a.precomputed_features = True
         feat_x, feat_grad = self.model_a.precompute_feature_in_chunks(x=x_scaled, batch_size=2)
         self.model_a.set_const_normalization_from_features(feat_x)
-        self.model_a.fit(x=[feat_x, feat_grad], y=[y_scaled[0], y_scaled[1]], batch_size=5, epochs=2, verbose=2)
+        self.model_a.fit(x=[feat_x, feat_grad], y=[y_scaled[0], y_scaled[1]], batch_size=5, epochs=1, verbose=2)
         self.model_a.precomputed_features = False
 
         self.model_b.precomputed_features = True
         feat_x, feat_grad = self.model_b.precompute_feature_in_chunks(x=x_scaled, batch_size=2)
         self.model_b.set_const_normalization_from_features(feat_x)
-        self.model_b.fit(x=[feat_x, feat_grad], y=[y_scaled[0], y_scaled[1]], batch_size=5, epochs=2, verbose=2)
+        self.model_b.fit(x=[feat_x, feat_grad], y=[y_scaled[0], y_scaled[1]], batch_size=5, epochs=1, verbose=2)
         self.model_b.precomputed_features = False
 
     def sl_model_satisfies_evaluation(self) -> bool:
