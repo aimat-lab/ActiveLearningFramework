@@ -6,7 +6,7 @@ import numpy as np
 
 from al_specific_components.candidate_update.candidate_updater_implementations import Pool
 from helpers import X, CandInfo
-from helpers.database_helper.database_info_store import DefaultDatabaseHelper
+from helpers.database_helper import DatabaseInfoStore
 from helpers.exceptions import NoNewElementException, NoSuchElementException
 
 
@@ -15,9 +15,9 @@ class ButenePool(Pool):
     def __init__(self, host: string, user: string, password: string, database: string, example_x: X, example_cand_info: CandInfo):
         x_sql_definition = ", ".join(["x_" + str(i) + " double" for i in range(len(example_x))])
         cand_info_sql_definition = ", ".join(["cand_info_" + str(i) + " double" for i in range(len(example_cand_info))])
-        self.database_info = DefaultDatabaseHelper(host=host, user=user, password=password, database=database,
-                                                   input_definition=x_sql_definition, additional_candidate_information_definition=cand_info_sql_definition, output_definition="",
-                                                   candidate_set_name="candidate_pool")
+        self.database_info = DatabaseInfoStore(host=host, user=user, password=password, database=database,
+                                               input_definition=x_sql_definition, additional_candidate_information_definition=cand_info_sql_definition, output_definition="",
+                                               candidate_set_name="candidate_pool")
 
         candidate_set_name = self.database_info.candidate_set_name
         input_definition = self.database_info.input_definition
@@ -68,7 +68,13 @@ class ButenePool(Pool):
         val = []
         for i in range(len(xs)):
             val.append(self.database_info.additional_candidate_information_to_str_tuple(new_additional_infos[i]) + self.database_info.x_to_str_tuple(xs[i]))
-
+            if len(val) >= 100:
+                try:
+                    cursor.executemany(sql, val)
+                except Exception as e:
+                    raise e
+                db.commit()
+                val = []
         cursor.executemany(sql, val)
         db.commit()
 

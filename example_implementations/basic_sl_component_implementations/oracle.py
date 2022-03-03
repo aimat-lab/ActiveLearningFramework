@@ -3,7 +3,7 @@ from typing import Sequence
 
 from basic_sl_component_interfaces import Oracle
 from helpers import X, Y
-from helpers.database_helper.database_info_store import DefaultDatabaseHelper
+from helpers.database_helper import DatabaseInfoStore
 from helpers.exceptions import CantResolveQueryException
 
 oracle_set: string = "oracle_ground_truth_set"
@@ -12,7 +12,7 @@ oracle_set: string = "oracle_ground_truth_set"
 class ButeneOracle(Oracle):
 
     def __init__(self, host: string, user: string, password: string, database: string, input_definition: string, output_definition: string, xs: Sequence[X], ys: Sequence[Y]):
-        self.database_info = DefaultDatabaseHelper(host=host, user=user, password=password, database=database, input_definition=input_definition, output_definition=output_definition, additional_candidate_information_definition="")
+        self.database_info = DatabaseInfoStore(host=host, user=user, password=password, database=database, input_definition=input_definition, output_definition=output_definition, additional_candidate_information_definition="")
 
         input_reference = self.database_info.create_reference_from_sql_definition(self.database_info.input_definition)
         output_reference = self.database_info.create_reference_from_sql_definition(self.database_info.output_definition)

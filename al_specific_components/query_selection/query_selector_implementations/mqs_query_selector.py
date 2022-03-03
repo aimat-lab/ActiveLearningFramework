@@ -1,7 +1,6 @@
 import logging
 
-from al_specific_components.query_selection import QuerySelector
-from al_specific_components.query_selection.informativeness_analyser import InformativenessAnalyser
+from al_specific_components.query_selection import QuerySelector, InformativenessAnalyser
 from helpers import X
 from workflow_management.database_interfaces import CandidateSet
 

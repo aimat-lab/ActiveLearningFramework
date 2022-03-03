@@ -9,7 +9,7 @@ from helpers import X, Y, CandInfo
 
 # noinspection PyMethodMayBeStatic
 @dataclass()
-class DefaultDatabaseHelper:
+class DatabaseInfoStore:
     host: string
     user: string
     password: string

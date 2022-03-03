@@ -1,10 +1,10 @@
-from typing import Tuple, Optional, Callable, Sequence
+from typing import Tuple, Callable, Sequence
 
-from basic_sl_component_interfaces import PassiveLearner, Oracle, ReadOnlyPassiveLearner
 from al_specific_components.candidate_update.candidate_updater_implementations import Pool, Stream, Generator
-from al_specific_components.query_selection.informativeness_analyser import InformativenessAnalyser
+from al_specific_components.query_selection import InformativenessAnalyser
+from basic_sl_component_interfaces import PassiveLearner, Oracle, ReadOnlyPassiveLearner
 from helpers import Scenarios, X, Y, AddInfo_Y, CandInfo
-from helpers.database_helper.default_database_initiator import get_default_databases
+from helpers.database_helper.default_datasets import get_default_databases
 from workflow_management.database_interfaces import CandidateSet, QuerySet, TrainingSet, LogQueryDecisionDB
 
 

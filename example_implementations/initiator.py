@@ -1,22 +1,23 @@
-from typing import Tuple, Sequence, Optional, Callable
+import math
+from typing import Tuple, Sequence, Callable
 
 import numpy as np
 
 from al_specific_components.candidate_update.candidate_updater_implementations import Pool, Stream, Generator
-from al_specific_components.query_selection.informativeness_analyser import InformativenessAnalyser
+from al_specific_components.query_selection import InformativenessAnalyser
 from basic_sl_component_interfaces import Oracle, ReadOnlyPassiveLearner, PassiveLearner
 from example_implementations.al_specific_component_implementations import UncertaintyInfoAnalyser, ButenePool
 from example_implementations.basic_sl_component_implementations import ButenePassiveLearner, ButeneOracle
 from helpers import X, Y, Scenarios, AddInfo_Y, CandInfo
-from helpers.database_helper.default_database_initiator import get_default_databases
-from helpers.database_helper.default_datasets import DefaultTrainingSet
+from helpers.database_helper.default_datasets import get_default_databases, DefaultTrainingSet
 from helpers.system_initiator import InitiationHelper
 from workflow_management.database_interfaces import TrainingSet, CandidateSet, LogQueryDecisionDB, QuerySet
 
 
 # noinspection PyUnusedLocal
 def get_candidate_additional_information(x: X, prediction: Y, additional_prediction_info: AddInfo_Y) -> CandInfo:
-    return np.mean(np.var(additional_prediction_info[:2])) * 1 + np.mean(np.var(additional_prediction_info[2:])) * 5,
+    uncertainty = np.mean(np.var(additional_prediction_info[:2])) * 1 + np.mean(np.var(additional_prediction_info[2:])) * 5
+    return uncertainty,
 
 
 class ButeneEnergyForceInitiator(InitiationHelper):
@@ -24,17 +25,17 @@ class ButeneEnergyForceInitiator(InitiationHelper):
     def __init__(self):
         self.scenario = Scenarios.PbS
         x_loaded = np.load("example_implementations/butene_data/butene_x.npy")
-        x = np.array([instance.flatten() for instance in x_loaded[50:150]])
+        x = np.array([instance.flatten() for instance in x_loaded[50:1000]])
         x_test = x_loaded[:50]
         eng = np.load("example_implementations/butene_data/butene_energy.npy")
         grads = np.load("example_implementations/butene_data/butene_force.npy")
         eng_test, grads_test = eng[:50], grads[:50]
-        eng, grads = eng[50:150], grads[50:150]
+        eng, grads = eng[50:1000], grads[50:1000]
 
         y = np.array([np.append(eng[i].flatten(), grads[i].flatten()) for i in range(len(eng))])
         host, user, password, database = "localhost", "root", "toor", "butene_energy_force"
 
-        self.x_train_init, self.y_train_init, x, y = x[:20], y[:20], x[20:], y[20:]
+        self.x_train_init, self.y_train_init, x, y = x[:5], y[:5], x[5:], y[5:]
 
         self.pl: PassiveLearner = ButenePassiveLearner(x_test, eng_test, grads_test)
         self.ro_pl: ReadOnlyPassiveLearner = ButenePassiveLearner(x_test, eng_test, grads_test)
