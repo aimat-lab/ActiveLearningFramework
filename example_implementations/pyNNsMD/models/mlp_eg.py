@@ -5,10 +5,9 @@ There are two definitions: the subclassed EnergyGradientModel and a precomputed 
 multiply with the feature derivative for training, which overwrites training/predict step.
 """
 
+import keras as ks
 import numpy as np
 import tensorflow as tf
-import tensorflow.keras as ks
-
 from pyNNsMD.layers.features import FeatureGeometric
 from pyNNsMD.layers.gradients import EmptyGradient
 from pyNNsMD.layers.mlp import MLP
@@ -278,6 +277,16 @@ class EnergyGradientModel(ks.Model):
         # Make graph and test with training data
         copy_model.predict(np.ones((1, self.eg_atoms, 3)))
         tf.keras.models.save_model(copy_model, filepath, **kwargs)
+
+    def save_weights(self,
+                     filepath,
+                     overwrite=True,
+                     save_format=None,
+                     options=None):
+        return super(EnergyGradientModel, self).save_weights(filepath, overwrite, save_format, options)
+
+    def get_weights(self):
+        return super(EnergyGradientModel, self).get_weights()
 
     @classmethod
     def from_config(cls, config):

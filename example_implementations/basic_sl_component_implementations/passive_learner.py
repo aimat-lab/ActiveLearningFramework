@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import Tuple, Optional, Sequence
 
 import numpy as np
@@ -10,10 +11,24 @@ from example_implementations.pyNNsMD.scaler.energy import EnergyGradientStandard
 from example_implementations.pyNNsMD.utils.loss import ScaledMeanAbsoluteError
 from helpers import X, Y, AddInfo_Y
 
-model_location = {
-    "a": 'assets/saved_models/a_butene_energy_force',
-    "b": 'assets/saved_models/b_butene_energy_force'
+model_location = "assets/saved_models/"
+weight_file_name = {
+    "a": 'weights_a.h5',
+    "b": 'weights_b.h5'
 }
+
+
+def _create_model(scaler):
+    model = EnergyGradientModel(atoms=12, states=2, invd_index=True)
+    optimizer = tf.keras.optimizers.Adam(lr=1e-3)
+    mae_energy = ScaledMeanAbsoluteError(scaling_shape=scaler.energy_std.shape)
+    mae_force = ScaledMeanAbsoluteError(scaling_shape=scaler.gradient_std.shape)
+    mae_energy.set_scale(scaler.energy_std)
+    mae_force.set_scale(scaler.gradient_std)
+    model.compile(optimizer=optimizer,
+                  loss=['mean_squared_error', 'mean_squared_error'], loss_weights=[1, 5],
+                  metrics=[[mae_energy], [mae_force]])
+    return model
 
 
 class ButenePassiveLearner(PassiveLearner):
@@ -21,20 +36,8 @@ class ButenePassiveLearner(PassiveLearner):
     def __init__(self, x_test, eng_test, grads_test):
         self.scaler = EnergyGradientStandardScaler()
 
-        def create_model():
-            model = EnergyGradientModel(atoms=12, states=2, invd_index=True)
-            optimizer = tf.keras.optimizers.Adam(lr=1e-3)
-            mae_energy = ScaledMeanAbsoluteError(scaling_shape=self.scaler.energy_std.shape)
-            mae_force = ScaledMeanAbsoluteError(scaling_shape=self.scaler.gradient_std.shape)
-            mae_energy.set_scale(self.scaler.energy_std)
-            mae_force.set_scale(self.scaler.gradient_std)
-            model.compile(optimizer=optimizer,
-                          loss=['mean_squared_error', 'mean_squared_error'], loss_weights=[1, 5],
-                          metrics=[[mae_energy], [mae_force]])
-            return model
-
-        self.model_a = create_model()
-        self.model_b = create_model()
+        self.model_a: EnergyGradientModel = _create_model(self.scaler)
+        self.model_b: EnergyGradientModel = _create_model(self.scaler)
 
         self.x_train, self.y_train = np.array([]), np.array([])
         self.x_test, self.eng_test, self.grads_test = x_test, eng_test, grads_test
@@ -59,28 +62,28 @@ class ButenePassiveLearner(PassiveLearner):
         self.model_b.precomputed_features = False
 
     def load_model(self) -> None:
-        self.model_a = tf.keras.models.load_model(model_location["a"], custom_objects={"EnergyGradientModel": EnergyGradientModel}, compile=False)
-        self.model_b = tf.keras.models.load_model(model_location["b"], custom_objects={"EnergyGradientModel": EnergyGradientModel}, compile=False)
-        optimizer = tf.keras.optimizers.Adam(lr=1e-3)
-        mae_energy = ScaledMeanAbsoluteError(scaling_shape=self.scaler.energy_std.shape)
-        mae_force = ScaledMeanAbsoluteError(scaling_shape=self.scaler.gradient_std.shape)
-        mae_energy.set_scale(self.scaler.energy_std)
-        mae_force.set_scale(self.scaler.gradient_std)
-        self.model_a.compile(optimizer=optimizer,
-                             loss=['mean_squared_error', 'mean_squared_error'], loss_weights=[1, 5],
-                             metrics=[[mae_energy], [mae_force]])
-        self.model_b.compile(optimizer=optimizer,
-                             loss=['mean_squared_error', 'mean_squared_error'], loss_weights=[1, 5],
-                             metrics=[[mae_energy], [mae_force]])
+        filename = os.path.abspath(os.path.abspath(model_location))
+        os.makedirs(filename, exist_ok=True)
+
+        self.model_a: EnergyGradientModel = _create_model(self.scaler)
+        self.model_a.load_weights(os.path.join(filename, weight_file_name["a"]))
+
+        self.model_b: EnergyGradientModel = _create_model(self.scaler)
+        self.model_b.load_weights(os.path.join(filename, weight_file_name["b"]))
 
     def close_model(self) -> None:
         del self.model_a
         del self.model_b
 
     def save_model(self) -> None:
-        self.model_a.save(model_location["a"])
+        # Folder to store model in
+        filename = os.path.abspath(os.path.abspath(model_location))
+        os.makedirs(filename, exist_ok=True)
+
+        self.model_a.save_weights(os.path.join(filename, weight_file_name["a"]))
         del self.model_a
-        self.model_b.save(model_location["b"])
+
+        self.model_b.save_weights(os.path.join(filename, weight_file_name["b"]))
         del self.model_b
 
     def predict(self, x: X) -> Tuple[Y, Optional[AddInfo_Y]]:
@@ -116,9 +119,9 @@ class ButenePassiveLearner(PassiveLearner):
             self.x_train = np.append(self.x_train, [x], axis=0)
             self.y_train = np.append(self.y_train, [y], axis=0)
 
-        self.train_batch(self.x_train, self.y_train)
-        if len(self.x_train) > 5:
-            self.x_train, self.y_train = self.x_train[1:], self.y_train[1:]
+        if len(self.x_train) >= 5:
+            self.train_batch(self.x_train, self.y_train)
+            self.x_train, self.y_train = self.x_train[-5:], self.y_train[-5:]
 
     def train_batch(self, xs: Sequence[X], ys: Sequence[Y]):
         eng, grads = ys[:, 0:2], np.array(ys[:, 2:]).reshape((len(ys), 2, 12, 3))
@@ -126,13 +129,13 @@ class ButenePassiveLearner(PassiveLearner):
         x_scaled, y_scaled = self.scaler.fit_transform(x=np.array(xs).reshape((len(xs), 12, 3)), y=[eng, grads])
 
         self.model_a.precomputed_features = True
-        feat_x, feat_grad = self.model_a.precompute_feature_in_chunks(x=x_scaled, batch_size=2)
+        feat_x, feat_grad = self.model_a.precompute_feature_in_chunks(x=x_scaled, batch_size=5)
         self.model_a.set_const_normalization_from_features(feat_x)
         self.model_a.fit(x=[feat_x, feat_grad], y=[y_scaled[0], y_scaled[1]], batch_size=5, epochs=1, verbose=2)
         self.model_a.precomputed_features = False
 
         self.model_b.precomputed_features = True
-        feat_x, feat_grad = self.model_b.precompute_feature_in_chunks(x=x_scaled, batch_size=2)
+        feat_x, feat_grad = self.model_b.precompute_feature_in_chunks(x=x_scaled, batch_size=5)
         self.model_b.set_const_normalization_from_features(feat_x)
         self.model_b.fit(x=[feat_x, feat_grad], y=[y_scaled[0], y_scaled[1]], batch_size=5, epochs=1, verbose=2)
         self.model_b.precomputed_features = False
