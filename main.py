@@ -83,17 +83,6 @@ if __name__ == '__main__':
         log.error("During initialization, an unexpected error occurred", e)
         system_state.set(int(SystemStates.ERROR))
 
-    # TEST
-
-    t0 = time.time()
-    pl.pl.load_model()
-    pl.pl.save_model()
-    t1 = time.time()
-
-    print(f"diff: {t1 - t0}")
-
-    # TEST
-
     # WORKFLOW: Training in parallel processes
     # from here on out, no further case dependent implementation necessary => just in initiation phase
 
