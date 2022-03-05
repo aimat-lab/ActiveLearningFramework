@@ -53,43 +53,43 @@ class QuerySelectionController:
         :param system_state: The current system state (shared over all controllers, values align with enum SystemStates)
         :return: if the process should end => indicated by system_state
         """
-        try:
-
-            if system_state.value >= int(SystemStates.TERMINATE_TRAINING):
-                log.warning(f"Training process terminated => end training job of active learner, system_state={SystemStates(system_state.value).name}")
-                return
-
+        while True:
             try:
-                while True:
-                    query_instance, info_value, gets_queried = self.query_selector.select_query_instance()
-                    (_, additional_info) = self.candidate_set.get_instance(query_instance)
-                    self.log_query_decision_db.add_instance(x=query_instance, info_value=info_value, queried=gets_queried, additional_info=additional_info)
-                    if gets_queried:
-                        self.candidate_set.remove_instance(query_instance)
-                        self.query_set.add_instance(query_instance)
-                        log.info(f"Selected new unlabelled query x")
-                        break
-                    else:
-                        self.candidate_set.remove_instance(query_instance)
-                        log.info(f"Discarded the candidate")
 
-            except NoNewElementException:
-                if system_state.value == int(SystemStates.FINISH_TRAINING__INFO):
-                    log.info("Candidate database empty, all candidates evaluated => only Oracle and PL need to softly end training")
-
-                    system_state.set(int(SystemStates.FINISH_TRAINING__ORACLE))
-                    log.warning(f"Enter Oracle finish training state => soft end (set system_state: {SystemStates(system_state.value).name})")
-
+                if system_state.value >= int(SystemStates.TERMINATE_TRAINING):
+                    log.warning(f"Training process terminated => end training job of active learner, system_state={SystemStates(system_state.value).name}")
                     return
 
-                else:
-                    log.info("Wait for new candidates")
-                    time.sleep(5)
+                try:
+                    while True:
+                        query_instance, info_value, gets_queried = self.query_selector.select_query_instance()
+                        (_, additional_info) = self.candidate_set.get_instance(query_instance)
+                        self.log_query_decision_db.add_instance(x=query_instance, info_value=info_value, queried=gets_queried, additional_info=additional_info)
+                        if gets_queried:
+                            self.candidate_set.remove_instance(query_instance)
+                            self.query_set.add_instance(query_instance)
+                            log.info(f"Selected new unlabelled query x")
+                            break
+                        else:
+                            self.candidate_set.remove_instance(query_instance)
+                            log.info(f"Discarded the candidate")
 
-            self.training_job(system_state)
-            return
+                except NoNewElementException:
+                    if system_state.value == int(SystemStates.FINISH_TRAINING__INFO):
+                        log.info("Candidate database empty, all candidates evaluated => only Oracle and PL need to softly end training")
 
-        except Exception as e:
-            log.error("An error occurred during the execution of query selector training job => terminate system", e)
-            system_state.set(int(SystemStates.ERROR))
-            return
+                        system_state.set(int(SystemStates.FINISH_TRAINING__ORACLE))
+                        log.warning(f"Enter Oracle finish training state => soft end (set system_state: {SystemStates(system_state.value).name})")
+
+                        return
+
+                    else:
+                        log.info("Wait for new candidates")
+                        time.sleep(5)
+
+                continue
+
+            except Exception as e:
+                log.error("An error occurred during the execution of query selector training job => terminate system", e)
+                system_state.set(int(SystemStates.ERROR))
+                return

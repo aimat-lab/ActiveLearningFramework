@@ -37,7 +37,7 @@ class ButeneEnergyForceInitiator(InitiationHelper):
         y = np.array([np.append(eng[i].flatten(), grads[i].flatten()) for i in range(len(eng))])
         host, user, password, database = "localhost", "root", "toor", "butene_energy_force"
 
-        self.x_train_init, self.y_train_init, x, y = x[:5], y[:5], x[5:], y[5:]
+        self.x_train_init, self.y_train_init, x, y = x[:3], y[:3], x[3:], y[3:]
 
         self.pl: PassiveLearner = ButenePassiveLearner(x_test, eng_test, grads_test)
         self.ro_pl: ReadOnlyPassiveLearner = ButenePassiveLearner(x_test, eng_test, grads_test)

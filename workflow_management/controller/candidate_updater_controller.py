@@ -79,35 +79,35 @@ class CandidateUpdaterController:
         :param sl_model_gets_stored: Check if SL model storage is currently in process => then not loading
         :return: if the process should end => indicated by system_state
         """
-        try:
-
-            if system_state.value >= int(SystemStates.FINISH_TRAINING__INFO):
-                log.warning(f"Training process was terminated => end training job (system_state: {SystemStates(system_state.value).name})")
-                return
-
-            sl_model_gets_stored.acquire()
+        while True:
             try:
-                log.debug("Load the read only SL model")
-                self.ro_pl.load_model()
-            except Exception as e:
+
+                if system_state.value >= int(SystemStates.FINISH_TRAINING__INFO):
+                    log.warning(f"Training process was terminated => end training job (system_state: {SystemStates(system_state.value).name})")
+                    return
+
+                sl_model_gets_stored.acquire()
+                try:
+                    log.debug("Load the read only SL model")
+                    self.ro_pl.load_model()
+                except Exception as e:
+                    sl_model_gets_stored.release()
+                    log.error("During loading of model, an error occurred", e)
+                    raise LoadingModelException("Read Only Passive Learner (withing candidate updater)")
                 sl_model_gets_stored.release()
-                log.error("During loading of model, an error occurred", e)
-                raise LoadingModelException("Read Only Passive Learner (withing candidate updater)")
-            sl_model_gets_stored.release()
 
-            try:
-                self.candidate_updater.update_candidate_set()
-            except NoMoreCandidatesException:
-                system_state.set(int(SystemStates.FINISH_TRAINING__INFO))
-                log.warning(f"Initiate finishing of training process, no more candidates => soft end (set system_state: {SystemStates(system_state.value).name})")
+                try:
+                    self.candidate_updater.update_candidate_set()
+                except NoMoreCandidatesException:
+                    system_state.set(int(SystemStates.FINISH_TRAINING__INFO))
+                    log.warning(f"Initiate finishing of training process, no more candidates => soft end (set system_state: {SystemStates(system_state.value).name})")
+                    self.close_sl_connection()
+                    return
+
                 self.close_sl_connection()
+                continue
+
+            except Exception as e:
+                log.error("An error occurred during the execution of candidate updater training job => terminate system", e)
+                system_state.set(int(SystemStates.ERROR))
                 return
-
-            self.close_sl_connection()
-            self.training_job(system_state, sl_model_gets_stored)
-            return
-
-        except Exception as e:
-            log.error("An error occurred during the execution of candidate updater training job => terminate system", e)
-            system_state.set(int(SystemStates.ERROR))
-            return

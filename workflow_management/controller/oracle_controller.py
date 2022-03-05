@@ -49,51 +49,49 @@ class OracleController:
         :param system_state: Shared variable over all parallel training processes; shows the state of the whole AL system (values align with enum SystemStates)
         :return: if the process should end => indicated by system_state
         """
-        try:
-            if system_state.value >= int(SystemStates.TERMINATE_TRAINING):
-                log.warning(f"Training process was terminated => end training job (system_state: {SystemStates(system_state.value).name})")
-                return
-
-            # noinspection PyUnusedLocal
-            query_instance = None
+        while True:
             try:
-                query_instance = self.query_set.get_instance()
-            except NoNewElementException:
-                if system_state.value == int(SystemStates.FINISH_TRAINING__ORACLE):
-                    log.info("Query database empty, all queries resolved => only PL needs to softly end training")
-
-                    system_state.set(int(SystemStates.FINISH_TRAINING__PL))
-                    log.warning(f"Enter PL finish training state => soft end (set system_state: {SystemStates(system_state.value).name})")
+                if system_state.value >= int(SystemStates.TERMINATE_TRAINING):
+                    log.warning(f"Training process was terminated => end training job (system_state: {SystemStates(system_state.value).name})")
                     return
 
-                else:
-                    log.info("Wait for new queries")
-                    time.sleep(5)
+                # noinspection PyUnusedLocal
+                query_instance = None
+                try:
+                    query_instance = self.query_set.get_instance()
+                except NoNewElementException:
 
-                    self.training_job(system_state)
-                    return
+                    if system_state.value == int(SystemStates.FINISH_TRAINING__ORACLE):
+                        log.info("Query database empty, all queries resolved => only PL needs to softly end training")
+                        system_state.set(int(SystemStates.FINISH_TRAINING__PL))
+                        log.warning(f"Enter PL finish training state => soft end (set system_state: {SystemStates(system_state.value).name})")
+                        return
 
-            log.info("Retrieve unresolved query => will add label")
+                    else:
+                        log.info("Wait for new queries")
+                        time.sleep(10)
+                        continue
 
-            # noinspection PyUnusedLocal
-            label: Y = None
-            try:
-                label = self.o.query(query_instance)
-            except CantResolveQueryException:
-                log.info(f"Can't resolve query => discard input x")
+                log.info("Retrieve unresolved query => will add label")
+
+                # noinspection PyUnusedLocal
+                label: Y = None
+                try:
+                    label = self.o.query(query_instance)
+
+                except CantResolveQueryException:
+                    log.info(f"Can't resolve query => discard input x")
+                    self.query_set.remove_instance(query_instance)
+                    continue
+
                 self.query_set.remove_instance(query_instance)
+                self.training_set.append_labelled_instance(query_instance, label)
 
-                self.training_job(system_state)
+                log.info(f"Query for instance x resolved with label y, added to training set and stored labelled set for PL")
+
+                continue
+
+            except Exception as e:
+                log.error("An error occurred during the execution of oracle training job => terminate system", e)
+                system_state.set(int(SystemStates.ERROR))
                 return
-
-            self.query_set.remove_instance(query_instance)
-            self.training_set.append_labelled_instance(query_instance, label)
-
-            log.info(f"Query for instance x resolved with label y, added to training set and stored labelled set for PL")
-
-            self.training_job(system_state)
-            return
-        except Exception as e:
-            log.error("An error occurred during the execution of oracle training job => terminate system", e)
-            system_state.set(int(SystemStates.ERROR))
-            return
