@@ -3,9 +3,9 @@ from multiprocessing import Process, Manager, Lock, synchronize
 from multiprocessing.managers import ValueProxy
 from typing import Callable
 
-from basic_sl_component_interfaces import PassiveLearner, Oracle, ReadOnlyPassiveLearner
 from al_specific_components.candidate_update import get_candidate_source_type
-from al_specific_components.query_selection.informativeness_analyser import InformativenessAnalyser
+from al_specific_components.query_selection import InformativenessAnalyser
+from basic_sl_component_interfaces import PassiveLearner, Oracle, ReadOnlyPassiveLearner
 from helpers import SystemStates, CandInfo, AddInfo_Y, Y, X, Scenarios
 from helpers.exceptions import IncorrectScenarioImplementation, ALSystemError
 from helpers.system_initiator import InitiationHelper
@@ -69,8 +69,8 @@ if __name__ == '__main__':
 
         # initial training, data source update
         log.info("Initial training and first candidate update")
-        x_train, y_train, epochs, batch_size = init_helper.get_initial_training_data()
-        pl.init_pl(x_train, y_train, batch_size=batch_size, epochs=epochs)  # training with initial training data
+        x_train, y_train = init_helper.get_initial_training_data()
+        pl.init_pl(x_train, y_train)  # training with initial training data
         cand_up.init_candidates()
         for i in range(len(x_train)):
             training_set.append_labelled_instance(x_train[i], y_train[i])  # add initial training data to stored labelled set # TODO: correct to do this?

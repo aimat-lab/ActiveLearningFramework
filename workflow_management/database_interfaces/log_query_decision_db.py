@@ -13,7 +13,7 @@ class LogQueryDecisionDB:
         - optional additional information from candidate set (e.g. prediction, uncertainty)
     """
 
-    def add_instance(self, x: X, info_value: float, queried: bool, additional_info: CandInfo = None) -> None:
+    def add_instance(self, x: X, info_value: float, queried: bool, additional_info: CandInfo) -> None:
         """
         add log entry about evaluated candidate
 

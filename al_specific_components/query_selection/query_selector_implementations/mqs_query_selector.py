@@ -1,7 +1,6 @@
 import logging
 
-from al_specific_components.query_selection import QuerySelector
-from al_specific_components.query_selection.informativeness_analyser import InformativenessAnalyser
+from al_specific_components.query_selection import QuerySelector, InformativenessAnalyser
 from helpers import X
 from workflow_management.database_interfaces import CandidateSet
 
@@ -33,12 +32,11 @@ class MQS_QuerySelector(QuerySelector):  # TODO: currently, this selector is the
         """
         log.debug("Retrieve candidate")
         (x, _) = self.candidate_set.get_first_instance()
-        log.debug(f"Evaluate informativeness of candidate x: {x}")
+        log.debug(f"Evaluate informativeness of candidate x")
         info = self.info_analyser.get_informativeness(x)
-        log.debug(f"Informativeness for x: info={info}, x={x}")
         if self.decide_discard(info):
-            log.debug(f"Decided to discard {x}")
+            log.debug(f"Decided to discard")
             return x, info, False
         else:
-            log.debug(f"Decided to query {x}")
+            log.debug(f"Decided to query")
             return x, info, True

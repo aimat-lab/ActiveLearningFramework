@@ -38,7 +38,7 @@ class PassiveLearnerController:
             log.error("During saving of model, an error occurred", e)
             raise StoringModelException("Passive learner (within pl controller)")
 
-    def init_pl(self, x_train: Sequence[X], y_train: Sequence[Y], **kwargs):
+    def init_pl(self, x_train: Sequence[X], y_train: Sequence[Y]):
         """
         Initialize the sl model
 
@@ -47,14 +47,11 @@ class PassiveLearnerController:
 
         :param x_train: Initial training data input (list of input data, most likely numpy array)
         :param y_train: Initial training data labels (list of assigned output to input data, most likely numpy array)
-        :param kwargs: can provide the `batch_size` and `epochs` for initial training
         """
 
         log.info("Initial training of pl")
 
-        batch_size = kwargs.get("batch_size")
-        epochs = kwargs.get("epochs")
-        self.pl.initial_training(x_train, y_train, batch_size=batch_size, epochs=epochs)
+        self.pl.initial_training(x_train, y_train)
         self.save_sl_model()
 
     def training_job(self, system_state: ValueProxy, sl_model_gets_stored: synchronize.Lock):
@@ -81,58 +78,58 @@ class PassiveLearnerController:
         :param sl_model_gets_stored: Set, if SL model storage is currently in process
         :return: if the process should end => indicated by system_state
         """
-        try:
-            if system_state.value >= int(SystemStates.TERMINATE_TRAINING):
-                log.warning(f"Training process was terminated => end training job (system_state: {SystemStates(system_state.value).name})")
-                return
-
-            # noinspection PyUnusedLocal
-            x_train, y_train = None, None
+        while True:
             try:
-                (x_train, y_train) = self.training_set.retrieve_labelled_training_instance()
-            except NoNewElementException:
-                if system_state.value == int(SystemStates.FINISH_TRAINING__PL):
-                    log.info("Training database empty, slow end of training finished")
+                if system_state.value >= int(SystemStates.TERMINATE_TRAINING):
+                    log.warning(f"Training process was terminated => end training job (system_state: {SystemStates(system_state.value).name})")
                     return
 
-                else:
-                    log.info("Wait for new training data")
-                    time.sleep(5)
+                # noinspection PyUnusedLocal
+                x_train, y_train = None, None
+                try:
+                    (x_train, y_train) = self.training_set.retrieve_labelled_training_instance()
+                except NoNewElementException:
+                    if system_state.value == int(SystemStates.FINISH_TRAINING__PL):
+                        log.info("Training database empty, slow end of training finished")
+                        return
 
-                    self.training_job(system_state, sl_model_gets_stored)
-                    return
+                    else:
+                        log.info("Wait for new training data")
+                        time.sleep(5)
 
-            log.info(f"Train PL with (x, y): x = `{x_train}`, y = `{y_train}`")
+                        continue
 
-            sl_model_gets_stored.acquire()
-            try:
-                log.debug("Load the read only SL model")
-                self.pl.load_model()
-            except Exception as e:
+                log.info(f"Train PL with (x, y)")
+
+                sl_model_gets_stored.acquire()
+                try:
+                    log.debug("Load the read only SL model")
+                    self.pl.load_model()
+                except Exception as e:
+                    sl_model_gets_stored.release()
+                    log.error("During loading of model, an error occurred", e)
+                    raise LoadingModelException("Passive Learner (withing pl controller)")
                 sl_model_gets_stored.release()
-                log.error("During loading of model, an error occurred", e)
-                raise LoadingModelException("Passive Learner (withing pl controller)")
-            sl_model_gets_stored.release()
 
-            self.pl.train(x_train, y_train)
+                self.pl.train(x_train, y_train)
 
-            sl_model_gets_stored.acquire()
-            self.save_sl_model()
-            sl_model_gets_stored.release()
+                sl_model_gets_stored.acquire()
+                self.save_sl_model()
+                sl_model_gets_stored.release()
 
-            self.training_set.set_instance_not_use_for_training(x_train)
-            log.info(f"Set (x, y) to not be part of active training any more => PL already trained with it: x = `{x_train}`, y = `{y_train}`")
+                self.training_set.set_instance_not_use_for_training(x_train)
+                log.info(f"Set (x, y) to not be part of active training any more => PL already trained with it")
 
-            self.pl.load_model()
-            if self.pl.sl_model_satisfies_evaluation():
-                log.warning("PL is trained well enough => terminate training process")
-                system_state.set(int(SystemStates.TERMINATE_TRAINING))
+                self.pl.load_model()
+                if self.pl.sl_model_satisfies_evaluation():
+                    log.warning("PL is trained well enough => terminate training process")
+                    system_state.set(int(SystemStates.TERMINATE_TRAINING))
+                    return
+                self.pl.close_model()
+
+                continue
+
+            except Exception as e:
+                log.error("An error occurred during the execution of pl training job => terminate system", e)
+                system_state.set(int(SystemStates.ERROR))
                 return
-            self.pl.close_model()
-
-            self.training_job(system_state, sl_model_gets_stored)
-            return
-        except Exception as e:
-            log.error("An error occurred during the execution of pl training job => terminate system", e)
-            system_state.set(int(SystemStates.ERROR))
-            return

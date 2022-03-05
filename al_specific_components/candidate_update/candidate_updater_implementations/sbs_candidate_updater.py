@@ -1,8 +1,8 @@
 import logging
 from typing import Callable
 
-from basic_sl_component_interfaces import ReadOnlyPassiveLearner
 from al_specific_components.candidate_update import CandidateUpdater
+from basic_sl_component_interfaces import ReadOnlyPassiveLearner
 from helpers import CandInfo, AddInfo_Y, Y, X
 from helpers.exceptions import IncorrectParameters, NoNewElementException, NoMoreCandidatesException
 from workflow_management.database_interfaces import CandidateSet

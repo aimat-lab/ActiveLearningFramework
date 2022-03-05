@@ -1,10 +1,10 @@
 from typing import Tuple, Optional, Callable, Sequence
 
-from basic_sl_component_interfaces import PassiveLearner, Oracle, ReadOnlyPassiveLearner
 from al_specific_components.candidate_update.candidate_updater_implementations import Pool, Stream, Generator
-from al_specific_components.query_selection.informativeness_analyser import InformativenessAnalyser
+from al_specific_components.query_selection import InformativenessAnalyser
+from basic_sl_component_interfaces import PassiveLearner, Oracle, ReadOnlyPassiveLearner
 from helpers import Scenarios, X, Y, AddInfo_Y, CandInfo
-from helpers.database_helper.default_database_initiator import get_default_databases
+from helpers.database_helper.default_datasets import get_default_databases
 from workflow_management.database_interfaces import CandidateSet, QuerySet, TrainingSet, LogQueryDecisionDB
 
 
@@ -66,15 +66,11 @@ class InitiationHelper:
         # case implementation: implement concrete read only sl model
         raise NotImplementedError
 
-    def get_initial_training_data(self) -> Tuple[Sequence[X], Sequence[Y], Optional[int], Optional[int]]:
+    def get_initial_training_data(self) -> Tuple[Sequence[X], Sequence[Y]]:
         """
         Returns labelled data for the initial training episode of the pl
 
-        can return additional properties for this training:
-            - epochs
-            - batch_size
-
-        :return: input data, correct output, optional epochs, optional batch_size
+        :return: input data, correct output
         """
         # case implementation: set the initial training data for the sl model
         raise NotImplementedError
