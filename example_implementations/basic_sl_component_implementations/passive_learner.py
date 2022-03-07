@@ -119,7 +119,7 @@ class ButenePassiveLearner(PassiveLearner):
             self.x_train = np.append(self.x_train, [x], axis=0)
             self.y_train = np.append(self.y_train, [y], axis=0)
 
-        batch_size = 3
+        batch_size = 8
         if len(self.x_train) >= batch_size:
             self.train_batch(self.x_train, self.y_train, batch_size)
             self.x_train, self.y_train = self.x_train[-batch_size:], self.y_train[-batch_size:]
@@ -132,13 +132,13 @@ class ButenePassiveLearner(PassiveLearner):
         self.model_a.precomputed_features = True
         feat_x, feat_grad = self.model_a.precompute_feature_in_chunks(x=x_scaled, batch_size=batch_size)
         self.model_a.set_const_normalization_from_features(feat_x)
-        self.model_a.fit(x=[feat_x, feat_grad], y=[y_scaled[0], y_scaled[1]], batch_size=batch_size, epochs=2, verbose=2)
+        self.model_a.fit(x=[feat_x, feat_grad], y=[y_scaled[0], y_scaled[1]], batch_size=batch_size, epochs=5, verbose=2)
         self.model_a.precomputed_features = False
 
         self.model_b.precomputed_features = True
         feat_x, feat_grad = self.model_b.precompute_feature_in_chunks(x=x_scaled, batch_size=batch_size)
         self.model_b.set_const_normalization_from_features(feat_x)
-        self.model_b.fit(x=[feat_x, feat_grad], y=[y_scaled[0], y_scaled[1]], batch_size=batch_size, epochs=2, verbose=2)
+        self.model_b.fit(x=[feat_x, feat_grad], y=[y_scaled[0], y_scaled[1]], batch_size=batch_size, epochs=5, verbose=2)
         self.model_b.precomputed_features = False
 
     def sl_model_satisfies_evaluation(self) -> bool:
@@ -162,4 +162,5 @@ class ButenePassiveLearner(PassiveLearner):
         else:
             logging.info(f"PERFORMANCE EVALUATION, LOSS HISTORY: {self.loss_history}")
             logging.info(f"Variance: {np.var(np.array(self.loss_history[-12:-9]))}, {np.var(np.array(self.loss_history[-9:-6]))}, {np.var(np.array(self.loss_history[-6:-3]))}, {np.var(np.array(self.loss_history[-3:]))}")
-            return np.var(np.array(self.loss_history[-12:-9])) > np.var(np.array(self.loss_history[-9:-6])) * 2 > np.var(np.array(self.loss_history[-6:-3])) * 4 > np.var(np.array(self.loss_history[-3:])) * 8
+            factor = 3.5
+            return np.var(np.array(self.loss_history[-12:-9])) * (factor**0) > np.var(np.array(self.loss_history[-9:-6])) * (factor**1) > np.var(np.array(self.loss_history[-6:-3])) * (factor**2) > np.var(np.array(self.loss_history[-3:])) * (factor**3)

@@ -27,12 +27,12 @@ class ButeneEnergyForceInitiator(InitiationHelper):
     def __init__(self):
         self.scenario = Scenarios.PbS
         x_loaded = np.load("example_implementations/butene_data/butene_x.npy")
-        x = np.array([instance.flatten() for instance in x_loaded[50:1000]])
+        x = np.array([instance.flatten() for instance in x_loaded[50:]])
         x_test = x_loaded[:50]
         eng = np.load("example_implementations/butene_data/butene_energy.npy")
         grads = np.load("example_implementations/butene_data/butene_force.npy")
         eng_test, grads_test = eng[:50], grads[:50]
-        eng, grads = eng[50:1000], grads[50:1000]
+        eng, grads = eng[50:], grads[50:]
 
         y = np.array([np.append(eng[i].flatten(), grads[i].flatten()) for i in range(len(eng))])
         host, user, password, database = "localhost", "root", "toor", "butene_energy_force"
