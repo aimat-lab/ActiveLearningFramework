@@ -18,6 +18,8 @@ logging.basicConfig(format='\nLOGGING: %(name)s, %(levelname)s: %(message)s :END
 log = logging.getLogger("Main logger")
 
 if __name__ == '__main__':
+    #load()
+#else:
     state_manager = Manager()
     system_state: ValueProxy = state_manager.Value('i', int(SystemStates.INITIALIZATION))
     sl_model_gets_stored: synchronize.Lock = Lock()

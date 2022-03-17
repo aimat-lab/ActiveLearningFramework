@@ -26,18 +26,27 @@ class ButeneEnergyForceInitiator(InitiationHelper):
 
     def __init__(self):
         self.scenario = Scenarios.PbS
+
+        test_set_size = 256
+
         x_loaded = np.load("example_implementations/butene_data/butene_x.npy")
-        x = np.array([instance.flatten() for instance in x_loaded[50:]])
-        x_test = x_loaded[:50]
-        eng = np.load("example_implementations/butene_data/butene_energy.npy")
+        random_idx = np.arange(len(x_loaded))
+        np.random.shuffle(random_idx)
+        x_loaded = np.array([x_loaded[i] for i in random_idx])
+        x = np.array([instance.flatten() for instance in x_loaded[test_set_size:]])
+        x_test = x_loaded[:test_set_size]
+        eng =  np.load("example_implementations/butene_data/butene_energy.npy")
+        eng = np.array([eng[i] for i in random_idx])
         grads = np.load("example_implementations/butene_data/butene_force.npy")
-        eng_test, grads_test = eng[:50], grads[:50]
-        eng, grads = eng[50:], grads[50:]
+        grads = np.array([grads[i] for i in random_idx])
+        eng_test, grads_test = eng[:test_set_size], grads[:test_set_size]
+        eng, grads = eng[test_set_size:], grads[test_set_size:]
 
         y = np.array([np.append(eng[i].flatten(), grads[i].flatten()) for i in range(len(eng))])
-        host, user, password, database = "localhost", "root", "toor", "butene_energy_force"
+        host, user, password, database = "localhost", "root", "toor", "1__butene_energy_force"
 
-        self.x_train_init, self.y_train_init, x, y = x[:3], y[:3], x[3:], y[3:]
+        initial_data_size = 4
+        self.x_train_init, self.y_train_init, x, y = x[:initial_data_size], y[:initial_data_size], x[initial_data_size:], y[initial_data_size:]
 
         self.pl: PassiveLearner = ButenePassiveLearner(x_test, eng_test, grads_test)
         self.ro_pl: ReadOnlyPassiveLearner = ButenePassiveLearner(x_test, eng_test, grads_test)
