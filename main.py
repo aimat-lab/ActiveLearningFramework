@@ -1,5 +1,4 @@
 import logging
-import time
 from multiprocessing import Process, Manager, Lock, synchronize
 from multiprocessing.managers import ValueProxy
 from typing import Callable
@@ -7,11 +6,11 @@ from typing import Callable
 from al_specific_components.candidate_update import get_candidate_source_type
 from al_specific_components.query_selection import InformativenessAnalyser
 from basic_sl_component_interfaces import PassiveLearner, Oracle, ReadOnlyPassiveLearner
+from example_implementations.evaluation.al_evaluation import final_evaluation_al
 from example_implementations.initiator import ButeneEnergyForceInitiator
 from helpers import SystemStates, CandInfo, AddInfo_Y, Y, X, Scenarios
 from helpers.exceptions import IncorrectScenarioImplementation, ALSystemError
 from helpers.system_initiator import InitiationHelper
-from try_out.loaded_train_energy_force_butene import load
 from workflow_management.controller import PassiveLearnerController, OracleController, CandidateUpdaterController, QuerySelectionController
 
 logging.basicConfig(format='\nLOGGING: %(name)s, %(levelname)s: %(message)s :END LOGGING', level=logging.INFO)
@@ -131,5 +130,4 @@ if __name__ == '__main__':
     log.info(f"----- Prediction ------- => system_state={SystemStates(system_state.value).name}")
 
     # case implementation: results are available (use the stored SL model for predictions or use the stored labelled set for further training)
-    pl.pl.load_model()
-    pl.pl.run_final_evaluation()
+    final_evaluation_al(pl.pl)

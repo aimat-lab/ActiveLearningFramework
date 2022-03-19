@@ -5,22 +5,32 @@ from typing import Tuple, Optional, Sequence
 import numpy as np
 import tensorflow as tf
 from keras.callbacks import Callback
-from matplotlib import pyplot as plt
 
 from basic_sl_component_interfaces import PassiveLearner
-from example_implementations.evaluation.metrics import metrics_set, print_evaluation
-from example_implementations.evaluation.reduced_sl_model import run_evaluation_reduced_sl_model
+from example_implementations.evaluation.metrics import metrics_set
 from example_implementations.helpers.mapper import map_shape_output_to_flat, map_flat_input_to_shape, map_flat_output_to_shape, map_shape_input_to_flat
 from example_implementations.pyNNsMD.models.mlp_eg import EnergyGradientModel
 from example_implementations.pyNNsMD.scaler.energy import EnergyGradientStandardScaler
 from example_implementations.pyNNsMD.utils.loss import ScaledMeanAbsoluteError
 from helpers import X, Y, AddInfo_Y
 
-model_location = "assets/saved_models/pbs/"
+RUN_NUMBER = 2
+model_location = "assets/saved_models/pbs/" + RUN_NUMBER
 weight_file_name = {
-    "a": '2__weights_a.h5',
-    "b": '2__weights_b.h5',
-    "c": '2__weights_c.h5'
+    "a": 'weights_a.h5',
+    "b": 'weights_b.h5',
+    "c": 'weights_c.h5'
+}
+save_results_location = "assets/evaluation/pbs/" + RUN_NUMBER
+result_file_name = {
+    "mae_test": 'result_mae_test.npy',
+    "mae_train": 'result_mae_train.npy',
+    "r2_test": 'result_r2_test.npy',
+    "r2_train": 'result_r2_train.npy',
+    "train_data_x": 'train_data_x_flat.npy',
+    "train_data_y": 'train_data_y_flat.npy',
+    "test_data_x": 'test_data_x_flat.npy',
+    "test_data_y": 'test_data_y_flat.npy'
 }
 
 
@@ -59,7 +69,6 @@ def _create_model_and_scaler():
 class ButenePassiveLearner(PassiveLearner):
 
     def __init__(self, x_test, eng_test, grads_test):
-
         self.model_a, self.scaler_a = _create_model_and_scaler()
         self.model_b, self.scaler_b = _create_model_and_scaler()
         self.model_c, self.scaler_c = _create_model_and_scaler()
@@ -67,6 +76,18 @@ class ButenePassiveLearner(PassiveLearner):
         self.x_train, self.y_train = np.array([]), np.array([])
         self.x_test, self.eng_test, self.grads_test = x_test, eng_test, grads_test
         self.mae_train_history, self.r2_train_history, self.mae_test_history, self.r2_test_history = [], [], [], []
+
+    def save_results(self):
+        filename = os.path.abspath(os.path.abspath(save_results_location))
+        os.makedirs(filename, exist_ok=True)
+        np.save(os.path.join(filename, result_file_name["test_data_x"]), np.asarray(map_shape_input_to_flat(self.x_test)))
+        np.save(os.path.join(filename, result_file_name["test_data_y"]), np.asarray(map_shape_output_to_flat([self.eng_test, self.grads_test])))
+        np.save(os.path.join(filename, result_file_name["train_data_x"]), np.asarray(self.x_train))
+        np.save(os.path.join(filename, result_file_name["train_data_y"]), np.asarray(self.y_train))
+        np.save(os.path.join(filename, result_file_name["mae_train"]), np.asarray(self.mae_train_history))
+        np.save(os.path.join(filename, result_file_name["mae_test"]), np.asarray(self.mae_test_history))
+        np.save(os.path.join(filename, result_file_name["r2_train"]), np.asarray(self.r2_train_history))
+        np.save(os.path.join(filename, result_file_name["r2_test"]), np.asarray(self.r2_test_history))
 
     def initial_training(self, x_train: Sequence[X], y_train: Sequence[Y]) -> None:
         self.x_train = x_train
@@ -115,6 +136,8 @@ class ButenePassiveLearner(PassiveLearner):
         self.model_c.set_const_normalization_from_features(feat_x)
         self.model_c.fit(x=[feat_x, feat_grad], y=y_scaled_c, batch_size=4, epochs=max_epochs, verbose=2, callbacks=[CallbackStopIfLossLow(thr=thr, min_epoch=min_epochs)])
         self.model_c.precomputed_features = False
+
+        self.save_results()
 
     def load_model(self) -> None:
         filename = os.path.abspath(os.path.abspath(model_location))
@@ -189,8 +212,11 @@ class ButenePassiveLearner(PassiveLearner):
             self.y_train = np.append(self.y_train, [y], axis=0)
 
         batch_size = 8
+        print(f"TRAINING SIZE of passive learner (sl model): x_size = {len(self.x_train)}, y_size = {len(self.y_train)}")
         if len(self.x_train) % batch_size == 0:
             self.train_batch_early_stopping(self.x_train, self.y_train, batch_size, 0.7, 20, 2000)
+
+        self.save_results()
 
     def train_batch_early_stopping(self, xs: Sequence[X], ys: Sequence[Y], batch_size: int, thr, min_epoch, max_epoch):
         self.model_a.precomputed_features = True
@@ -234,26 +260,4 @@ class ButenePassiveLearner(PassiveLearner):
         logging.info(f"r2 test: {self.r2_test_history}")
 
     def sl_model_satisfies_evaluation(self) -> bool:
-        return (not len(self.mae_test_history) == 0) and self.mae_test_history[-1] < 0.6
-
-    def run_final_evaluation(self):
-        x_test, y_test = map_shape_input_to_flat(self.x_test), map_shape_output_to_flat([self.eng_test, self.grads_test])
-        x_training, y_training = self.x_train, self.y_train
-
-        pred_test = self.predict_set(x_test)[0]
-        pred_training = self.predict_set(x_training)[0]
-
-        print_evaluation("al trained model test", y_test, pred_test)
-        print_evaluation("al trained model training", y_training, pred_training)
-
-        # plot history
-        plt.plot(np.array(self.mae_test_history))
-        plt.plot(np.array(self.mae_train_history))
-        plt.show()
-
-        plt.plot(np.array(self.r2_test_history))
-        plt.plot(np.array(self.r2_train_history))
-        plt.show()
-
-        # TRAINING and evaluation of REDUCED SL MODEL (train with reduced labelled set)
-        run_evaluation_reduced_sl_model(flat_x=x_training, flat_x_test=x_test, flat_y=y_training, flat_y_test=y_test)
+        return (not len(self.mae_test_history) == 0) and self.mae_test_history[-1] < 1
