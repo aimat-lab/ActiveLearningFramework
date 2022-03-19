@@ -35,7 +35,7 @@ class ButeneEnergyForceInitiator(InitiationHelper):
         x_loaded = np.array([x_loaded[i] for i in random_idx])
         x = np.array([instance.flatten() for instance in x_loaded[test_set_size:]])
         x_test = x_loaded[:test_set_size]
-        eng =  np.load("example_implementations/butene_data/butene_energy.npy")
+        eng = np.load("example_implementations/butene_data/butene_energy.npy")
         eng = np.array([eng[i] for i in random_idx])
         grads = np.load("example_implementations/butene_data/butene_force.npy")
         grads = np.array([grads[i] for i in random_idx])
@@ -43,7 +43,7 @@ class ButeneEnergyForceInitiator(InitiationHelper):
         eng, grads = eng[test_set_size:], grads[test_set_size:]
 
         y = np.array([np.append(eng[i].flatten(), grads[i].flatten()) for i in range(len(eng))])
-        host, user, password, database = "localhost", "root", "toor", "1__butene_energy_force"
+        host, user, password, database = "localhost", "root", "toor", "2__butene_energy_force"
 
         initial_data_size = 4
         self.x_train_init, self.y_train_init, x, y = x[:initial_data_size], y[:initial_data_size], x[initial_data_size:], y[initial_data_size:]

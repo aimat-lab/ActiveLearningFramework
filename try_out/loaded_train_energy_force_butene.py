@@ -11,9 +11,9 @@ from example_implementations.pyNNsMD.models.mlp_eg import EnergyGradientModel
 
 model_location = "assets/saved_models/pbs/"
 weight_file_name = {
-    "a": '1__weights_a.h5',
-    "b": '1__weights_b.h5',
-    "c": '1__weights_c.h5'
+    "a": '2__weights_a.h5',
+    "b": '2__weights_b.h5',
+    "c": '2__weights_c.h5'
 }
 
 
@@ -76,6 +76,22 @@ def load():
     _, y_pred_a = scaler.inverse_transform(x=x_scaled, y=y_pred_a)
     _, y_pred_b = scaler.inverse_transform(x=x_scaled, y=y_pred_b)
     x_pred, y_pred_c = scaler.inverse_transform(x=x_scaled, y=y_pred_c)
+
+    y_pred = np.mean(np.array([y_pred_a[0], y_pred_b[0], y_pred_c[0]]), axis=0)
+
+    y_pred_flat = np.array([np.append(y_pred[0][i], y_pred[1][i].flatten()) for i in range(len(y_pred[0]))])
+    y_flat = np.array([np.append(eng[i], grads[i].flatten()) for i in range(len(eng))])
+    mae = np.mean(np.array(
+        [np.mean(np.abs(y_pred_flat[i] - y_flat[i])) for i in range(len(y_pred_flat))]
+    ))
+    rsquared = np.mean(np.array(
+        [(np.corrcoef(y_flat[i], y_pred_flat[i])[0, 1]) ** 2 for i in range(len(y_pred_flat))]
+    ))
+    print(f"MAE: {mae}, r-squared: {rsquared}")
+
+    # Plot Prediction
+    fig = plot_scatter_prediction(eng, y_pred[0])
+    plt.show()
 
     # Plot Prediction
     fig = plot_scatter_prediction(eng, np.mean(np.array([y_pred_a[0], y_pred_b[0], y_pred_c[0]]), axis=0))

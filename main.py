@@ -131,5 +131,5 @@ if __name__ == '__main__':
     log.info(f"----- Prediction ------- => system_state={SystemStates(system_state.value).name}")
 
     # case implementation: results are available (use the stored SL model for predictions or use the stored labelled set for further training)
-
-    load()
+    pl.pl.load_model()
+    pl.pl.run_final_evaluation()
