@@ -1,3 +1,4 @@
 *.pyc
 *.txt
-/assets/saved_models/*
+/assets/saved_models/
+/assets/evaluation/

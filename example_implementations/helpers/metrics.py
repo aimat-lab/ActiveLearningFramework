@@ -4,6 +4,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from pyNNsMD.plots.pred import plot_scatter_prediction
 
+from example_implementations.helpers import properties
 from example_implementations.helpers.mapper import map_flat_output_to_shape
 
 
@@ -45,4 +46,12 @@ def print_evaluation(title, ys, preds):
     # Plot Prediction
     fig = plot_scatter_prediction(y_val=map_flat_output_to_shape(ys)[0], y_pred=map_flat_output_to_shape(preds)[0], plot_title=f"Prediction {title}")
     plt.show()
+
+
+def calc_final_evaluation(ys, preds, title, location):
+    # Plot Prediction
+    plot_scatter_prediction(y_val=map_flat_output_to_shape(ys)[0], y_pred=map_flat_output_to_shape(preds)[0], plot_title=f"{title}")
+    plt.savefig(properties.results_location["prediction_image"] + location)
+
+    return len(ys), mae_set(ys, preds), r2_set(ys, preds)
 

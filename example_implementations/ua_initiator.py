@@ -6,8 +6,9 @@ import numpy as np
 from al_specific_components.candidate_update.candidate_updater_implementations import Pool, Stream, Generator
 from al_specific_components.query_selection import InformativenessAnalyser
 from basic_sl_component_interfaces import Oracle, ReadOnlyPassiveLearner, PassiveLearner
-from example_implementations.al_specific_component_implementations import UncertaintyInfoAnalyser, ButenePool
-from example_implementations.basic_sl_component_implementations import ButenePassiveLearner, ButeneOracle
+from example_implementations.al_specific_component_implementations import ButenePool, EverythingIsInformativeAnalyser
+from example_implementations.basic_sl_component_implementations import ButeneOracle
+from example_implementations.basic_sl_component_implementations.ua_passive_learner import UAButenePassiveLearner
 from example_implementations.helpers import properties
 from example_implementations.helpers.mapper import map_shape_input_to_flat, map_shape_output_to_flat
 from helpers import X, Y, Scenarios, AddInfo_Y, CandInfo
@@ -35,13 +36,13 @@ class ButeneEnergyForceInitiator(InitiationHelper):
         y_flat = map_shape_output_to_flat(y)
         y_test_flat = map_shape_output_to_flat(y_test)
 
-        host, user, password, database = "localhost", "root", "toor", properties.RUN_NUMBER + "__butene_energy_force"
+        host, user, password, database = "localhost", "root", "toor", properties.RUN_NUMBER + "__butene_energy_force__ua"
 
         initial_data_size = 4
         self.x_train_init, self.y_train_init, x_flat, y = x_flat[:initial_data_size], y_flat[:initial_data_size], x_flat[initial_data_size:], y_flat[initial_data_size:]
 
-        self.pl: PassiveLearner = ButenePassiveLearner(x_test_flat, y_test_flat)
-        self.ro_pl: ReadOnlyPassiveLearner = ButenePassiveLearner(x_test_flat, y_test_flat)
+        self.pl: PassiveLearner = UAButenePassiveLearner(x_test_flat, y_test_flat)
+        self.ro_pl: ReadOnlyPassiveLearner = UAButenePassiveLearner(x_test_flat, y_test_flat)
 
         self.mapper_function_prediction_to_candidate_info = get_candidate_additional_information
         example_x = x_flat[0]
@@ -53,7 +54,7 @@ class ButeneEnergyForceInitiator(InitiationHelper):
 
         self.training_set, self.candidate_set, self.log_qd_db, self.query_set = get_default_databases(self.scenario, self.candidate_set, self.pl, self.mapper_function_prediction_to_candidate_info, host, user, password, database)
 
-        self.info_analyser = UncertaintyInfoAnalyser(candidate_set=self.candidate_set)
+        self.info_analyser = EverythingIsInformativeAnalyser()
 
         assert isinstance(self.training_set, DefaultTrainingSet)
         self.oracle: Oracle = ButeneOracle(host, user, password, database, self.training_set.database_info.input_definition, self.training_set.database_info.output_definition, xs=x_flat, ys=y_flat)

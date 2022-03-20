@@ -16,7 +16,7 @@ from helpers import X, Y, AddInfo_Y
 _internal_models = ["a", "b", "c"]
 
 
-class ButenePassiveLearner(PassiveLearner):
+class UAButenePassiveLearner(PassiveLearner):
 
     def __init__(self, x_test, y_test):
         self.models, self.scaler = [], []
@@ -30,23 +30,23 @@ class ButenePassiveLearner(PassiveLearner):
 
         filename = os.path.abspath(os.path.abspath(properties.results_location["active_metrics_over_iterations"]))
         os.makedirs(filename, exist_ok=True)
-        np.save(os.path.join(filename, properties.entities["ia"] + "_train" + properties.mae_history_suffix), np.asarray([]))
-        np.save(os.path.join(filename, properties.entities["ia"] + "_test" + properties.mae_history_suffix), np.asarray([]))
-        np.save(os.path.join(filename, properties.entities["ia"] + "_train" + properties.r2_history_suffix), np.asarray([]))
-        np.save(os.path.join(filename, properties.entities["ia"] + "_test" + properties.r2_history_suffix), np.asarray([]))
+        np.save(os.path.join(filename, properties.entities["ua"] + "_train" + properties.mae_history_suffix), np.asarray([]))
+        np.save(os.path.join(filename, properties.entities["ua"] + "_test" + properties.mae_history_suffix), np.asarray([]))
+        np.save(os.path.join(filename, properties.entities["ua"] + "_train" + properties.r2_history_suffix), np.asarray([]))
+        np.save(os.path.join(filename, properties.entities["ua"] + "_test" + properties.r2_history_suffix), np.asarray([]))
 
         filename = os.path.abspath(os.path.abspath(properties.results_location["loss_over_epochs"]))
         os.makedirs(filename, exist_ok=True)
         for i in range(len(_internal_models)):
-            np.save(os.path.join(filename, properties.entities["ia"] + "_" + _internal_models[i] + properties.loss_history_suffix), np.asarray([]))
+            np.save(os.path.join(filename, properties.entities["ua"] + "_" + _internal_models[i] + properties.loss_history_suffix), np.asarray([]))
 
     def save_results(self):
         filename = os.path.abspath(os.path.abspath(properties.results_location["active_metrics_over_iterations"]))
         os.makedirs(filename, exist_ok=True)
-        np.save(os.path.join(filename, properties.entities["ia"] + "_train" + properties.mae_history_suffix), np.asarray(self._mae_train_history))
-        np.save(os.path.join(filename, properties.entities["ia"] + "_test" + properties.mae_history_suffix), np.asarray(self._mae_test_history))
-        np.save(os.path.join(filename, properties.entities["ia"] + "_train" + properties.r2_history_suffix), np.asarray(self._r2_train_history))
-        np.save(os.path.join(filename, properties.entities["ia"] + "_test" + properties.r2_history_suffix), np.asarray(self._r2_test_history))
+        np.save(os.path.join(filename, properties.entities["ua"] + "_train" + properties.mae_history_suffix), np.asarray(self._mae_train_history))
+        np.save(os.path.join(filename, properties.entities["ua"] + "_test" + properties.mae_history_suffix), np.asarray(self._mae_test_history))
+        np.save(os.path.join(filename, properties.entities["ua"] + "_train" + properties.r2_history_suffix), np.asarray(self._r2_train_history))
+        np.save(os.path.join(filename, properties.entities["ua"] + "_test" + properties.r2_history_suffix), np.asarray(self._r2_test_history))
 
         filename = os.path.abspath(os.path.abspath(properties.al_training_data_storage_location))
         os.makedirs(filename, exist_ok=True)
@@ -62,7 +62,7 @@ class ButenePassiveLearner(PassiveLearner):
             x_scaled, y_scaled = self.scaler[i].fit_transform(x=map_flat_input_to_shape(x_train), y=map_flat_output_to_shape(y_train))
             feat_x, feat_grad = self.models[i].precompute_feature_in_chunks(x_scaled, batch_size=4)
             self.models[i].set_const_normalization_from_features(feat_x)
-            self.models[i].fit(x=[feat_x, feat_grad], y=y_scaled, batch_size=4, epochs=properties.al_training_params["max_epochs"], verbose=2, callbacks=[CallbackStopIfLossLow(thr=1, min_epoch=properties.al_training_params["min_epochs"]), CallbackDocumentation(entity=properties.entities["ia"] + "_" + _internal_models[i])])
+            self.models[i].fit(x=[feat_x, feat_grad], y=y_scaled, batch_size=4, epochs=properties.al_training_params["max_epochs"], verbose=2, callbacks=[CallbackStopIfLossLow(thr=1, min_epoch=properties.al_training_params["min_epochs"]), CallbackDocumentation(entity=properties.entities["ua"] + "_" + _internal_models[i])])
             self.models[i].precomputed_features = False
 
     def load_model(self) -> None:

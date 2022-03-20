@@ -6,7 +6,6 @@ from typing import Callable
 from al_specific_components.candidate_update import get_candidate_source_type
 from al_specific_components.query_selection import InformativenessAnalyser
 from basic_sl_component_interfaces import PassiveLearner, Oracle, ReadOnlyPassiveLearner
-from example_implementations.evaluation.al_evaluation import final_evaluation_al
 from example_implementations.initiator import ButeneEnergyForceInitiator
 from helpers import SystemStates, CandInfo, AddInfo_Y, Y, X, Scenarios
 from helpers.exceptions import IncorrectScenarioImplementation, ALSystemError
@@ -17,8 +16,6 @@ logging.basicConfig(format='\nLOGGING: %(name)s, %(levelname)s: %(message)s :END
 log = logging.getLogger("Main logger")
 
 if __name__ == '__main__':
-    #load()
-#else:
     state_manager = Manager()
     system_state: ValueProxy = state_manager.Value('i', int(SystemStates.INITIALIZATION))
     sl_model_gets_stored: synchronize.Lock = Lock()
@@ -130,4 +127,3 @@ if __name__ == '__main__':
     log.info(f"----- Prediction ------- => system_state={SystemStates(system_state.value).name}")
 
     # case implementation: results are available (use the stored SL model for predictions or use the stored labelled set for further training)
-    final_evaluation_al(pl.pl)
