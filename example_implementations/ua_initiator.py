@@ -25,7 +25,7 @@ def get_candidate_additional_information(x: X, prediction: Y, additional_predict
     return uncertainty,
 
 
-class ButeneEnergyForceInitiator(InitiationHelper):
+class ButeneEnergyForceInitiatorUnfiltered(InitiationHelper):
 
     def __init__(self, x, x_test, y, y_test):
         self.scenario = Scenarios.PbS

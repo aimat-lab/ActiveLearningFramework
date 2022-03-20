@@ -6,12 +6,17 @@ from multiprocessing.managers import ValueProxy
 from typing import Callable
 
 import numpy as np
+from matplotlib import pyplot as plt
+from pyNNsMD.plots.pred import plot_scatter_prediction
 
 from al_specific_components.candidate_update import get_candidate_source_type
 from al_specific_components.query_selection import InformativenessAnalyser
 from basic_sl_component_interfaces import PassiveLearner, Oracle, ReadOnlyPassiveLearner
 from example_implementations.helpers import properties
+from example_implementations.helpers.mapper import map_shape_input_to_flat, map_flat_output_to_shape, map_shape_output_to_flat
+from example_implementations.helpers.metrics import calc_final_evaluation
 from example_implementations.initiator import ButeneEnergyForceInitiator
+from example_implementations.ua_initiator import ButeneEnergyForceInitiatorUnfiltered
 from helpers import SystemStates, CandInfo, AddInfo_Y, Y, X, Scenarios
 from helpers.exceptions import IncorrectScenarioImplementation, ALSystemError
 from helpers.system_initiator import InitiationHelper
@@ -133,15 +138,13 @@ def run_al(x, x_test, y, y_test):
     system_state.set(int(SystemStates.PREDICT))
     logging.info(f"----- Prediction ------- => system_state={SystemStates(system_state.value).name}")
 
-    logging.info(f"time al model: initialisation {t1 - t0}, training {t2 - t1}, whole {(t2 - t0)}")
+    pl.pl.load_model()
+    pred_train, pred_test = pl.pl.predict_set(xs=map_shape_input_to_flat(x))[0], pl.pl.predict_set(xs=map_shape_input_to_flat(x_test))[0]
+    _, mae_test, r2_test = calc_final_evaluation(pred_test, map_shape_output_to_flat(y_test), "IA test set", properties.entities["ia"] + "_test" + properties.prediction_image_suffix)
+    _, mae_train, r2_train = calc_final_evaluation(pred_train, map_shape_output_to_flat(y), "IA train set", properties.entities["ia"] + "_train" + properties.prediction_image_suffix)
+
     reduced_x = np.load(os.path.join(properties.al_training_data_storage_location, properties.al_training_data_storage_x))
 
-    filename = os.path.abspath(os.path.abspath(properties.results_location["active_metrics_over_iterations"]))
-    os.makedirs(filename, exist_ok=True)
-    mae_train = np.load(os.path.join(filename, properties.entities["ia"] + "_train" + properties.mae_history_suffix))[-1]
-    mae_test = np.load(os.path.join(filename, properties.entities["ia"] + "_test" + properties.mae_history_suffix))[-1]
-    r2_train = np.load(os.path.join(filename, properties.entities["ia"] + "_train" + properties.r2_history_suffix))[-1]
-    r2_test = np.load(os.path.join(filename, properties.entities["ia"] + "_test" + properties.r2_history_suffix))[-1]
     return {
         "time_init": t1-t0,
         "time_training": t2-t1,
@@ -165,7 +168,7 @@ def run_al_unfiltered(x, x_test, y, y_test):
     pl: PassiveLearnerController
     try:
 
-        init_helper: InitiationHelper = ButeneEnergyForceInitiator(x, x_test, y, y_test)  # case implementation: implement initiation helper => rest of training/workflow management/... is done by the framework
+        init_helper: InitiationHelper = ButeneEnergyForceInitiatorUnfiltered(x, x_test, y, y_test)  # case implementation: implement initiation helper => rest of training/workflow management/... is done by the framework
 
         # set scenario
         scenario: Scenarios = init_helper.get_scenario()
@@ -206,7 +209,7 @@ def run_al_unfiltered(x, x_test, y, y_test):
 
         # init info analyser (query selection)
         info_analyser: InformativenessAnalyser = init_helper.get_informativeness_analyser()
-        query_select = QuerySelectionController(candidate_set=candidate_set, logging_query_decision_db=logging_query_decision_db, query_set=query_set, scenario=scenario, info_analyser=info_analyser)
+        query_select = QuerySelectionController(candidate_set=candidate_set, log_query_decision_db=logging_query_decision_db, query_set=query_set, scenario=scenario, info_analyser=info_analyser)
 
         # initial training, data source update
         logging.info("Initial training and first candidate update")
@@ -271,12 +274,11 @@ def run_al_unfiltered(x, x_test, y, y_test):
     logging.info(f"time al model: initialisation {t1 - t0}, training {t2 - t1}, whole {(t2 - t0)}")
     reduced_x = np.load(os.path.join(properties.al_training_data_storage_location, properties.al_training_data_storage_x))
 
-    filename = os.path.abspath(os.path.abspath(properties.results_location["active_metrics_over_iterations"]))
-    os.makedirs(filename, exist_ok=True)
-    mae_train = np.load(os.path.join(filename, properties.entities["ua"] + "_train" + properties.mae_history_suffix))[-1]
-    mae_test = np.load(os.path.join(filename, properties.entities["ua"] + "_test" + properties.mae_history_suffix))[-1]
-    r2_train = np.load(os.path.join(filename, properties.entities["ua"] + "_train" + properties.r2_history_suffix))[-1]
-    r2_test = np.load(os.path.join(filename, properties.entities["ua"] + "_test" + properties.r2_history_suffix))[-1]
+    pl.pl.load_model()
+    pred_train, pred_test = pl.pl.predict_set(xs=map_shape_input_to_flat(x))[0], pl.pl.predict_set(xs=map_shape_input_to_flat(x_test))[0]
+    _, mae_test, r2_test = calc_final_evaluation(pred_test, map_shape_output_to_flat(y_test), "UA test set", properties.entities["ua"] + "_test" + properties.prediction_image_suffix)
+    _, mae_train, r2_train = calc_final_evaluation(pred_train, map_shape_output_to_flat(y), "UA train set", properties.entities["ua"] + "_train" + properties.prediction_image_suffix)
+
     return {
         "time_init": t1 - t0,
         "time_training": t2 - t1,

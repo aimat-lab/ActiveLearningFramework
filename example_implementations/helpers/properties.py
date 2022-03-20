@@ -1,6 +1,6 @@
 RUN_NUMBER = str(0)
 
-test_set_size = 8
+test_set_size = 256
 sl_training_params = {
     "min_epochs": 1,
     "thr": 0.7,
