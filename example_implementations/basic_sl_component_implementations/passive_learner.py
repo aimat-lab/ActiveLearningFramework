@@ -13,7 +13,7 @@ from example_implementations.helpers.model_creator import create_model_and_scale
 from example_implementations.pyNNsMD.models.mlp_eg import EnergyGradientModel
 from helpers import X, Y, AddInfo_Y
 
-_internal_models = ["a", "b", "c"]
+_internal_models = ["a", "b"]
 
 
 class ButenePassiveLearner(PassiveLearner):
@@ -60,10 +60,29 @@ class ButenePassiveLearner(PassiveLearner):
         for i in range(len(_internal_models)):
             self.models[i].precomputed_features = True
             x_scaled, y_scaled = self.scaler[i].fit_transform(x=map_flat_input_to_shape(x_train), y=map_flat_output_to_shape(y_train))
-            feat_x, feat_grad = self.models[i].precompute_feature_in_chunks(x_scaled, batch_size=4)
+            feat_x, feat_grad = self.models[i].precompute_feature_in_chunks(x_scaled, batch_size=properties.al_training_params["initial_set_size"])
             self.models[i].set_const_normalization_from_features(feat_x)
-            self.models[i].fit(x=[feat_x, feat_grad], y=y_scaled, batch_size=4, epochs=properties.al_training_params["max_epochs"], verbose=2, callbacks=[CallbackStopIfLossLow(thr=1, min_epoch=properties.al_training_params["min_epochs"]), CallbackDocumentation(entity=properties.entities["ia"] + "_" + _internal_models[i])])
+            self.models[i].fit(x=[feat_x, feat_grad], y=y_scaled, batch_size=properties.al_training_params["initial_set_size"], epochs=properties.al_training_params["initial_max_epochs"], verbose=2, callbacks=[CallbackStopIfLossLow(thr=properties.al_training_params["initial_thr"], min_epoch=properties.al_training_params["initial_min_epochs"]), CallbackDocumentation(entity=properties.entities["ia"] + "_" + _internal_models[i])])
             self.models[i].precomputed_features = False
+
+        x_test, y_test = self._x_test, self._y_test
+        x_training, y_training = self._x_train, self._y_train
+
+        pred_test = self.predict_set(x_test)[0]
+        pred_training = self.predict_set(x_training)[0]
+
+        mae_test, r2_test = metrics_set(y_test, pred_test)
+        mae_training, r2_training = metrics_set(y_training, pred_training)
+
+        self._mae_test_history.append(mae_test)
+        self._r2_test_history.append(r2_test)
+        self._mae_train_history.append(mae_training)
+        self._r2_train_history.append(r2_training)
+
+        logging.info(f"mae train: {self._mae_train_history}")
+        logging.info(f"r2 train: {self._r2_train_history}")
+        logging.info(f"mae test: {self._mae_test_history}")
+        logging.info(f"r2 test: {self._r2_test_history}")
 
     def load_model(self) -> None:
         filename = os.path.abspath(os.path.abspath(properties.models_storage_location))
@@ -116,10 +135,30 @@ class ButenePassiveLearner(PassiveLearner):
             self._x_train = np.append(self._x_train, [x], axis=0)
             self._y_train = np.append(self._y_train, [y], axis=0)
 
-        batch_size = 8
+        batch_size = properties.al_training_params["batch_size"]
         print(f"TRAINING SIZE of passive learner (sl model): x_size = {len(self._x_train)}, y_size = {len(self._y_train)}")
         if len(self._x_train) % batch_size == 0:
+            self.train_batch_early_stopping(self._x_train[-batch_size:], self._y_train[-batch_size:], batch_size, properties.al_training_params["initial_thr"], properties.al_training_params["initial_min_epochs"], properties.al_training_params["initial_max_epochs"])
             self.train_batch_early_stopping(self._x_train, self._y_train, batch_size, properties.al_training_params["thr"], properties.al_training_params["min_epochs"], properties.al_training_params["max_epochs"])
+
+            x_test, y_test = self._x_test, self._y_test
+            x_training, y_training = self._x_train, self._y_train
+
+            pred_test = self.predict_set(x_test)[0]
+            pred_training = self.predict_set(x_training)[0]
+
+            mae_test, r2_test = metrics_set(y_test, pred_test)
+            mae_training, r2_training = metrics_set(y_training, pred_training)
+
+            self._mae_test_history.append(mae_test)
+            self._r2_test_history.append(r2_test)
+            self._mae_train_history.append(mae_training)
+            self._r2_train_history.append(r2_training)
+
+            logging.info(f"mae train: {self._mae_train_history}")
+            logging.info(f"r2 train: {self._r2_train_history}")
+            logging.info(f"mae test: {self._mae_test_history}")
+            logging.info(f"r2 test: {self._r2_test_history}")
 
         self.save_results()
 
@@ -131,25 +170,6 @@ class ButenePassiveLearner(PassiveLearner):
             self.models[i].set_const_normalization_from_features(feat_x)
             self.models[i].fit(x=[feat_x, feat_grad], y=[y_scaled[0], y_scaled[1]], batch_size=batch_size, epochs=max_epoch, verbose=2, callbacks=[CallbackStopIfLossLow(thr=thr, min_epoch=min_epoch)])
             self.models[i].precomputed_features = False
-
-        x_test, y_test = self._x_test, self._y_test
-        x_training, y_training = self._x_train, self._y_train
-
-        pred_test = self.predict_set(x_test)[0]
-        pred_training = self.predict_set(x_training)[0]
-
-        mae_test, r2_test = metrics_set(y_test, pred_test)
-        mae_training, r2_training = metrics_set(y_training, pred_training)
-
-        self._mae_test_history.append(mae_test)
-        self._r2_test_history.append(r2_test)
-        self._mae_train_history.append(mae_training)
-        self._r2_train_history.append(r2_training)
-
-        logging.info(f"mae train: {self._mae_train_history}")
-        logging.info(f"r2 train: {self._r2_train_history}")
-        logging.info(f"mae test: {self._mae_test_history}")
-        logging.info(f"r2 test: {self._r2_test_history}")
 
     def sl_model_satisfies_evaluation(self) -> bool:
         return len(self._mae_test_history) > properties.min_al_n and self._mae_test_history[-1] < properties.al_mae_thr

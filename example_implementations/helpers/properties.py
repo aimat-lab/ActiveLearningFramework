@@ -1,15 +1,20 @@
-RUN_NUMBER = str(0)
+RUN_NUMBER = str(1)
 
 test_set_size = 256
 sl_training_params = {
-    "min_epochs": 1,
+    "min_epochs": 100,
     "thr": 0.7,
     "max_epochs": 2000
 }
 al_training_params = {
-    "min_epochs": 1,
+    "min_epochs": 100,
     "thr": 0.7,
-    "max_epochs": 1000
+    "max_epochs": 500,
+    "batch_size": 16,
+    "initial_min_epochs": 100,
+    "initial_thr": 1,
+    "initial_max_epochs": 500,
+    "initial_set_size": 16
 }
 al_mae_thr = 0.5
 min_al_n = 0  # minimum amount of al training iterations

@@ -37,7 +37,7 @@ class ButeneEnergyForceInitiator(InitiationHelper):
 
         host, user, password, database = "localhost", "root", "toor", properties.RUN_NUMBER + "__butene_energy_force"
 
-        initial_data_size = 4
+        initial_data_size = properties.al_training_params["initial_set_size"]
         self.x_train_init, self.y_train_init, x_flat, y = x_flat[:initial_data_size], y_flat[:initial_data_size], x_flat[initial_data_size:], y_flat[initial_data_size:]
 
         self.pl: PassiveLearner = ButenePassiveLearner(x_test_flat, y_test_flat)
