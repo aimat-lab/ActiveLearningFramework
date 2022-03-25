@@ -3,7 +3,7 @@ import time
 from multiprocessing.managers import ValueProxy
 
 from basic_sl_component_interfaces import Oracle
-from helpers import SystemStates, Y
+from helpers import SystemStates, Y, framework_properties
 from helpers.exceptions import NoNewElementException, CantResolveQueryException
 from workflow_management.database_interfaces import TrainingSet, QuerySet
 
@@ -69,7 +69,7 @@ class OracleController:
 
                     else:
                         log.info("Wait for new queries")
-                        time.sleep(10)
+                        time.sleep(framework_properties.waiting_times["oracle"])
                         continue
 
                 log.info("Retrieve unresolved query => will add label")

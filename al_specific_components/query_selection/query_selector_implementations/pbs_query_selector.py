@@ -2,7 +2,7 @@ import logging
 
 from al_specific_components.candidate_update.candidate_updater_implementations import Pool
 from al_specific_components.query_selection import QuerySelector, InformativenessAnalyser
-from helpers import X
+from helpers import X, framework_properties
 from helpers.exceptions import IncorrectParameters
 
 log = logging.getLogger("PbS query selector")
@@ -35,7 +35,7 @@ class PbS_QuerySelector(QuerySelector):
 
         log.debug("Evaluate informativeness for all instances => find maximizing instance")
 
-        max_number_refresh_counter = 8
+        max_number_refresh_counter = framework_properties.pbs_refresh_counter_sorted_list
         max_info: float
         max_x: X
 

@@ -1,22 +1,22 @@
-RUN_NUMBER = str(1)
+RUN_NUMBER = str(2)
 
 test_set_size = 256
 sl_training_params = {
     "min_epochs": 100,
-    "thr": 0.7,
+    "thr": 1,
     "max_epochs": 2000
 }
 al_training_params = {
     "min_epochs": 100,
-    "thr": 0.7,
-    "max_epochs": 500,
-    "batch_size": 16,
+    "thr": 1,
+    "max_epochs": 2000,
+    "batch_size": 32,
     "initial_min_epochs": 100,
     "initial_thr": 1,
-    "initial_max_epochs": 500,
-    "initial_set_size": 16
+    "initial_max_epochs": 2000,
+    "initial_set_size": 32
 }
-al_mae_thr = 0.5
+al_mae_thr = 0.6
 min_al_n = 0  # minimum amount of al training iterations
 
 _data_location_prefix = "example_implementations/butene_data"

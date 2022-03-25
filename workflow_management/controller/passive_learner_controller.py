@@ -5,7 +5,7 @@ from multiprocessing.managers import ValueProxy
 from typing import Sequence
 
 from basic_sl_component_interfaces import PassiveLearner
-from helpers import SystemStates, X, Y
+from helpers import SystemStates, X, Y, framework_properties
 from helpers.exceptions import NoNewElementException, StoringModelException, LoadingModelException
 from workflow_management.database_interfaces import TrainingSet
 
@@ -95,7 +95,7 @@ class PassiveLearnerController:
 
                     else:
                         log.info("Wait for new training data")
-                        time.sleep(5)
+                        time.sleep(framework_properties.waiting_times["pl"])
 
                         continue
 

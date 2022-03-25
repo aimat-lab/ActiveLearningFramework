@@ -1,7 +1,7 @@
 import logging
 
 from al_specific_components.query_selection import QuerySelector, InformativenessAnalyser
-from helpers import X
+from helpers import X, framework_properties
 from workflow_management.database_interfaces import CandidateSet
 
 log = logging.getLogger("SbS query selector")
@@ -17,9 +17,7 @@ class SbS_QuerySelector(QuerySelector):
 
     # noinspection PyMethodMayBeStatic
     def decide_discard(self, info: float) -> bool:
-        # TODO: maybe not static/hard implemented => instead default method and one that can be inserted in implementation?
-        # TODO: if threshold kept => what should be value?? => should value adapt over time
-        return info < 0.5
+        return info < framework_properties.sbs_threshold_query_decision
 
     def select_query_instance(self) -> (X, float, bool):
         """
