@@ -3,7 +3,7 @@ import os
 import numpy as np
 from keras.callbacks import Callback
 
-from new_example_implementation.helpers import properties
+from example_implementation.helpers import properties
 
 
 class CallbackStopIfLossLow(Callback):

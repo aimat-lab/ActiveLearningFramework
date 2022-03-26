@@ -4,8 +4,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 from pyNNsMD.plots.pred import plot_scatter_prediction
 
-from new_example_implementation.helpers import properties
-from new_example_implementation.helpers.mapper import map_flat_output_to_shape
+from example_implementation.helpers import properties
+from example_implementation.helpers.mapper import map_flat_output_to_shape
 
 
 def mae_single_instance(y, pred):

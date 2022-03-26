@@ -1,8 +1,8 @@
 import logging
 import time
 
-from new_example_implementation.helpers import properties
-from new_example_implementation.sl_implementations.sl_model import SLModel
+from example_implementation.helpers import properties
+from example_implementation.sl_implementations.sl_model import SLModel
 
 
 def run_sl__unfiltered(x, x_test, y, y_test):

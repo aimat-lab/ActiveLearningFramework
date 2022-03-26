@@ -13,14 +13,13 @@ from basic_sl_component_interfaces import PassiveLearner, Oracle, ReadOnlyPassiv
 from helpers import SystemStates, Scenarios, X, Y, AddInfo_Y, CandInfo
 from helpers.exceptions import IncorrectScenarioImplementation, ALSystemError
 from helpers.system_initiator import InitiationHelper
-from new_example_implementation.helpers import properties
-from new_example_implementation.helpers.mapper import map_shape_input_to_flat, map_shape_output_to_flat
-from new_example_implementation.helpers.metrics import calc_final_evaluation
-from new_example_implementation.al_implementations.active_initiator import ButeneInitiator
+from example_implementation.al_implementations.active_initiator import ButeneInitiator
+from example_implementation.helpers import properties
+from example_implementation.helpers.metrics import calc_final_evaluation
 from workflow_management.controller import CandidateUpdaterController, QuerySelectionController, OracleController, PassiveLearnerController
 
 
-def run_al__unfiltered(x, x_test, y, y_test):
+def run_al(x, x_test, y, y_test):
     t0 = time.time()
 
     state_manager = Manager()
@@ -32,14 +31,14 @@ def run_al__unfiltered(x, x_test, y, y_test):
     pl: PassiveLearnerController
     try:
 
-        init_helper: InitiationHelper = ButeneInitiator(x, x_test, y, y_test, entity=properties.entities["ua"])
+        init_helper: InitiationHelper = ButeneInitiator(x, x_test, y, y_test)
 
         # set scenario
         scenario: Scenarios = init_helper.get_scenario()
         logging.info(f"Start of AL framework, chosen scenario: {scenario.name}")
 
         # WORKFLOW: Initialization
-        logging.info(f"------ UA Initialize AL framework ------  => system_state={SystemStates(system_state.value).name}")
+        logging.info(f"------ Initialize AL framework ------  => system_state={SystemStates(system_state.value).name}")
 
         # initialize candidate source
         # type of candidate_source depends on the scenario
@@ -98,7 +97,7 @@ def run_al__unfiltered(x, x_test, y, y_test):
         raise ALSystemError()
 
     t1 = time.time()
-    logging.info(f"------ UA Active Training ------ => system_state={SystemStates(system_state.value).name}")
+    logging.info(f"------ Active Training ------ => system_state={SystemStates(system_state.value).name}")
 
     # create processes
     cand_updater_process = Process(target=cand_up.training_job, args=(system_state, sl_model_gets_stored), name="Process-AL-candidate-update")
@@ -133,7 +132,7 @@ def run_al__unfiltered(x, x_test, y, y_test):
     # WORKFLOW: Prediction
     logging.info("Finished training process")
     system_state.set(int(SystemStates.PREDICT))
-    logging.info(f"----- UA Prediction ------- => system_state={SystemStates(system_state.value).name}")
+    logging.info(f"----- Prediction ------- => system_state={SystemStates(system_state.value).name}")
 
     filename = os.path.abspath(os.path.abspath(properties.results_location["prediction_image"]))
     os.makedirs(filename, exist_ok=True)

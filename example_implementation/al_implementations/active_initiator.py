@@ -9,11 +9,11 @@ from basic_sl_component_interfaces import Oracle, ReadOnlyPassiveLearner, Passiv
 from helpers import X, Y, Scenarios, AddInfo_Y, CandInfo
 from helpers.database_helper.default_datasets import get_default_databases, DefaultTrainingSet
 from helpers.system_initiator import InitiationHelper
-from new_example_implementation.al_implementations.butene_pool import ButenePool
-from new_example_implementation.al_implementations.informativeness_analyser import UncertaintyInfoAnalyser, EverythingIsInformativeAnalyser
-from new_example_implementation.al_implementations.oracle import ButeneOracle
-from new_example_implementation.al_implementations.passive_learner import ButenePassiveLearner
-from new_example_implementation.helpers import properties
+from example_implementation.al_implementations.butene_pool import ButenePool
+from example_implementation.al_implementations.informativeness_analyser import UncertaintyInfoAnalyser, EverythingIsInformativeAnalyser
+from example_implementation.al_implementations.oracle import ButeneOracle
+from example_implementation.al_implementations.passive_learner import ButenePassiveLearner
+from example_implementation.helpers import properties
 from workflow_management.database_interfaces import TrainingSet, CandidateSet, LogQueryDecisionDB, QuerySet
 
 

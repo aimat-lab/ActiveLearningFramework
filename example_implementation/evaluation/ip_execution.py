@@ -1,8 +1,8 @@
 import logging
 import time
 
-from new_example_implementation.helpers import properties
-from new_example_implementation.sl_implementations.sl_model import SLModel
+from example_implementation.helpers import properties
+from example_implementation.sl_implementations.sl_model import SLModel
 
 
 def run_sl(x, x_train, x_test, y, y_train, y_test):
@@ -16,13 +16,13 @@ def run_sl(x, x_train, x_test, y, y_train, y_test):
     t2 = time.time()
 
     # TEST after training
-    size_training_set, mae_test, r2_test, mae_train, r2_train = reduced_sl_model.evaluate(x=x, x_test=x_test, y=y, y_test=y_test)
+    _, mae_test, r2_test, mae_train, r2_train = reduced_sl_model.evaluate(x=x, x_test=x_test, y=y, y_test=y_test)
 
     logging.info(f"Reduced SL model time: initialisation {t1 - t0}, training {t2 - t1}, whole {t2 - t0}")
     return {
         "time_init": t1 - t0,
         "time_training": t2 - t1,
-        "size_training_set": size_training_set,
+        "size_training_set": len(x_train),
         "mae_test": mae_test,
         "r2_test": r2_test,
         "mae_train": mae_train,

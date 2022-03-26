@@ -1,17 +1,17 @@
 import logging
 import os
-from typing import Sequence, Optional, Tuple
+from typing import Sequence, Optional, Tuple, List
 
 import numpy as np
 from pyNNsMD.models.mlp_eg import EnergyGradientModel
 
 from basic_sl_component_interfaces import PassiveLearner
 from helpers import X, Y, AddInfo_Y
-from new_example_implementation.helpers import properties
-from new_example_implementation.helpers.callbacks import CallbackStopIfLossLow, CallbackDocumentation
-from new_example_implementation.helpers.creator_methods import create_scaler, create_model
-from new_example_implementation.helpers.mapper import map_flat_input_to_shape, map_flat_output_to_shape, map_shape_output_to_flat
-from new_example_implementation.helpers.metrics import metrics_set
+from example_implementation.helpers import properties
+from example_implementation.helpers.callbacks import CallbackStopIfLossLow, CallbackDocumentation
+from example_implementation.helpers.creator_methods import create_scaler, create_model
+from example_implementation.helpers.mapper import map_flat_input_to_shape, map_flat_output_to_shape, map_shape_output_to_flat
+from example_implementation.helpers.metrics import metrics_set
 
 
 class ButenePassiveLearner(PassiveLearner):
@@ -20,7 +20,7 @@ class ButenePassiveLearner(PassiveLearner):
         self._entity = eval_entity
 
         self._scaler = create_scaler()
-        self._models: Sequence[EnergyGradientModel] = [create_model(self._scaler) for _ in range(properties.al_training_params["amount_internal_models"])]
+        self._models: List[EnergyGradientModel] = [create_model(self._scaler) for _ in range(properties.al_training_params["amount_internal_models"])]
 
         self._x_train, self._y_train = np.array([]), np.array([])
         self._x_test, self._y_test = x_test, y_test
@@ -72,6 +72,12 @@ class ButenePassiveLearner(PassiveLearner):
         logging.info(f"r2 train: {self._r2_train_history}")
         logging.info(f"mae test: {self._mae_test_history}")
         logging.info(f"r2 test: {self._r2_test_history}")
+
+        filename = os.path.abspath(os.path.abspath(properties.results_location["active_metrics_over_iterations"]))
+        np.save(os.path.join(filename, self._entity + "_train" + properties.mae_history_suffix), np.asarray(self._mae_train_history))
+        np.save(os.path.join(filename, self._entity + "_test" + properties.mae_history_suffix), np.asarray(self._mae_test_history))
+        np.save(os.path.join(filename, self._entity + "_train" + properties.r2_history_suffix), np.asarray(self._r2_train_history))
+        np.save(os.path.join(filename, self._entity + "_test" + properties.r2_history_suffix), np.asarray(self._r2_test_history))
 
     def initial_training(self, x_train: Sequence[X], y_train: Sequence[Y]) -> None:
         self._x_train, self._y_train = x_train, y_train

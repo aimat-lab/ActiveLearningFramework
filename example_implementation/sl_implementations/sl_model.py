@@ -2,12 +2,11 @@ import os
 
 import numpy as np
 
-from example_implementations.helpers.mapper import map_shape_output_to_flat
-from new_example_implementation.helpers import properties
-from new_example_implementation.helpers.callbacks import CallbackDocumentation, CallbackStopIfLossLow
-from new_example_implementation.helpers.creator_methods import create_scaler, create_model
-from new_example_implementation.helpers.mapper import map_flat_input_to_shape, map_flat_output_to_shape
-from new_example_implementation.helpers.metrics import calc_final_evaluation
+from example_implementation.helpers import properties
+from example_implementation.helpers.callbacks import CallbackDocumentation, CallbackStopIfLossLow
+from example_implementation.helpers.creator_methods import create_scaler, create_model
+from example_implementation.helpers.mapper import map_flat_input_to_shape, map_flat_output_to_shape, map_shape_output_to_flat
+from example_implementation.helpers.metrics import calc_final_evaluation
 
 
 class SLModel:

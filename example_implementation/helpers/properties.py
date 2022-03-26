@@ -12,16 +12,16 @@ al_training_params = {
     "batch_size": 16,
     "min_epochs": 20,
     "thr": 0.6,
-    "max_epochs": 200,
-    "initial_min_epochs": 20,
-    "initial_thr": 0.6,
-    "initial_max_epochs": 200,
+    "max_epochs": 100,
+    "initial_min_epochs": 0,
+    "initial_thr": 2,
+    "initial_max_epochs": 50,
     "initial_set_size": 16
 }
 al_mae_thr = 0.5
 min_al_n = 0  # minimum amount of al training iterations
 
-_data_location_prefix = "new_example_implementation/butene_data"
+_data_location_prefix = "example_implementation/butene_data"
 data_location = {
     "x": f"{_data_location_prefix}/butene_x.npy",
     "energy": f"{_data_location_prefix}/butene_energy.npy",
