@@ -14,8 +14,7 @@ class CallbackStopIfLossLow(Callback):
 
     def on_epoch_end(self, epoch, logs=None):
         logs = logs or {}
-        last_loss = logs.get('loss')
-        if last_loss <= self.thr and epoch - 1 >= self.min_epoch:
+        if logs.get('loss') <= self.thr and epoch >= self.min_epoch:
             self.model.stop_training = True
 
 

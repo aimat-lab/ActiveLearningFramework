@@ -276,7 +276,7 @@ class EnergyGradientModel(ks.Model):
         copy_model.set_weights(self.get_weights())
         # Make graph and test with training data
         copy_model.predict(np.ones((1, self.eg_atoms, 3)))
-        tf.keras.models.save_model(copy_model, filepath, **kwargs)
+        tf.keras._models.save_model(copy_model, filepath, **kwargs)
 
     def save_weights(self,
                      filepath,
