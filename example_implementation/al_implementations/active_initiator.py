@@ -32,6 +32,8 @@ class ButeneInitiator(InitiationHelper):
         self._entity = entity
 
         host, user, password, database = "localhost", "root", "toor", properties.RUN_NUMBER + "__butene_energy_force"
+        if entity == properties.entities["ua"]:
+            database = properties.RUN_NUMBER + "__butene_energy_force__ua"
 
         initial_data_size = properties.al_training_params["initial_set_size"]
         self._x_train_init, x = x[:initial_data_size], x[initial_data_size:]

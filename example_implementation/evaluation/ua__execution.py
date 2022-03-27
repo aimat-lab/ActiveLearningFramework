@@ -139,8 +139,8 @@ def run_al__unfiltered(x, x_test, y, y_test):
     os.makedirs(filename, exist_ok=True)
     pl.pl.load_model()
     pred_train, pred_test = pl.pl.predict_set(xs=x)[0], pl.pl.predict_set(xs=x_test)[0]
-    _, mae_test, r2_test = calc_final_evaluation(pred_test, y_test, "IA test set", properties.entities["ia"] + "_test" + properties.prediction_image_suffix)
-    _, mae_train, r2_train = calc_final_evaluation(pred_train, y, "IA train set", properties.entities["ia"] + "_train" + properties.prediction_image_suffix)
+    _, mae_test, r2_test = calc_final_evaluation(pred_test, y_test, "UA test set", properties.entities["ua"] + "_test" + properties.prediction_image_suffix)
+    _, mae_train, r2_train = calc_final_evaluation(pred_train, y, "UA train set", properties.entities["ua"] + "_train" + properties.prediction_image_suffix)
 
     reduced_x = np.load(os.path.join(properties.al_training_data_storage_location, properties.al_training_data_storage_x))
 

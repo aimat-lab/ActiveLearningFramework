@@ -55,6 +55,14 @@ if __name__ == '__main__':
     print("UA")
     print(ua_results)
 
+    plt.clf()
+    color_ua_test = "#00aedb"
+    color_ua_train = "#007999"
+    color_ia_test = "#f37735"
+    color_ia_train = "#C25F2A"
+    color_up = "#00b159"
+    color_ip = "#ffc425"
+
     # plot metrics history
     filename = os.path.abspath(os.path.abspath(properties.results_location["active_metrics_over_iterations"]))
 
@@ -63,39 +71,59 @@ if __name__ == '__main__':
     ua_test_mae = np.load(os.path.join(filename, properties.entities["ua"] + "_test" + properties.mae_history_suffix))
     ua_train_mae = np.load(os.path.join(filename, properties.entities["ua"] + "_train" + properties.mae_history_suffix))
 
-    plt.plot([i * 16 for i in range(len(ia_test_mae))], ia_test_mae, label="IA test mae")
-    plt.plot([i * 16 for i in range(len(ia_train_mae))], ia_train_mae, label="IA train mae")
-    plt.plot([i * 16 for i in range(len(ua_test_mae))], ua_test_mae, label="UA test mae")
-    plt.plot([i * 16 for i in range(len(ua_train_mae))], ua_train_mae, label="UA train mae")
+    plt.title("MAE history for actively trained entities over the training iterations")
+    plt.xlabel("training iterations")
+    plt.ylabel("MAE value (calculated for test set or current training set)")
+    plt.yscale('log')
+
+    plt.plot([i * 16 for i in range(len(ia_test_mae))], ia_test_mae, label="IA test mae", color=color_ia_test)
+    plt.plot([i * 16 for i in range(len(ia_train_mae))], ia_train_mae, label="IA train mae", color=color_ia_train)
+    plt.plot([i * 16 for i in range(len(ua_test_mae))], ua_test_mae, label="UA test mae", color=color_ua_test)
+    plt.plot([i * 16 for i in range(len(ua_train_mae))], ua_train_mae, label="UA train mae", color=color_ua_train)
 
     plt.legend()
     plt.savefig(properties.results_location["active_metrics_over_iterations"] + "mae_plot")
+    plt.show()
+    plt.clf()
 
     ia_test_r2 = np.load(os.path.join(filename, properties.entities["ia"] + "_test" + properties.r2_history_suffix))
     ia_train_r2 = np.load(os.path.join(filename, properties.entities["ia"] + "_train" + properties.r2_history_suffix))
     ua_test_r2 = np.load(os.path.join(filename, properties.entities["ua"] + "_test" + properties.r2_history_suffix))
     ua_train_r2 = np.load(os.path.join(filename, properties.entities["ua"] + "_train" + properties.r2_history_suffix))
 
-    plt.plot([i * 16 for i in range(len(ia_test_r2))], ia_test_r2, label="IA test r2")
-    plt.plot([i * 16 for i in range(len(ia_train_r2))], ia_train_r2, label="IA train r2")
-    plt.plot([i * 16 for i in range(len(ua_test_r2))], ua_test_r2, label="UA test r2")
-    plt.plot([i * 16 for i in range(len(ua_train_r2))], ua_train_r2, label="UA train r2")
+    plt.title("R-squared history for actively trained entities over the training iterations")
+    plt.xlabel("training iterations")
+    plt.ylabel("R2 value (calculated for test set or current training set)")
+    plt.yscale('log')
+
+    plt.plot([i * 16 for i in range(len(ia_test_r2))], ia_test_r2, label="IA test r2", color=color_ia_test)
+    plt.plot([i * 16 for i in range(len(ia_train_r2))], ia_train_r2, label="IA train r2", color=color_ia_train)
+    plt.plot([i * 16 for i in range(len(ua_test_r2))], ua_test_r2, label="UA test r2", color=color_ua_test)
+    plt.plot([i * 16 for i in range(len(ua_train_r2))], ua_train_r2, label="UA train r2", color=color_ua_train)
 
     plt.legend()
     plt.savefig(properties.results_location["active_metrics_over_iterations"] + "r2_plot")
+    plt.show()
+    plt.clf()
 
     # plot loss history
     filename = os.path.abspath(os.path.abspath(properties.results_location["loss_over_epochs"]))
-    ia_loss = np.load(os.path.join(filename, properties.entities["ia"] + "_0"))  # always use first of the internal models for comparison
-    ua_loss = np.load(os.path.join(filename, properties.entities["ua"] + "_0"))  # always use first of the internal models for comparison
-    ip_loss = np.load(os.path.join(filename, properties.entities["ip"]))
-    up_loss = np.load(os.path.join(filename, properties.entities["up"]))
+    ia_loss = np.load(os.path.join(filename, properties.entities["ia"] + "_0" + properties.loss_history_suffix))  # always use first of the internal models for comparison
+    ua_loss = np.load(os.path.join(filename, properties.entities["ua"] + "_0" + properties.loss_history_suffix))  # always use first of the internal models for comparison
+    ip_loss = np.load(os.path.join(filename, properties.entities["ip"] + properties.loss_history_suffix))
+    up_loss = np.load(os.path.join(filename, properties.entities["up"] + properties.loss_history_suffix))
 
-    plt.plot(range(len(ia_loss)), ia_loss, label="IA loss")
-    plt.plot(range(len(ua_loss)), ua_loss, label="UA loss")
-    plt.plot(range(len(ip_loss)), ip_loss, label="IP loss")
-    plt.plot(range(len(up_loss)), up_loss, label="UP loss")
+    plt.title("Loss history for all entities over epochs")
+    plt.xlabel("epochs")
+    plt.ylabel("training loss")
+    plt.yscale('log')
+
+    plt.plot(range(len(ia_loss)), ia_loss, label="IA loss", color=color_ia_test, linewidth=0.75)
+    plt.plot(range(len(ua_loss)), ua_loss, label="UA loss", color=color_ua_test, linewidth=0.75)
+    plt.plot(range(len(ip_loss)), ip_loss, label="IP loss", color=color_ip, linewidth=0.75)
+    plt.plot(range(len(up_loss)), up_loss, label="UP loss", color=color_up, linewidth=0.75)
 
     plt.legend()
     plt.savefig(properties.results_location["loss_over_epochs"] + "loss_plot")
+    plt.show()
 

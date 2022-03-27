@@ -10,12 +10,12 @@ sl_training_params = {
 al_training_params = {
     "amount_internal_models": 2,
     "batch_size": 16,
-    "min_epochs": 20,
+    "min_epochs": 10,
     "thr": 0.6,
-    "max_epochs": 100,
+    "max_epochs": 60,
     "initial_min_epochs": 0,
     "initial_thr": 2,
-    "initial_max_epochs": 50,
+    "initial_max_epochs": 10,
     "initial_set_size": 16
 }
 al_mae_thr = 0.5
