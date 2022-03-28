@@ -3,7 +3,7 @@ import time
 from multiprocessing.managers import ValueProxy
 
 from al_specific_components.query_selection import QuerySelector, init_query_selector, InformativenessAnalyser
-from helpers import Scenarios, SystemStates
+from helpers import Scenarios, SystemStates, framework_properties
 from helpers.exceptions import NoNewElementException
 from workflow_management.database_interfaces import QuerySet, CandidateSet, LogQueryDecisionDB
 
@@ -85,7 +85,7 @@ class QuerySelectionController:
 
                     else:
                         log.info("Wait for new candidates")
-                        time.sleep(5)
+                        time.sleep(framework_properties.waiting_times["query_selector"])
 
                 continue
 

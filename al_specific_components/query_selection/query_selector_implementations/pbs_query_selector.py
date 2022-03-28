@@ -2,7 +2,7 @@ import logging
 
 from al_specific_components.candidate_update.candidate_updater_implementations import Pool
 from al_specific_components.query_selection import QuerySelector, InformativenessAnalyser
-from helpers import X
+from helpers import X, framework_properties
 from helpers.exceptions import IncorrectParameters
 
 log = logging.getLogger("PbS query selector")
@@ -21,6 +21,8 @@ class PbS_QuerySelector(QuerySelector):
         else:
             self.candidate_set = candidate_set
             self.info_analyser = info_analyser
+            self.store_sorted_list = []
+            self.refresh_counter = 0
 
     def select_query_instance(self) -> (X, float, bool):
         """
@@ -32,7 +34,18 @@ class PbS_QuerySelector(QuerySelector):
         (xs, _) = self.candidate_set.retrieve_all_instances()
 
         log.debug("Evaluate informativeness for all instances => find maximizing instance")
-        max_info, max_x = sorted([(self.info_analyser.get_informativeness(x), x) for x in xs], key=lambda x: x[0], reverse=True)[0]
+
+        max_number_refresh_counter = framework_properties.pbs_refresh_counter_sorted_list
+        max_info: float
+        max_x: X
+
+        if self.refresh_counter == 0:
+            self.store_sorted_list = sorted([(self.info_analyser.get_informativeness(x), x) for x in xs], key=lambda x: x[0], reverse=True)
+            self.refresh_counter = max_number_refresh_counter
+            max_info, max_x = self.store_sorted_list[max_number_refresh_counter - self.refresh_counter]
+        else:
+            self.refresh_counter -= 1
+            max_info, max_x = self.store_sorted_list[max_number_refresh_counter - self.refresh_counter]
 
         log.info(f"Found maximizing instance")
         return max_x, max_info, True

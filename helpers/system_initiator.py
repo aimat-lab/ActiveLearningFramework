@@ -1,4 +1,4 @@
-from typing import Tuple, Optional, Callable, Sequence
+from typing import Tuple, Callable, Sequence
 
 from al_specific_components.candidate_update.candidate_updater_implementations import Pool, Stream, Generator
 from al_specific_components.query_selection import InformativenessAnalyser
