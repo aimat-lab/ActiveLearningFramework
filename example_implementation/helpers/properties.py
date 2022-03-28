@@ -3,7 +3,7 @@ RUN_NUMBER = str(1)
 test_set_size = 256
 sl_training_params = {
     "min_epochs": 100,
-    "thr": 0.6,
+    "thr": 0.7,
     "max_epochs": 2000,
     "batch_size": 32
 }
@@ -11,7 +11,7 @@ al_training_params = {
     "amount_internal_models": 2,
     "batch_size": 16,
     "min_epochs": 10,
-    "thr": 0.6,
+    "thr": 0.7,
     "max_epochs": 60,
     "initial_min_epochs": 0,
     "initial_thr": 2,
