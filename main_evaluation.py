@@ -83,7 +83,6 @@ if __name__ == '__main__':
 
     plt.legend()
     plt.savefig(properties.results_location["active_metrics_over_iterations"] + "mae_plot")
-    plt.show()
     plt.clf()
 
     ia_test_r2 = np.load(os.path.join(filename, properties.entities["ia"] + "_test" + properties.r2_history_suffix))
@@ -103,7 +102,6 @@ if __name__ == '__main__':
 
     plt.legend()
     plt.savefig(properties.results_location["active_metrics_over_iterations"] + "r2_plot")
-    plt.show()
     plt.clf()
 
     # plot loss history
@@ -125,5 +123,4 @@ if __name__ == '__main__':
 
     plt.legend()
     plt.savefig(properties.results_location["loss_over_epochs"] + "loss_plot")
-    plt.show()
 
