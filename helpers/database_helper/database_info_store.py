@@ -22,13 +22,11 @@ class DatabaseInfoStore:
     log_query_decision_information_definition: string = "info_value double, queried double"
 
     candidate_set_name: string = "candidate_set"
-    # TODO: merge training set and stored labelled set
     training_set_name: string = "training_set"
-    stored_labelled_set_name: string = "stored_labelled_set"
     query_set_name: string = "query_set"
     log_query_decision_set_name: string = "log_query_decision_database"
 
-    def connect_to_house_pricing_example_db(self):
+    def connect_to_db(self):
         return mysql.connector.connect(host=self.host, user=self.user, password=self.password, database=self.database)
 
     def x_to_str_tuple(self, x: X) -> Tuple[str, ...]:

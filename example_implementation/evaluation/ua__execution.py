@@ -1,5 +1,7 @@
 import logging
-from multiprocessing import Process, Manager, Lock, synchronize
+import os
+import time
+from multiprocessing import Manager, Lock, synchronize, Process
 from multiprocessing.managers import ValueProxy
 from typing import Callable
 
@@ -9,17 +11,17 @@ from al_specific_components.candidate_update import get_candidate_source_type
 from al_specific_components.query_selection import InformativenessAnalyser
 from basic_sl_component_interfaces import PassiveLearner, Oracle, ReadOnlyPassiveLearner
 from example_implementation.al_implementations.active_initiator import MethanolInitiator
-from example_implementation.helpers import properties
-from example_implementation.helpers.mapper import map_shape_input_to_flat, map_shape_output_to_flat
-from helpers import SystemStates, CandInfo, AddInfo_Y, Y, X, Scenarios
+from helpers import SystemStates, Scenarios, X, Y, AddInfo_Y, CandInfo
 from helpers.exceptions import IncorrectScenarioImplementation, ALSystemError
 from helpers.system_initiator import InitiationHelper
-from workflow_management.controller import PassiveLearnerController, OracleController, CandidateUpdaterController, QuerySelectionController
+from example_implementation.helpers import properties
+from example_implementation.helpers.metrics import calc_final_evaluation
+from workflow_management.controller import CandidateUpdaterController, QuerySelectionController, OracleController, PassiveLearnerController
 
-logging.basicConfig(format='\nLOGGING: %(name)s, %(levelname)s: %(message)s :END LOGGING', level=logging.INFO)
-log = logging.getLogger("Main logger")
 
-if __name__ == '__main__':
+def run_al__unfiltered(x, x_test, y, y_test):
+    t0 = time.time()
+
     state_manager = Manager()
     system_state: ValueProxy = state_manager.Value('i', int(SystemStates.INITIALIZATION))
     sl_model_gets_stored: synchronize.Lock = Lock()
@@ -27,48 +29,32 @@ if __name__ == '__main__':
     query_select: QuerySelectionController
     o: OracleController
     pl: PassiveLearnerController
-
-    geos = np.load(properties.data_location["coord"])  # in A
-    energies = np.load(properties.data_location["energy"])  # in eV
-    grads = np.load(properties.data_location["force"]) * 27.21138624598853 / 0.52917721090380  # from H/B to eV/A
-    energies = np.expand_dims(energies, axis=1)
-    grads = np.expand_dims(grads, axis=1)
-
-    random_idx = np.arange(len(geos))
-    np.random.shuffle(random_idx)
-    geos = np.array([geos[i] for i in random_idx])
-    energies = np.array([energies[i] for i in random_idx])
-    grads = np.array([grads[i] for i in random_idx])
-
-    x, x_test = map_shape_input_to_flat(geos[properties.test_set_size:]), map_shape_input_to_flat(geos[:properties.test_set_size])
-    y, y_test = map_shape_output_to_flat([energies[properties.test_set_size:], grads[properties.test_set_size:]]), map_shape_output_to_flat([energies[:properties.test_set_size], grads[:properties.test_set_size]])
-
     try:
         internal_lock: synchronize.Lock = Lock()
-        init_helper: InitiationHelper = MethanolInitiator(internal_lock=internal_lock, x=x, x_test=x_test, y=y, y_test=y_test)
+        init_helper: InitiationHelper = MethanolInitiator(internal_lock=internal_lock, x=x, x_test=x_test, y=y, y_test=y_test, entity=properties.eval_entities["ua"])
 
         # set scenario
         scenario: Scenarios = init_helper.get_scenario()
-        log.info(f"Start of AL framework, chosen scenario: {scenario.name}")
+        logging.info(f"Start of AL framework, chosen scenario: {scenario.name}")
 
         # WORKFLOW: Initialization
-        log.info(f"------ Initialize AL framework ------  => system_state={SystemStates(system_state.value).name}")
+        logging.info(f"------ UA Initialize AL framework ------  => system_state={SystemStates(system_state.value).name}")
 
         # initialize candidate source
         # type of candidate_source depends on the scenario
         candidate_source_type = get_candidate_source_type(scenario)
-        log.info(f"Initialize datasource => type: {candidate_source_type}")
+        logging.info(f"Initialize datasource => type: {candidate_source_type}")
         candidate_source: candidate_source_type = init_helper.get_candidate_source()
         if not isinstance(candidate_source, candidate_source_type):
             system_state.set(int(SystemStates.ERROR))
             raise IncorrectScenarioImplementation(f"candidate_source needs to be of type {candidate_source_type}")
 
         # init databases (usually empty)
-        log.info("Initialize datasets")
+        logging.info("Initialize datasets")
         (training_set, candidate_set, log_query_decision_db, query_set) = init_helper.get_datasets()
 
         # init components (workflow controller)
-        log.info("Initialize components")
+        logging.info("Initialize components")
 
         # init passive learner
         sl_model: PassiveLearner = init_helper.get_pl()
@@ -89,7 +75,7 @@ if __name__ == '__main__':
         query_select = QuerySelectionController(candidate_set=candidate_set, log_query_decision_db=log_query_decision_db, query_set=query_set, scenario=scenario, info_analyser=info_analyser)
 
         # initial training, data source update
-        log.info("Initial training and first candidate update")
+        logging.info("Initial training and first candidate update")
         x_train, y_train = init_helper.get_initial_training_data()
         pl.init_pl(x_train, y_train)  # training with initial training data
         cand_up.init_candidates()
@@ -98,7 +84,7 @@ if __name__ == '__main__':
             training_set.set_instance_not_use_for_training(x_train[i])
 
     except Exception as e:
-        log.error("During initialization, an unexpected error occurred", e)
+        logging.error("During initialization, an unexpected error occurred", e)
         system_state.set(int(SystemStates.ERROR))
 
     # WORKFLOW: Training in parallel processes
@@ -107,10 +93,11 @@ if __name__ == '__main__':
     if system_state.value == int(SystemStates.INITIALIZATION):
         system_state.set(int(SystemStates.TRAINING))
     else:
-        log.error("An error occurred during initiation => system failed")
+        logging.error("An error occurred during initiation => system failed")
         raise ALSystemError()
 
-    log.info(f"------ Active Training ------ => system_state={SystemStates(system_state.value).name}")
+    t1 = time.time()
+    logging.info(f"------ UA Active Training ------ => system_state={SystemStates(system_state.value).name}")
 
     # create processes
     cand_updater_process = Process(target=cand_up.training_job, args=(system_state, sl_model_gets_stored), name="Process-AL-candidate-update")
@@ -118,16 +105,16 @@ if __name__ == '__main__':
     o_process = Process(target=o.training_job, args=(system_state,), name="Process-Oracle")
     pl_process = Process(target=pl.training_job, args=(system_state, sl_model_gets_stored), name="Process-PL")
 
-    log.info(f"Start every controller process: al candidate update - {cand_updater_process.name}, al query selection - {query_selection_process.name}, oracle - {o_process.name}, pl - {pl_process.name}")
+    logging.info(f"Start every controller process: al candidate update - {cand_updater_process.name}, al query selection - {query_selection_process.name}, oracle - {o_process.name}, pl - {pl_process.name}")
     # actually start the processes
     query_selection_process.start()
-    log.info(f"al query selection process ({query_selection_process.name}) started")
+    logging.info(f"al query selection process ({query_selection_process.name}) started")
     o_process.start()
-    log.info(f"oracle process ({o_process.name}) started")
+    logging.info(f"oracle process ({o_process.name}) started")
     pl_process.start()
-    log.info(f"pl process ({pl_process.name}) started")
+    logging.info(f"pl process ({pl_process.name}) started")
     cand_updater_process.start()
-    log.info(f"al candidate update process ({cand_updater_process.name}) started")
+    logging.info(f"al candidate update process ({cand_updater_process.name}) started")
 
     # collect the processes
     cand_updater_process.join()
@@ -135,15 +122,33 @@ if __name__ == '__main__':
     o_process.join()
     pl_process.join()
 
-    log.info(f"Every controller process has finished => system_state={SystemStates(system_state.value).name}")
+    t2 = time.time()
+    logging.info(f"Every controller process has finished => system_state={SystemStates(system_state.value).name}")
 
     if system_state.value == int(SystemStates.ERROR):
-        log.error("A fatal error occurred => model training has failed")
+        logging.error("A fatal error occurred => model training has failed")
         raise ALSystemError()
 
     # WORKFLOW: Prediction
-    log.info("Finished training process")
+    logging.info("Finished training process")
     system_state.set(int(SystemStates.PREDICT))
-    log.info(f"----- Prediction ------- => system_state={SystemStates(system_state.value).name}")
+    logging.info(f"----- UA Prediction ------- => system_state={SystemStates(system_state.value).name}")
 
-    # case implementation: results are available (use the stored SL model for predictions or use the stored labelled set for further training)
+    filename = os.path.abspath(os.path.abspath(properties.results_location["prediction_image"]))
+    os.makedirs(filename, exist_ok=True)
+    pl.pl.load_model()
+    pred_train, pred_test = pl.pl.predict_set(xs=x)[0], pl.pl.predict_set(xs=x_test)[0]
+    _, mae_test, r2_test = calc_final_evaluation(pred_test, y_test, "UA test set", properties.eval_entities["ua"] + "_test" + properties.prediction_image_suffix)
+    _, mae_train, r2_train = calc_final_evaluation(pred_train, y, "UA train set", properties.eval_entities["ua"] + "_train" + properties.prediction_image_suffix)
+
+    reduced_x = np.load(os.path.join(properties.al_training_data_storage_location, properties.al_training_data_storage_x))
+
+    return {
+        "time_init": t1 - t0,
+        "time_training": t2 - t1,
+        "size_training_set": len(reduced_x),
+        "mae_test": mae_test,
+        "r2_test": r2_test,
+        "mae_train": mae_train,
+        "r2_train": r2_train
+    }

@@ -101,7 +101,7 @@ class DefaultTrainingSet(TrainingSet):
         output_definition = self.database_info.output_definition
         schema_name = self.database_info.database
 
-        db = self.database_info.connect_to_house_pricing_example_db()
+        db = self.database_info.connect_to_db()
         cursor = db.cursor()
 
         sql = f"DROP TABLE IF EXISTS {training_set_name}"
@@ -121,7 +121,7 @@ class DefaultTrainingSet(TrainingSet):
         input_placeholders = self.database_info.create_placeholders_from_sql_definition(self.database_info.input_definition)
         output_placeholders = self.database_info.create_placeholders_from_sql_definition(self.database_info.output_definition)
 
-        db = self.database_info.connect_to_house_pricing_example_db()
+        db = self.database_info.connect_to_db()
         cursor = db.cursor()
 
         sql = f"""INSERT INTO {training_set_name} (use_for_training, {input_reference}, {output_reference}) VALUES (1, {input_placeholders}, {output_placeholders})"""
@@ -138,7 +138,7 @@ class DefaultTrainingSet(TrainingSet):
         x_size = len(self.database_info.input_definition.split(", "))
         y_size = len(self.database_info.output_definition.split(", "))
 
-        db = self.database_info.connect_to_house_pricing_example_db()
+        db = self.database_info.connect_to_db()
         cursor = db.cursor()
 
         cursor.execute(f"SELECT * FROM {training_set_name}")
@@ -165,7 +165,7 @@ class DefaultTrainingSet(TrainingSet):
         training_set_name = self.database_info.training_set_name
         input_equal_check = self.database_info.create_equal_check_from_sql_definition(self.database_info.input_definition)
 
-        db = self.database_info.connect_to_house_pricing_example_db()
+        db = self.database_info.connect_to_db()
         cursor = db.cursor()
 
         sql = f"DELETE FROM {training_set_name} WHERE {input_equal_check}"
@@ -178,7 +178,7 @@ class DefaultTrainingSet(TrainingSet):
     def clear(self) -> None:
         training_set_name = self.database_info.training_set_name
 
-        db = self.database_info.connect_to_house_pricing_example_db()
+        db = self.database_info.connect_to_db()
         cursor = db.cursor()
 
         cursor.execute(f"DELETE FROM {training_set_name}")
@@ -193,10 +193,10 @@ class DefaultTrainingSet(TrainingSet):
         x_size = len(self.database_info.input_definition.split(", "))
         y_size = len(self.database_info.output_definition.split(", "))
 
-        db = self.database_info.connect_to_house_pricing_example_db()
+        db = self.database_info.connect_to_db()
         cursor = db.cursor()
 
-        cursor.execute(f"SELECT MIN(id), {input_reference}, {output_reference} FROM {training_set_name} WHERE use_for_training = 1")
+        cursor.execute(f"SELECT MIN(id), {input_reference}, {output_reference} FROM {training_set_name} WHERE use_for_training = 1 GROUP BY {input_reference}, {output_reference}")
         result = cursor.fetchall()
         db.close()
 
@@ -214,7 +214,7 @@ class DefaultTrainingSet(TrainingSet):
         x_size = len(self.database_info.input_definition.split(", "))
         y_size = len(self.database_info.output_definition.split(", "))
 
-        db = self.database_info.connect_to_house_pricing_example_db()
+        db = self.database_info.connect_to_db()
         cursor = db.cursor()
 
         cursor.execute(f"SELECT * FROM {training_set_name} WHERE use_for_training = 1")
@@ -242,7 +242,7 @@ class DefaultTrainingSet(TrainingSet):
         input_equal_check = self.database_info.create_equal_check_from_sql_definition(self.database_info.input_definition)
         schema_name = self.database_info.database
 
-        db = self.database_info.connect_to_house_pricing_example_db()
+        db = self.database_info.connect_to_db()
         cursor = db.cursor()
 
         sql = f"SELECT * FROM {training_set_name} WHERE {input_equal_check}"
@@ -273,7 +273,7 @@ class DefaultCandidateSet(CandidateSet):
         additional_candidate_information_definition = self.database_info.additional_candidate_information_definition
         schema_name = self.database_info.database
 
-        db = self.database_info.connect_to_house_pricing_example_db()
+        db = self.database_info.connect_to_db()
         cursor = db.cursor()
 
         sql = f"DROP TABLE IF EXISTS {candidate_set_name}"
@@ -294,10 +294,10 @@ class DefaultCandidateSet(CandidateSet):
         x_size = len(self.database_info.input_definition.split(", "))
         cand_info_size = len(self.database_info.additional_candidate_information_definition.split(", "))
 
-        db = self.database_info.connect_to_house_pricing_example_db()
+        db = self.database_info.connect_to_db()
         cursor = db.cursor()
 
-        cursor.execute(f"SELECT MIN(id), {input_reference}, {additional_candidate_information_reference} FROM {candidate_set_name}")
+        cursor.execute(f"SELECT MIN(id), {input_reference}, {additional_candidate_information_reference} FROM {candidate_set_name} GROUP BY {input_reference}, {additional_candidate_information_reference}")
         res = cursor.fetchall()
         db.close()
 
@@ -317,7 +317,7 @@ class DefaultCandidateSet(CandidateSet):
         x_size = len(self.database_info.input_definition.split(", "))
         cand_info_size = len(self.database_info.additional_candidate_information_definition.split(", "))
 
-        db = self.database_info.connect_to_house_pricing_example_db()
+        db = self.database_info.connect_to_db()
         cursor = db.cursor()
 
         sql = f"SELECT {input_reference}, {additional_candidate_information_reference} FROM {candidate_set_name} WHERE {input_equal_check}"
@@ -338,7 +338,7 @@ class DefaultCandidateSet(CandidateSet):
         candidate_set_name = self.database_info.candidate_set_name
         input_equal_check = self.database_info.create_equal_check_from_sql_definition(self.database_info.input_definition)
 
-        db = self.database_info.connect_to_house_pricing_example_db()
+        db = self.database_info.connect_to_db()
         cursor = db.cursor()
 
         sql = f"DELETE FROM {candidate_set_name} WHERE {input_equal_check}"
@@ -356,7 +356,7 @@ class DefaultCandidateSet(CandidateSet):
         additional_candidate_information_reference = self.database_info.create_reference_from_sql_definition(self.database_info.additional_candidate_information_definition)
         additional_candidate_information_placeholders = self.database_info.create_placeholders_from_sql_definition(self.database_info.additional_candidate_information_definition)
 
-        db = self.database_info.connect_to_house_pricing_example_db()
+        db = self.database_info.connect_to_db()
         cursor = db.cursor()
 
         sql = f"INSERT INTO {candidate_set_name} ({input_reference}, {additional_candidate_information_reference}) VALUES ({input_placeholders}, {additional_candidate_information_placeholders})"
@@ -386,7 +386,7 @@ class DefaultLogQueryDecision(LogQueryDecisionDB):
         additional_candidate_information_definition = self.database_info.additional_candidate_information_definition
         schema_name = self.database_info.database
 
-        db = self.database_info.connect_to_house_pricing_example_db()
+        db = self.database_info.connect_to_db()
         cursor = db.cursor()
 
         sql = f"DROP TABLE IF EXISTS {log_query_decision_set_name}"
@@ -408,7 +408,7 @@ class DefaultLogQueryDecision(LogQueryDecisionDB):
         log_query_decision_information_placeholders = self.database_info.create_placeholders_from_sql_definition(self.database_info.log_query_decision_information_definition)
         additional_candidate_information_placeholders = self.database_info.create_placeholders_from_sql_definition(self.database_info.additional_candidate_information_definition)
 
-        db = self.database_info.connect_to_house_pricing_example_db()
+        db = self.database_info.connect_to_db()
         cursor = db.cursor()
 
         sql = f"INSERT INTO {log_query_decision_set_name} ({input_reference}, {log_query_decision_information_reference}, {additional_candidate_information_reference}) VALUES ({input_placeholders}, {log_query_decision_information_placeholders}, {additional_candidate_information_placeholders})"""
@@ -429,7 +429,7 @@ class DefaultQuerySet(QuerySet):
         input_definition = self.database_info.input_definition
         schema_name = self.database_info.database
 
-        db = self.database_info.connect_to_house_pricing_example_db()
+        db = self.database_info.connect_to_db()
         cursor = db.cursor()
 
         sql = f"DROP TABLE IF EXISTS {query_set_name}"
@@ -447,7 +447,7 @@ class DefaultQuerySet(QuerySet):
         input_reference = self.database_info.create_reference_from_sql_definition(self.database_info.input_definition)
         input_placeholders = self.database_info.create_placeholders_from_sql_definition(self.database_info.input_definition)
 
-        db = self.database_info.connect_to_house_pricing_example_db()
+        db = self.database_info.connect_to_db()
         cursor = db.cursor()
 
         sql = f"SELECT id from {query_set_name} WHERE {input_equal_check}"
@@ -467,10 +467,10 @@ class DefaultQuerySet(QuerySet):
         input_reference = self.database_info.create_reference_from_sql_definition(self.database_info.input_definition)
         schema_name = self.database_info.database
 
-        db = self.database_info.connect_to_house_pricing_example_db()
+        db = self.database_info.connect_to_db()
         cursor = db.cursor()
 
-        cursor.execute(f"SELECT MIN(id), {input_reference} from {query_set_name}")
+        cursor.execute(f"SELECT MIN(id), {input_reference} from {query_set_name} GROUP BY {input_reference}")
         res = cursor.fetchall()
         db.close()
 
@@ -484,7 +484,7 @@ class DefaultQuerySet(QuerySet):
         query_set_name = self.database_info.query_set_name
         input_equal_check = self.database_info.create_equal_check_from_sql_definition(self.database_info.input_definition)
 
-        db = self.database_info.connect_to_house_pricing_example_db()
+        db = self.database_info.connect_to_db()
         cursor = db.cursor()
         sql = f"DELETE from {query_set_name} WHERE {input_equal_check}"
         val = self.database_info.x_to_str_tuple(x)
