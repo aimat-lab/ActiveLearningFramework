@@ -13,6 +13,15 @@ from example_implementation.helpers import properties
 from example_implementation.helpers.mapper import map_shape_output_to_flat, map_flat_input_to_shape
 from helpers import Y, X
 
+unit_Bohr_A = 0.52917721090380
+unit_Hatree_eV = 27.21138624598853
+kcal_to_eV = 0.0433641153
+kB = 8.6173303e-5  # eV/K
+T = 298.15
+kBT = kB * T
+AToBohr = 1.889725989
+HToeV = 27.211399
+
 
 class MethanolOracle(Oracle):
     def query(self, x: X) -> Y:
@@ -29,12 +38,6 @@ class MethanolOracle(Oracle):
         return map_shape_output_to_flat([energy_list, grad_list])[0]
 
 
-kcal_to_eV = 0.0433641153
-kB = 8.6173303e-5  # eV/K
-T = 298.15
-kBT = kB * T
-AToBohr = 1.889725989
-HToeV = 27.211399
 
 
 def _do_xtb_runs(settings, name, coords_todo, elements_todo):

@@ -24,7 +24,7 @@ class MethanolStream(Stream):
         self.trajectory_md = _VerletIntegration(ensemble_md)
 
     def get_element(self) -> X:
-        return self.trajectory_md.propagate_timestep(1 * 1e-14 / self.trajectory_md.unit_atu_s)
+        return self.trajectory_md.propagate_timestep(1 * 1e-15 / self.trajectory_md.unit_atu_s)
 
 
 class _VerletIntegration:
