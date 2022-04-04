@@ -62,7 +62,6 @@ def _run_xtb(coords, elements):
         c_here = coords[molidx]
         el_here = elements[molidx]
         results = _xtb_calc(c_here, el_here, opt=False, grad=True, hess=False, charge=0, freeze=[])
-        logging.info(results)
         e = results["energy"]
         es.append(e)
         g = results["gradient"]
