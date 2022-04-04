@@ -141,4 +141,4 @@ class MethanolPL(PassiveLearner):
         return np.mean(np.array(ys), axis=0), np.var(np.array(ys), axis=0)
 
     def sl_model_satisfies_evaluation(self) -> bool:
-        return (len(self._mae_test_history) > properties.min_al_n and self._mae_test_history[-1] < properties.al_mae_thr) or (len(self._x_train) >= 96)
+        return len(self._mae_test_history) > properties.min_al_n and self._mae_test_history[-1] < properties.al_mae_thr

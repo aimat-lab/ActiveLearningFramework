@@ -9,6 +9,7 @@ import subprocess
 import shlex
 import yaml
 from basic_sl_component_interfaces import Oracle
+from example_implementation.helpers import properties
 from example_implementation.helpers.mapper import map_shape_output_to_flat, map_flat_input_to_shape
 from helpers import Y, X
 
@@ -19,6 +20,7 @@ class MethanolOracle(Oracle):
         elements = [["C", "O", "H", "H", "H", "H"]]
         energy_list, grad_list = _run_xtb(list(x_shape), elements)
 
+        # TODO: oracle currently doesn't work -> xtb error
         if energy_list[0] is None:
             energy_list = np.array([[-200]])
         if grad_list.__contains__(None):
@@ -104,7 +106,7 @@ def _xtb_calc(coords, elements, opt=False, grad=False, hess=False, charge=0, fre
         if len(freeze) != 0:
             print("WARNING: please test the combination of hess/grad and freeze carefully")
 
-    rundir = "xtb_tmpdir_%s" % (uuid.uuid4())
+    rundir = properties.tmp_dir_xtb
     if not os.path.exists(rundir):
         os.makedirs(rundir)
     else:
@@ -131,7 +133,7 @@ def _xtb_calc(coords, elements, opt=False, grad=False, hess=False, charge=0, fre
     else:
         add = ""
 
-    xtb_location = "/Users/meretunbehaun/opt/anaconda3/bin/xtb"
+    xtb_location = properties.location_xtb
     if charge == 0:
         if opt:
             if hess:

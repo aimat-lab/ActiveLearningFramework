@@ -1,4 +1,4 @@
-RUN_NUMBER = str(0)
+RUN_NUMBER = str(1)
 
 model_storage_location = f"assets/saved_models/sbs/{RUN_NUMBER}"
 model_storage_suffix = "__weights.h5"
@@ -52,4 +52,5 @@ eval_entities = {
     "ia": "ia", "ip": "ip", "ua": "ua"
 }
 
-
+location_xtb = "xtb"  # PATH on computer
+tmp_dir_xtb = f"assets/additional/sbs/{RUN_NUMBER}/xtb_tmpdir"
