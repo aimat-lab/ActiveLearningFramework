@@ -1,19 +1,12 @@
-RUN_NUMBER = str(0)
+RUN_NUMBER = str(1)
 
-model_storage_location = f"assets/saved_models/sbs/{RUN_NUMBER}"
+model_storage_location = f"assets/saved_models/sbs_housing/{RUN_NUMBER}"
 model_storage_suffix = "__weights.h5"
-al_training_data_storage_location = f"assets/saved_models/sbs/{RUN_NUMBER}/data"
+al_training_data_storage_location = f"assets/saved_models/sbs_housing/{RUN_NUMBER}/data"
 al_training_data_storage_x = "training_x.npy"
 al_training_data_storage_y = "training_y.npy"
 
-_data_location_prefix = "example_implementation/data"
-data_location = {
-    "coord": f"{_data_location_prefix}/methanol_coordinates.npy",
-    "force": f"{_data_location_prefix}/methanol_gradients.npy",
-    "energy": f"{_data_location_prefix}/methanol_energy.npy"
-}
-
-_results_location_prefix = "assets/evaluation/pbs/" + RUN_NUMBER
+_results_location_prefix = "assets/evaluation/sbs_housing/" + RUN_NUMBER
 results_location = {
     "prediction_image": f"{_results_location_prefix}/preds_graph/",  # plot of energy
     "loss_over_epochs": f"{_results_location_prefix}/loss_history/",  # loss development per epoch
@@ -28,17 +21,17 @@ test_set_size = 512
 
 al_training_params = {
     "amount_internal_models": 2,
-    "initial_batch_size": 32,
+    "initial_batch_size": 128,
     "initial_max_epochs": 100,
-    "initial_min_epochs": 0,
+    "initial_min_epochs": 5,
     "initial_thr": 0.6,
     "batch_size": 32,
-    "max_epochs": 100,
-    "min_epochs": 10,
-    "thr": 0.6
+    "max_epochs": 200,
+    "min_epochs": 5,
+    "thr": 0.5
 }
 
-al_mae_thr = 0.5
+al_mae_thr = 1
 min_al_n = 0  # minimum amount of al training iterations
 
 sl_training_params = {
@@ -49,8 +42,5 @@ sl_training_params = {
 }
 
 eval_entities = {
-    "ia": "ia", "ip": "ip", "ua": "ua"
+    "ia": "ia", "ip": "ip", "ua": "ua", "up": "up"
 }
-
-location_xtb = "xtb"  # PATH on computer
-tmp_dir_xtb = f"assets/additional/sbs/{RUN_NUMBER}/xtb_tmpdir"

@@ -3,30 +3,33 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+from sklearn.datasets import load_boston, fetch_california_housing
+from sklearn.model_selection import train_test_split
 
 from example_implementation.evaluation.ia__execution import run_al
 from example_implementation.helpers import properties
-from example_implementation.helpers.mapper import map_shape_input_to_flat, map_shape_output_to_flat
 
 logging.basicConfig(format='\nLOGGING: %(name)s, %(levelname)s: %(message)s :END LOGGING', level=logging.INFO)
 log = logging.getLogger("Main logger")
 
 if __name__ == '__main__':
+    # source for boston code: https://github.com/rodrigobressan/keras_boston_housing_price
+
     # Select data (test and training data separation)
-    geos = np.load(properties.data_location["coord"])  # in A
-    energies = np.load(properties.data_location["energy"])  # in eV
-    grads = np.load(properties.data_location["force"]) * 27.21138624598853 / 0.52917721090380  # from H/B to eV/A
-    energies = np.expand_dims(energies, axis=1)
-    grads = np.expand_dims(grads, axis=1)
+    housing_dataset = fetch_california_housing()
 
-    random_idx = np.arange(len(geos))
+    random_idx = np.arange(len(housing_dataset["data"]))
     np.random.shuffle(random_idx)
-    geos = np.array([geos[i] for i in random_idx])
-    energies = np.array([energies[i] for i in random_idx])
-    grads = np.array([grads[i] for i in random_idx])
+    x = np.array([housing_dataset["data"][i] for i in random_idx])
+    y = np.array([np.array([housing_dataset["target"][i]]) for i in random_idx])
 
-    x, x_test = map_shape_input_to_flat(geos[properties.test_set_size:]), map_shape_input_to_flat(geos[:properties.test_set_size])
-    y, y_test = map_shape_output_to_flat([energies[properties.test_set_size:], grads[properties.test_set_size:]]), map_shape_output_to_flat([energies[:properties.test_set_size], grads[:properties.test_set_size]])
+    x_train, x_test, y_train, y_test = x[properties.test_set_size:], x[:properties.test_set_size], y[properties.test_set_size:], y[:properties.test_set_size]
+
+    mean = x_train.mean(axis=0)
+    std = x_train.std(axis=0)
+    x_train = (x_train - mean) / std
+    x_test = (x_test - mean) / std
 
     # Evaluation of part: IA -> actual AL model
     ia_results = run_al(x, x_test, y, y_test)
@@ -84,4 +87,3 @@ if __name__ == '__main__':
 
     plt.legend()
     plt.savefig(properties.results_location["loss_over_epochs"] + "loss_plot")
-

@@ -5,7 +5,6 @@ from matplotlib import pyplot as plt
 from pyNNsMD.plots.pred import plot_scatter_prediction
 
 from example_implementation.helpers import properties
-from example_implementation.helpers.mapper import map_flat_output_to_shape
 
 
 def mae_single_instance(y, pred):
@@ -20,14 +19,14 @@ def mae_set(ys, preds):
 
 
 def r2_single_instance(y, pred):
-    return (np.corrcoef(pred, y)[0, 1]) ** 2
+    return 1 - (y - pred) ** 2 / (y ** 2)
 
 
 def r2_set(ys, preds):
     assert len(ys) == len(preds)
-    return np.mean(np.array(
-        [(np.corrcoef(preds[i], ys[i])[0, 1]) ** 2 for i in range(len(ys))]
-    ))
+    return np.mean(np.array([
+        1 - (ys[i] - preds[i]) ** 2 / (ys[i] ** 2) for i in range(len(ys))
+    ]))
 
 
 def metrics_single_instance(y, pred):
@@ -44,14 +43,13 @@ def print_evaluation(title, ys, preds):
     logging.info(f"{title}: mae = {mae_set(ys, preds)}, r2 = {r2_set(ys, preds)}")
 
     # Plot Prediction
-    fig = plot_scatter_prediction(y_val=map_flat_output_to_shape(ys)[0], y_pred=map_flat_output_to_shape(preds)[0], plot_title=f"Prediction {title}")
+    fig = plot_scatter_prediction(y_val=ys, y_pred=preds, plot_title=f"Prediction {title}")
     plt.show()
 
 
 def calc_final_evaluation(ys, preds, title, location):
     # Plot Prediction
-    plot_scatter_prediction(y_val=map_flat_output_to_shape(ys)[0], y_pred=map_flat_output_to_shape(preds)[0], plot_title=f"{title}")
+    plot_scatter_prediction(y_val=ys, y_pred=preds, plot_title=f"{title}")
     plt.savefig(properties.results_location["prediction_image"] + location)
 
     return len(ys), mae_set(ys, preds), r2_set(ys, preds)
-

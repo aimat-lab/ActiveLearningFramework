@@ -1,6 +1,5 @@
 import logging
 import os.path
-from multiprocessing import Lock
 from typing import Sequence, Optional, Tuple
 
 import numpy as np
@@ -9,22 +8,19 @@ from pyNNsMD.models.mlp_eg import EnergyGradientModel
 from basic_sl_component_interfaces import PassiveLearner
 from example_implementation.helpers import properties
 from example_implementation.helpers.callbacks import CallbackStopIfLossLow, CallbackDocumentation
-from example_implementation.helpers.creators import create_scaler, create_model
-from example_implementation.helpers.mapper import map_flat_input_to_shape, map_flat_output_to_shape, map_shape_output_to_flat
+from example_implementation.helpers.creators import create_model
 from example_implementation.helpers.metrics import metrics_set
 from helpers import Y, X, AddInfo_Y
 
 
-class MethanolPL(PassiveLearner):
+class HousingPL(PassiveLearner):
 
-    def __init__(self, lock: Lock, x_test, y_test, entity=properties.eval_entities["ia"]) -> None:
+    def __init__(self, x_test, y_test, entity=properties.eval_entities["ia"]) -> None:
         self._entity = entity
-        self._lock: Lock = lock
 
-        self._scaler, self._models = [], []
+        self._models = []
         for i in range(properties.al_training_params["amount_internal_models"]):
-            self._scaler.append(create_scaler())
-            self._models.append(create_model(self._scaler[i]))
+            self._models.append(create_model())
 
         self._x_train, self._y_train = np.array([]), np.array([])
         self._x_test, self._y_test = x_test, y_test
@@ -46,11 +42,9 @@ class MethanolPL(PassiveLearner):
     def load_model(self) -> None:
         filename = os.path.abspath(properties.model_storage_location)
 
-        self._lock.acquire()
         for i in range(properties.al_training_params["amount_internal_models"]):
-            self._models[i]: EnergyGradientModel = create_model(self._scaler[i])
+            self._models[i]: EnergyGradientModel = create_model()
             self._models[i].load_weights(os.path.join(filename, self._entity + "__" + str(i) + properties.model_storage_suffix))
-        self._lock.release()
 
     def close_model(self) -> None:
         self._models = [None for _ in range(properties.al_training_params["amount_internal_models"])]
@@ -59,11 +53,9 @@ class MethanolPL(PassiveLearner):
         filename = os.path.abspath(properties.model_storage_location)
         os.makedirs(filename, exist_ok=True)
 
-        self._lock.acquire()
         for i in range(properties.al_training_params["amount_internal_models"]):
             self._models[i].save_weights(os.path.join(filename, self._entity + "__" + str(i) + properties.model_storage_suffix))
             self._models[i] = None
-        self._lock.release()
 
     def _evaluate_metrics(self):
         x_test, y_test = self._x_test, self._y_test
@@ -93,15 +85,8 @@ class MethanolPL(PassiveLearner):
 
     def _train_batch(self, x, y, batch_size, max_epochs, min_epochs, thr):
         for i, model in enumerate(self._models):
-            model.precomputed_features = True
-            x_scaled, y_scaled = self._scaler[i].fit_transform(x=map_flat_input_to_shape(x), y=map_flat_output_to_shape(y))
-
-            feat_x, feat_grad = model.precompute_feature_in_chunks(x_scaled, batch_size=batch_size)
-            model.set_const_normalization_from_features(feat_x)
-
-            model.fit(x=[feat_x, feat_grad], y=[y_scaled[0], y_scaled[1]], batch_size=batch_size, epochs=max_epochs, verbose=2,
+            model.fit(x=x, y=y, batch_size=batch_size, epochs=max_epochs, verbose=2,
                       callbacks=[CallbackStopIfLossLow(min_epoch=min_epochs, thr=thr), CallbackDocumentation(entity=self._entity + "_" + str(i))])
-            model.precomputed_features = False
 
     def initial_training(self, x_train: Sequence[X], y_train: Sequence[Y]) -> None:
         self._x_train, self._y_train = x_train, y_train
@@ -133,10 +118,8 @@ class MethanolPL(PassiveLearner):
         ys = []
 
         for i, model in enumerate(self._models):
-            xs_scaled, _ = self._scaler[i].transform(x=map_flat_input_to_shape(xs), y=map_flat_output_to_shape(np.zeros((len(xs), 1 + 1 * 6 * 3))))
-            preds_scaled = model.predict(xs_scaled)
-            _, preds = self._scaler[i].inverse_transform(x=xs_scaled, y=preds_scaled)
-            ys.append(map_shape_output_to_flat(preds))
+            preds = model.predict(xs)
+            ys.append(preds)
 
         return np.mean(np.array(ys), axis=0), np.var(np.array(ys), axis=0)
 
