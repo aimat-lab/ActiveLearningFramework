@@ -10,7 +10,7 @@ import numpy as np
 from al_specific_components.candidate_update import get_candidate_source_type
 from al_specific_components.query_selection import InformativenessAnalyser
 from basic_sl_component_interfaces import PassiveLearner, Oracle, ReadOnlyPassiveLearner
-from example_implementation.al_implementations.active_initiator import BostonInitiator
+from example_implementation.al_implementations.active_initiator import HousingInitiator
 from example_implementation.helpers import properties
 from example_implementation.helpers.metrics import calc_final_evaluation
 from helpers import SystemStates, Scenarios, X, Y, AddInfo_Y, CandInfo
@@ -30,7 +30,7 @@ def run_al(x, x_test, y, y_test):
     o: OracleController
     pl: PassiveLearnerController
     try:
-        init_helper: InitiationHelper = BostonInitiator(x=x, x_test=x_test, y=y, y_test=y_test)
+        init_helper: InitiationHelper = HousingInitiator(x=x, x_test=x_test, y=y, y_test=y_test)
 
         # set scenario
         scenario: Scenarios = init_helper.get_scenario()

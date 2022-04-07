@@ -12,7 +12,7 @@ from example_implementation.al_implementations.stream import HousingStream
 from example_implementation.helpers import properties
 from helpers import X, Y, Scenarios, AddInfo_Y, CandInfo
 from helpers.database_helper import DatabaseInfoStore
-from helpers.database_helper.default_datasets import DefaultCandidateSet, DefaultTrainingSet, DefaultLogQueryDecision, DefaultQuerySet
+from helpers.database_helper.default_datasets import DefaultCandidateSet, DefaultTrainingSet, DefaultLogQueryDecision, DefaultQuerySet, get_default_databases
 from helpers.exceptions import InvalidTyping
 from helpers.system_initiator import InitiationHelper
 from workflow_management.database_interfaces import TrainingSet, CandidateSet, LogQueryDecisionDB, QuerySet
@@ -23,7 +23,7 @@ def get_candidate_additional_information(x: X, pred: Y, add_info: AddInfo_Y):
     return tuple(add_info)
 
 
-class BostonInitiator(InitiationHelper):
+class HousingInitiator(InitiationHelper):
 
     def __init__(self, x, x_test, y, y_test, entity=properties.eval_entities["ia"]):
         self._scenario = Scenarios.SbS
@@ -42,7 +42,7 @@ class BostonInitiator(InitiationHelper):
 
         self._mapper_function_prediction_to_candidate_info = get_candidate_additional_information
 
-        self._training_set, self._candidate_set, self._log_qd_da, self._query_set = _get_default_databases_adjusted(x[0], self._pl, self._mapper_function_prediction_to_candidate_info, host, user, password, database)
+        self._training_set, self._candidate_set, self._log_qd_da, self._query_set = get_default_databases(self._scenario, self._stream, self._pl, self._mapper_function_prediction_to_candidate_info, host, user, password, database)
 
         if entity == properties.eval_entities["ua"]:
             self._info_analyser = EverythingIsInformativeAnalyser()
@@ -78,59 +78,3 @@ class BostonInitiator(InitiationHelper):
     def get_datasets(self) -> Tuple[TrainingSet, CandidateSet, LogQueryDecisionDB, QuerySet]:
         return self._training_set, self._candidate_set, self._log_qd_da, self._query_set
 
-
-def _get_default_databases_adjusted(
-        example_x: X,
-        pl: PassiveLearner,
-        mapper_function_prediction_to_candidate_info: Callable[[X, Y, AddInfo_Y], CandInfo],
-        host: string, user: string, password: string, database: string
-) -> Tuple[TrainingSet, CandidateSet, LogQueryDecisionDB, QuerySet]:
-    # TODO: documentation
-    """
-    The default databases assume, that the input, additional information about the prediction and the candidate information are Sequences of numbers and the output is a single number
-
-    :param example_x:
-    :param pl:
-    :param mapper_function_prediction_to_candidate_info:
-    :param host:
-    :param user:
-    :param password:
-    :param database:
-    :return:
-    """
-    training_set: TrainingSet
-    candidate_set: CandidateSet
-    log_query_decision_db: LogQueryDecisionDB
-    query_set: QuerySet
-
-    example_y: Y
-    example_add_info_y: AddInfo_Y
-    example_y, example_add_info_y = pl.predict(example_x)
-
-    example_cand_info: CandInfo
-    example_cand_info = mapper_function_prediction_to_candidate_info(example_x, example_y, example_add_info_y)
-
-    try:
-        x_part = example_x[0]
-        assert isinstance(x_part, Number)
-        y_part = example_y[0]
-        assert isinstance(y_part, Number)
-        assert isinstance(example_cand_info, Tuple)
-        assert all([isinstance(example_cand_info[i], Number) for i in range(len(example_cand_info))])
-    except Exception:
-        raise InvalidTyping("Default database implementation assumes the following types: X (input) - array of numbers (e.g., numpy array); Y (output) - array of numbers (e.g., numpy array); CandInfo (additional information about candidate) - tuple of numbers")
-
-    x_sql_definition = ", ".join(["x_" + str(i) + " double" for i in range(len(example_x))])
-    y_sql_definition = ", ".join(["y_" + str(i) + " double" for i in range(len(example_y))])
-    cand_info_sql_definition = ", ".join(["cand_info_" + str(i) + " double" for i in range(len(example_cand_info))])
-    default_database_helper = DatabaseInfoStore(host=host, user=user, password=password, database=database,
-                                                input_definition=x_sql_definition, output_definition=y_sql_definition, additional_candidate_information_definition=cand_info_sql_definition)
-
-    training_set = DefaultTrainingSet(default_database_helper)
-
-    candidate_set = DefaultCandidateSet(default_database_helper)
-
-    log_query_decision_db = DefaultLogQueryDecision(default_database_helper)
-    query_set = DefaultQuerySet(default_database_helper)
-
-    return training_set, candidate_set, log_query_decision_db, query_set

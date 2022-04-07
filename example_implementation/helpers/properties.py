@@ -1,4 +1,4 @@
-RUN_NUMBER = str(0)
+RUN_NUMBER = str(1)
 
 model_storage_location = f"assets/saved_models/sbs_housing/{RUN_NUMBER}"
 model_storage_suffix = "__weights.h5"
