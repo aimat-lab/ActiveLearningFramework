@@ -9,6 +9,6 @@ def create_model():
     model.add(Dense(64, activation='relu', name='dense_2'))
     model.add(Dense(1, activation='linear', name='dense_output'))
 
-    model.compile(optimizer='adam', loss='mse', metrics=['mae'])
+    model.compile(optimizer='adam', loss='mae', metrics=['mae'])
 
     return model

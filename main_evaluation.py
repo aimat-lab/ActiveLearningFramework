@@ -65,7 +65,6 @@ if __name__ == '__main__':
     plt.title("R-squared history for actively trained entities over the training iterations")
     plt.xlabel("training iterations")
     plt.ylabel("R2 value (calculated for test set or current training set)")
-    plt.yscale('log')
 
     plt.plot([i * 16 for i in range(len(ia_test_r2))], ia_test_r2, label="IA test r2", color=color_ia_test)
     plt.plot([i * 16 for i in range(len(ia_train_r2))], ia_train_r2, label="IA train r2", color=color_ia_train)
