@@ -11,11 +11,11 @@ from al_specific_components.candidate_update import get_candidate_source_type
 from al_specific_components.query_selection import InformativenessAnalyser
 from basic_sl_component_interfaces import PassiveLearner, Oracle, ReadOnlyPassiveLearner
 from example_implementation.al_implementations.active_initiator import BostonInitiator
+from example_implementation.helpers import properties
+from example_implementation.helpers.metrics import calc_final_evaluation
 from helpers import SystemStates, Scenarios, X, Y, AddInfo_Y, CandInfo
 from helpers.exceptions import IncorrectScenarioImplementation, ALSystemError
 from helpers.system_initiator import InitiationHelper
-from example_implementation.helpers import properties
-from example_implementation.helpers.metrics import calc_final_evaluation
 from workflow_management.controller import CandidateUpdaterController, QuerySelectionController, OracleController, PassiveLearnerController
 
 

@@ -3,9 +3,7 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
-from sklearn.datasets import load_boston, fetch_california_housing
-from sklearn.model_selection import train_test_split
+from sklearn.datasets import fetch_california_housing
 
 from example_implementation.evaluation.ia__execution import run_al
 from example_implementation.helpers import properties
@@ -14,7 +12,7 @@ logging.basicConfig(format='\nLOGGING: %(name)s, %(levelname)s: %(message)s :END
 log = logging.getLogger("Main logger")
 
 if __name__ == '__main__':
-    # source for boston code: https://github.com/rodrigobressan/keras_boston_housing_price
+    # source for code: https://github.com/rodrigobressan/keras_boston_housing_price (adjusted for california database)
 
     # Select data (test and training data separation)
     housing_dataset = fetch_california_housing()

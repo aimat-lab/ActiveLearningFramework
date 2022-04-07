@@ -22,7 +22,7 @@ test_set_size = 512
 al_training_params = {
     "amount_internal_models": 2,
     "initial_batch_size": 32,
-    "initial_max_epochs": 25,
+    "initial_max_epochs": 300,
     "initial_min_epochs": 0,
     "initial_thr": 0,
     "batch_size": 32,
@@ -31,7 +31,7 @@ al_training_params = {
     "thr": 0.5
 }
 
-al_mae_thr = 1.7
+al_mae_thr = 1.5
 min_al_n = 0  # minimum amount of al training iterations
 
 sl_training_params = {
