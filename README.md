@@ -1,6 +1,7 @@
 # ActiveLearningFramework
 
 Bachelor Thesis: Active Learning strategies for Machine Learned potentials
+Author: Meret Unbehaun, 2022 ([EMail](mailto:meret.unbehaun@outlook.com). [LinkedIn](https://linkedin.com/in/meret-unbehaun-056467227))
 
 Project for the **active learning framework** (including example for boston house pricing regression)
 
