@@ -1,10 +1,10 @@
 # ActiveLearningFramework
 
-Bachelor Thesis: Active Learning strategies for Machine Learned potentials
+**Bachelor Thesis:** Active Learning Strategies for Machine Learned Potentials
 
-Author: Meret Unbehaun, 2022 ([EMail](mailto:meret.unbehaun@outlook.com), [LinkedIn](https://linkedin.com/in/meret-unbehaun-056467227))
+**Author:** Meret Unbehaun, 2022 ([EMail](mailto:meret.unbehaun@outlook.com), [LinkedIn](https://linkedin.com/in/meret-unbehaun-056467227))
 
-Project for the **active learning framework** (including example for boston house pricing regression)
+Project for the **Active Learning Framework**
 
 - parallel running PL, oracle, candidate updater, query selector
 - framework runs within one cluster
@@ -24,6 +24,10 @@ Project for the **active learning framework** (including example for boston hous
 
 Implement the concrete ML problem in a separate branch.
 - Implement system_initiator -> will provide everything that is necessary
+- Exemplary implementations on separate branches:
+  - Stream-based example, house price regression: https://github.com/aimat-lab/ActiveLearningFramework/tree/example_sbs
+  - Pool-based example, butene energy and force calculation: https://github.com/aimat-lab/ActiveLearningFramework/tree/Butene_energy_force_PbS
+  - Stream-based example, methanol energy and force calculation: https://github.com/aimat-lab/ActiveLearningFramework/tree/Methanol_SbS
 
 ## Abbreviations:
 
